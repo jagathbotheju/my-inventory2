@@ -3,13 +3,17 @@ import { auth } from "@/lib/auth";
 import { User } from "@/server/db/schema/users";
 import { redirect } from "next/navigation";
 
-interface Props {
-  params: {
-    id: string;
-  };
-}
+// interface Props {
+//   params: {
+//     id: string;
+//   };
+// }
 
-const SellProductPage = async ({ params }: Props) => {
+const SellProductPage = async ({
+  params,
+}: {
+  params: Promise<{ id: string }>;
+}) => {
   const productId = (await params).id;
   const session = await auth();
   const user = session?.user as User;
