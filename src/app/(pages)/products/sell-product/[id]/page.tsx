@@ -13,7 +13,6 @@ const SellProductPage = async ({ params }: Props) => {
   const productId = (await params).id;
   const session = await auth();
   const user = session?.user as User;
-  // console.log("session", session);
   if (!session) {
     redirect(`/auth/login?callbackUrl=/products/buy-products/${productId}`);
   }

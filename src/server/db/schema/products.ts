@@ -1,7 +1,6 @@
 import { InferSelectModel, relations } from "drizzle-orm";
 import { pgTable, text, timestamp } from "drizzle-orm/pg-core";
 import { Supplier, suppliers } from "./suppliers";
-// import { categories, Category } from "./categories";
 import { UnitOfMeasurement, unitOfMeasurements } from "./unitOfMeasurements";
 import { productBuyTransactions } from "./productBuyTransactions";
 
@@ -35,6 +34,5 @@ export const productRelations = relations(products, ({ one, many }) => ({
 export type Product = InferSelectModel<typeof products>;
 export type ProductExt = InferSelectModel<typeof products> & {
   suppliers: Supplier;
-  // category: Category;
   unitOfMeasurements: UnitOfMeasurement;
 };

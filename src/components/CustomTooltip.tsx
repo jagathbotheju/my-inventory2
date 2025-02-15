@@ -5,7 +5,6 @@ import {
   NameType,
   ValueType,
 } from "recharts/types/component/DefaultTooltipContent";
-// import { format, addDays, addMonths } from "date-fns";
 import _ from "lodash";
 
 interface Props extends TooltipProps<ValueType, NameType> {
@@ -16,8 +15,6 @@ const CustomTooltip = ({ active, payload }: Props) => {
   if (!active || !payload || payload.length === 0) return null;
   const sellData = payload[0]?.payload as ChartData;
   const buyData = payload[1]?.payload as ChartData;
-  // console.log("sellData", sellData.sell);
-  // console.log("buyData", buyData?.buy);
 
   const TooltipRow = ({
     label,

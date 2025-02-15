@@ -9,7 +9,6 @@ import {
 import { users } from "./users";
 import { ProductExt, products } from "./products";
 import { Supplier, suppliers } from "./suppliers";
-// import { productBuyTransactions } from "./productBuyTransactions";
 
 export const buyTransactions = pgTable("buy_transactions", {
   id: text("id")
@@ -45,7 +44,6 @@ export const buyTransactionRelations = relations(
       fields: [buyTransactions.productId],
       references: [products.id],
     }),
-    // productBuyTransactions: many(productBuyTransactions),
   })
 );
 

@@ -35,9 +35,6 @@ const CustomerPicker = ({ setCustomer, customerId }: Props) => {
     }
   }, [customerId]);
 
-  // console.log("value ***", value);
-  // console.log(suppliers);
-
   return (
     <div className="flex">
       {isLoading ? (

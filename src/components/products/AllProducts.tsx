@@ -51,7 +51,6 @@ const AllProducts = () => {
     });
 
   const { data: productsCount } = useProductsCount(supplier.id);
-  // const allPages = (productsCount && Math.ceil(productsCount.count / 10)) ?? 1;
 
   useEffect(() => {
     if (searchParams && searchParams.get("productId")) {
