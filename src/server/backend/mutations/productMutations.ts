@@ -13,13 +13,15 @@ export const useAddProduct = () => {
     mutationFn: async ({
       data,
       productId,
+      userId,
     }: {
       data: z.infer<typeof NewProductSchema> & {
         supplierId: string;
         unitId: string;
       };
       productId?: string;
-    }) => addProduct({ data, productId }),
+      userId: string;
+    }) => addProduct({ data, productId, userId }),
     onSuccess: async (res) => {
       if (res?.success) {
         toast.success(res.success);
@@ -43,11 +45,20 @@ export const useDeleteProduct = () => {
   const queryClient = useQueryClient();
 
   return useMutation({
-    mutationFn: async (id: string) => deleteProduct(id),
+    mutationFn: async ({
+      productId,
+      userId,
+    }: {
+      productId: string;
+      userId: string;
+    }) => deleteProduct({ productId, userId }),
     onSuccess: async (res) => {
       if (res?.success) {
         toast.success(res.success);
         queryClient.invalidateQueries({ queryKey: ["products"] });
+        queryClient.invalidateQueries({
+          queryKey: ["products-by-supplier-pagination"],
+        });
       }
       if (res?.error) {
         toast.error(res.error);

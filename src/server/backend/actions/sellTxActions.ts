@@ -374,3 +374,24 @@ export const getSellTxTotalSales = async ({
 
   return totalPurchase[0];
 };
+
+export const getDailySellTransactions = async ({
+  sellDate,
+  userId,
+}: {
+  sellDate: string;
+  userId: string;
+}) => {
+  const transactions = await db.query.sellTransactions.findMany({
+    where: and(
+      eq(sellTransactions.userId, userId),
+      eq(sellTransactions.date, sellDate)
+    ),
+    with: {
+      products: true,
+      customers: true,
+    },
+    orderBy: desc(sellTransactions.date),
+  });
+  return transactions as SellTransactionExit[];
+};

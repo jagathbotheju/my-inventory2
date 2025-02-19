@@ -14,9 +14,14 @@ import {
   TableRow,
 } from "../ui/table";
 import DeleteSupplierDialog from "./DeleteSupplierDialog";
+import { User } from "@/server/db/schema/users";
 
-const Suppliers = () => {
-  const { data: suppliers, isLoading } = useSuppliers();
+interface Props {
+  user: User;
+}
+
+const Suppliers = ({ user }: Props) => {
+  const { data: suppliers, isLoading } = useSuppliers(user?.id);
 
   return (
     <Card className="flex flex-col w-full h-fit bg-transparent dark:border-primary/40">
@@ -24,7 +29,7 @@ const Suppliers = () => {
         <div className="flex justify-between items-center">
           <CardTitle className="text-4xl font-bold">Suppliers</CardTitle>
 
-          <AddSupplierDialog>
+          <AddSupplierDialog userId={user?.id}>
             <Button className="font-semibold">New Supplier</Button>
           </AddSupplierDialog>
         </div>
@@ -60,12 +65,16 @@ const Suppliers = () => {
                     <TableCell>{supplier.landPhone}</TableCell>
                     <TableCell>{supplier.mobilePhone}</TableCell>
                     <TableCell>
-                      <DeleteSupplierDialog supplier={supplier}>
+                      <DeleteSupplierDialog supplier={supplier} user={user}>
                         <Trash2Icon className="w-5 h-5 text-red-500 cursor-pointer" />
                       </DeleteSupplierDialog>
                     </TableCell>
                     <TableCell>
-                      <AddSupplierDialog supplierId={supplier.id}>
+                      <AddSupplierDialog
+                        supplierId={supplier.id}
+                        userId={user?.id}
+                        editMode
+                      >
                         <FilePenLineIcon className="w-5 h-5 text-red-500 cursor-pointer" />
                       </AddSupplierDialog>
                     </TableCell>

@@ -5,9 +5,12 @@ import { z } from "zod";
 import { eq } from "drizzle-orm";
 import { Customer, customers } from "@/server/db/schema/customers";
 
-export const getCustomers = async () => {
-  const customers = await db.query.customers.findMany();
-  return customers as Customer[];
+export const getCustomers = async (userId: string) => {
+  const allCustomers = await db
+    .select()
+    .from(customers)
+    .where(eq(customers.userId, userId));
+  return allCustomers as Customer[];
 };
 
 export const getCustomerById = async (id: string) => {
@@ -21,15 +24,17 @@ export const getCustomerById = async (id: string) => {
 export const addCustomer = async ({
   formData,
   customerId,
+  userId,
 }: {
   formData: z.infer<typeof NewCustomerSchema>;
   customerId: string | undefined;
+  userId: string;
 }) => {
   try {
     if (customerId) {
       const updatedCustomer = await db
         .update(customers)
-        .set(formData)
+        .set({ ...formData, userId })
         .where(eq(customers.id, customerId))
         .returning();
       if (updatedCustomer.length) {
@@ -39,7 +44,7 @@ export const addCustomer = async ({
     } else {
       const newCustomer = await db
         .insert(customers)
-        .values(formData)
+        .values({ ...formData, userId })
         .returning();
       if (newCustomer.length) {
         return { success: "Customer registered successfully" };

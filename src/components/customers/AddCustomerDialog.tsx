@@ -33,9 +33,10 @@ import { useCustomerById } from "@/server/backend/queries/customerQueries";
 interface Props {
   children: React.ReactNode;
   customerId?: string;
+  userId: string;
 }
 
-const AddCustomerDialog = ({ children, customerId }: Props) => {
+const AddCustomerDialog = ({ children, customerId, userId }: Props) => {
   const [open, setOpen] = useState(false);
 
   const { mutate: addCustomer } = useAddCustomer();
@@ -53,7 +54,7 @@ const AddCustomerDialog = ({ children, customerId }: Props) => {
   });
 
   const onSubmit = (formData: z.infer<typeof NewCustomerSchema>) => {
-    addCustomer({ formData, customerId });
+    addCustomer({ formData, customerId, userId });
     form.reset();
   };
 

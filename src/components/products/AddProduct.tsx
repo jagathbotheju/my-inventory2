@@ -25,8 +25,13 @@ import { useAddProduct } from "@/server/backend/mutations/productMutations";
 import { useRouter } from "next/navigation";
 import { useSuppliers } from "@/server/backend/queries/supplierQueries";
 import { Loader2Icon } from "lucide-react";
+import { User } from "@/server/db/schema/users";
 
-const AddProduct = () => {
+interface Props {
+  user: User;
+}
+
+const AddProduct = ({ user }: Props) => {
   const router = useRouter();
   const [supplier, setSupplier] = useState<Supplier>({} as Supplier);
   const [uom, setUom] = useState<UnitOfMeasurement>({} as UnitOfMeasurement);
@@ -40,13 +45,13 @@ const AddProduct = () => {
   });
 
   const { mutate: addProduct } = useAddProduct();
-  const { data: suppliers, isLoading } = useSuppliers();
+  const { data: suppliers, isLoading } = useSuppliers(user?.id);
 
   const onSubmit = (formData: z.infer<typeof NewProductSchema>) => {
     if (!supplier.id) toast.error("Please select a supplier");
     if (!uom.id) toast.error("Please select a UOM");
     const data = { ...formData, supplierId: supplier.id, unitId: uom.id };
-    addProduct({ data });
+    addProduct({ data, userId: user?.id });
     // setSupplier({} as Supplier);
     // setUom({} as UnitOfMeasurement);
     // form.reset();
@@ -86,7 +91,7 @@ const AddProduct = () => {
             <div className="grid grid-cols-4 gap-4">
               <p className="col-span-1">Supplier</p>
               <div className="col-span-3">
-                <SupplierPicker setSupplier={setSupplier} />
+                <SupplierPicker setSupplier={setSupplier} userId={user?.id} />
               </div>
 
               <p className="col-span-1">UOM</p>

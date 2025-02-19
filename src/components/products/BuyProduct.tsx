@@ -31,7 +31,7 @@ interface Props {
 
 const BuyProduct = ({ productId, userId }: Props) => {
   const router = useRouter();
-  const { data: product, isLoading } = useProductById(productId);
+  const { data: product, isLoading } = useProductById({ productId, userId });
   const { mutate: addBuyTransaction } = useAddBuyTransaction();
 
   const form = useForm<z.infer<typeof BuyProductSchema>>({

@@ -35,22 +35,31 @@ import {
 } from "../ui/tooltip";
 import Pagination from "rc-pagination";
 import "rc-pagination/assets/index.css";
+import { User } from "@/server/db/schema/users";
 
-const AllProducts = () => {
+interface Props {
+  user: User;
+}
+
+const AllProducts = ({ user }: Props) => {
   const searchParams = useSearchParams();
   const router = useRouter();
   const [supplier, setSupplier] = useState<Supplier>({} as Supplier);
   const [productId, setProductId] = useState("");
   const [page, setPage] = useState(1);
 
-  const { data: product } = useProductById(productId);
+  const { data: product } = useProductById({ productId, userId: user?.id });
   const { data: productsBySupplierPagination, isLoading } =
     useProductsBySupplierPagination({
       supplierId: supplier.id,
       page,
+      userId: user?.id,
     });
 
-  const { data: productsCount } = useProductsCount(supplier.id);
+  const { data: productsCount } = useProductsCount({
+    supplierId: supplier.id,
+    userId: user?.id,
+  });
 
   useEffect(() => {
     if (searchParams && searchParams.get("productId")) {
@@ -71,6 +80,7 @@ const AllProducts = () => {
               <SupplierPicker
                 setSupplier={setSupplier}
                 supplierId={product?.suppliers?.id}
+                userId={user?.id}
               />
               <Button
                 className="font-semibold"
@@ -134,7 +144,10 @@ const AllProducts = () => {
                       <TableCell>
                         <TooltipProvider>
                           <Tooltip>
-                            <DeleteProductDialog product={product}>
+                            <DeleteProductDialog
+                              product={product}
+                              userId={user?.id}
+                            >
                               <TooltipTrigger asChild>
                                 <Trash2Icon className="w-5 h-5 text-red-500 cursor-pointer" />
                               </TooltipTrigger>
@@ -173,7 +186,12 @@ const AllProducts = () => {
                           <TooltipProvider>
                             <Tooltip>
                               <TooltipTrigger asChild>
-                                <EyeIcon className="w-5 h-5 cursor-pointer" />
+                                <EyeIcon
+                                  className="w-5 h-5 cursor-pointer"
+                                  onClick={() =>
+                                    router.push(`/products/${product.id}`)
+                                  }
+                                />
                               </TooltipTrigger>
                               <TooltipContent>
                                 <p className="text-sm">view product</p>

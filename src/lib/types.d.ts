@@ -27,3 +27,7 @@ type ChartData = {
   month: number;
   day?: number;
 };
+
+type Payload = {
+  payload: ChartData;
+};

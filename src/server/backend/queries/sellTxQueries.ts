@@ -1,9 +1,23 @@
 import { useQuery } from "@tanstack/react-query";
 import {
+  getDailySellTransactions,
   getSellTransactionsPagination,
   getSellTxCount,
   getSellTxTotalSales,
 } from "../actions/sellTxActions";
+
+export const useDailySellTransactions = ({
+  sellDate,
+  userId,
+}: {
+  sellDate: string;
+  userId: string;
+}) => {
+  return useQuery({
+    queryKey: ["daily-sell-transactions", sellDate, userId],
+    queryFn: () => getDailySellTransactions({ userId, sellDate }),
+  });
+};
 
 export const useSellTransactionsPagination = ({
   userId,

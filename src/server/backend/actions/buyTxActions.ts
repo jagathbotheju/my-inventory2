@@ -16,6 +16,27 @@ import {
 } from "@/server/db/schema/buyYearHistory";
 import { and, asc, count, desc, eq, sql, sum } from "drizzle-orm";
 
+export const getDailyBuyTransactions = async ({
+  buyDate,
+  userId,
+}: {
+  buyDate: string;
+  userId: string;
+}) => {
+  const transactions = await db.query.buyTransactions.findMany({
+    where: and(
+      eq(buyTransactions.userId, userId),
+      eq(buyTransactions.date, buyDate)
+    ),
+    with: {
+      products: true,
+      suppliers: true,
+    },
+    orderBy: desc(buyTransactions.date),
+  });
+  return transactions as BuyTransactionExt[];
+};
+
 export const addBuyTransaction = async (data: BuyTransaction) => {
   try {
     const newTransaction = await db

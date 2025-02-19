@@ -32,15 +32,25 @@ import { useSupplierById } from "@/server/backend/queries/supplierQueries";
 
 interface Props {
   children: React.ReactNode;
+  userId: string;
   supplierId?: string;
+  editMode?: boolean;
 }
 
-const AddSupplierDialog = ({ children, supplierId }: Props) => {
+const AddSupplierDialog = ({
+  children,
+  supplierId,
+  userId,
+  editMode = false,
+}: Props) => {
   const [open, setOpen] = useState(false);
   // const [edit, setEdit] = useState(true);
 
   const { mutate: addSupplier } = useAddSupplier();
-  const { data: supplier } = useSupplierById(supplierId ?? "");
+  const { data: supplier } = useSupplierById({
+    supplierId: supplierId as string,
+    userId,
+  });
 
   const form = useForm<z.infer<typeof NewSupplierSchema>>({
     resolver: zodResolver(NewSupplierSchema),
@@ -54,7 +64,7 @@ const AddSupplierDialog = ({ children, supplierId }: Props) => {
   });
 
   const onSubmit = (formData: z.infer<typeof NewSupplierSchema>) => {
-    addSupplier({ formData, supplierId });
+    addSupplier({ formData, supplierId, userId });
     form.reset();
   };
 
@@ -162,7 +172,7 @@ const AddSupplierDialog = ({ children, supplierId }: Props) => {
                       : {})}
                     type="submit"
                   >
-                    Register
+                    {editMode ? "Update" : "Register"}
                   </Button>
                   <DialogClose asChild>
                     <Button

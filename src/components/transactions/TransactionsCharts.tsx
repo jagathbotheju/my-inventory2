@@ -23,12 +23,15 @@ import {
 } from "recharts";
 import CustomTooltip from "../CustomTooltip";
 import { getFullMonth } from "@/lib/utils";
+import { useRouter } from "next/navigation";
+import { MouseEvent } from "react";
 
 interface Props {
   user: User;
 }
 
 const TransactionsCharts = ({ user }: Props) => {
+  const router = useRouter();
   const { period, timeFrame } = useTimeFrameStore((state) => state);
   const { data: buyMonthHistoryData, isLoading: buyMonthHistoryDataLoading } =
     useBuyMonthHistoryData({
@@ -147,21 +150,50 @@ const TransactionsCharts = ({ user }: Props) => {
               <CartesianGrid strokeDasharray="3 3" />
               <XAxis dataKey={timeFrame === "month" ? "day" : "month"} dy={5} />
               <YAxis />
-              {/* <Tooltip /> */}
               <Legend />
+              {/* sell transactions */}
               <Line
                 strokeWidth={2}
                 type="monotone"
                 dataKey="sell"
                 stroke="#22c55e"
-                activeDot={{ r: 4 }}
+                activeDot={{
+                  r: 4,
+                  cursor: "pointer",
+                  onClick: (event, payload) => {
+                    const data = payload as MouseEvent<
+                      SVGCircleElement,
+                      globalThis.MouseEvent
+                    > & {
+                      payload: ChartData;
+                    };
+                    router.push(
+                      `/transactions/daily?date=${data.payload.day}&month=${data.payload.month}&year=${data.payload.year}`
+                    );
+                  },
+                }}
               />
+              {/* buy transactions */}
               <Line
                 strokeWidth={2}
                 type="monotone"
                 stroke="#3b82f6"
                 dataKey="buy"
-                activeDot={{ r: 4 }}
+                activeDot={{
+                  r: 4,
+                  cursor: "pointer",
+                  onClick: (event, payload) => {
+                    const data = payload as MouseEvent<
+                      SVGCircleElement,
+                      globalThis.MouseEvent
+                    > & {
+                      payload: ChartData;
+                    };
+                    router.push(
+                      `/transactions/daily?date=${data.payload.day}&month=${data.payload.month}&year=${data.payload.year}`
+                    );
+                  },
+                }}
               />
 
               <Tooltip

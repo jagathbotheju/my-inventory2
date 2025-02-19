@@ -16,9 +16,10 @@ import { Product } from "@/server/db/schema/products";
 interface Props {
   children: React.ReactNode;
   product: Product;
+  userId: string;
 }
 
-const DeleteProductDialog = ({ children, product }: Props) => {
+const DeleteProductDialog = ({ children, product, userId }: Props) => {
   const [open, setOpen] = useState(false);
   const { mutate: deleteProduct } = useDeleteProduct();
 
@@ -52,7 +53,7 @@ const DeleteProductDialog = ({ children, product }: Props) => {
             variant="destructive"
             type="submit"
             onClick={() => {
-              deleteProduct(product.id);
+              deleteProduct({ productId: product.id, userId });
               setOpen(false);
             }}
           >

@@ -21,13 +21,14 @@ import { useCustomers } from "@/server/backend/queries/customerQueries";
 
 interface Props {
   setCustomer: (customer: Customer) => void;
+  userId: string;
   customerId?: string;
 }
 
-const CustomerPicker = ({ setCustomer, customerId }: Props) => {
+const CustomerPicker = ({ setCustomer, customerId, userId }: Props) => {
   const [open, setOpen] = useState(false);
   const [value, setValue] = useState("");
-  const { data: customers, isLoading } = useCustomers();
+  const { data: customers, isLoading } = useCustomers(userId);
 
   useEffect(() => {
     if (customerId) {

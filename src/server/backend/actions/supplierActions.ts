@@ -4,34 +4,45 @@ import { Supplier } from "@/server/db/schema/suppliers";
 import { NewSupplierSchema } from "@/lib/schema";
 import { suppliers } from "@/server/db/schema";
 import { z } from "zod";
-import { eq } from "drizzle-orm";
+import { and, eq } from "drizzle-orm";
 
-export const getSuppliers = async () => {
-  const suppliers = await db.query.suppliers.findMany();
-  return suppliers as Supplier[];
+export const getSuppliers = async (userId: string) => {
+  const allSuppliers = await db
+    .select()
+    .from(suppliers)
+    .where(eq(suppliers.userId, userId));
+  return allSuppliers as Supplier[];
 };
 
-export const getSupplierById = async (id: string) => {
+export const getSupplierById = async ({
+  supplierId,
+  userId,
+}: {
+  supplierId: string;
+  userId: string;
+}) => {
   const supplier = await db
     .select()
     .from(suppliers)
-    .where(eq(suppliers.id, id));
+    .where(and(eq(suppliers.id, supplierId), eq(suppliers.userId, userId)));
   return supplier as Supplier[];
 };
 
 export const addSupplier = async ({
   formData,
   supplierId,
+  userId,
 }: {
   formData: z.infer<typeof NewSupplierSchema>;
   supplierId: string | undefined;
+  userId: string;
 }) => {
   try {
     if (supplierId) {
       const updatedSupplier = await db
         .update(suppliers)
         .set(formData)
-        .where(eq(suppliers.id, supplierId))
+        .where(and(eq(suppliers.id, supplierId), eq(suppliers.userId, userId)))
         .returning();
       if (updatedSupplier.length) {
         return { success: "Supplier updated successfully" };
@@ -40,7 +51,7 @@ export const addSupplier = async ({
     } else {
       const newSupplier = await db
         .insert(suppliers)
-        .values(formData)
+        .values({ ...formData, userId })
         .returning();
       if (newSupplier.length) {
         return { success: "Supplier registered successfully" };
@@ -53,11 +64,17 @@ export const addSupplier = async ({
   }
 };
 
-export const deleteSupplier = async (id: string) => {
+export const deleteSupplier = async ({
+  supplierId,
+  userId,
+}: {
+  supplierId: string;
+  userId: string;
+}) => {
   try {
     const deletedSupplier = await db
       .delete(suppliers)
-      .where(eq(suppliers.id, id))
+      .where(and(eq(suppliers.id, supplierId), eq(suppliers.userId, userId)))
       .returning();
     if (deletedSupplier.length) {
       return { success: "Supplier deleted successfully" };

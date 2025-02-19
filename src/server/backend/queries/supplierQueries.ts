@@ -1,16 +1,22 @@
 import { useQuery } from "@tanstack/react-query";
 import { getSupplierById, getSuppliers } from "../actions/supplierActions";
 
-export const useSuppliers = () => {
+export const useSuppliers = (userId: string) => {
   return useQuery({
-    queryKey: ["suppliers"],
-    queryFn: () => getSuppliers(),
+    queryKey: ["suppliers", userId],
+    queryFn: () => getSuppliers(userId),
   });
 };
 
-export const useSupplierById = (id: string) => {
+export const useSupplierById = ({
+  supplierId,
+  userId,
+}: {
+  supplierId: string;
+  userId: string;
+}) => {
   return useQuery({
-    queryKey: ["supplier-by-id", id],
-    queryFn: () => getSupplierById(id),
+    queryKey: ["supplier-by-id", supplierId, userId],
+    queryFn: () => getSupplierById({ supplierId, userId }),
   });
 };

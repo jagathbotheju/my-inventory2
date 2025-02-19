@@ -13,9 +13,14 @@ import {
 import AddCustomerDialog from "./AddCustomerDialog";
 import { useCustomers } from "@/server/backend/queries/customerQueries";
 import DeleteCustomerDialog from "./DeleteCustomerDialog";
+import { User } from "@/server/db/schema/users";
 
-const Customers = () => {
-  const { data: customers, isLoading } = useCustomers();
+interface Props {
+  user: User;
+}
+
+const Customers = ({ user }: Props) => {
+  const { data: customers, isLoading } = useCustomers(user?.id);
 
   return (
     <Card className="flex flex-col w-full h-fit bg-transparent dark:border-primary/40">
@@ -23,7 +28,7 @@ const Customers = () => {
         <div className="flex justify-between items-center">
           <CardTitle className="text-4xl font-bold">Customers</CardTitle>
 
-          <AddCustomerDialog>
+          <AddCustomerDialog userId={user?.id}>
             <Button className="font-semibold">New Customer</Button>
           </AddCustomerDialog>
         </div>
@@ -64,7 +69,10 @@ const Customers = () => {
                       </DeleteCustomerDialog>
                     </TableCell>
                     <TableCell>
-                      <AddCustomerDialog customerId={customer.id}>
+                      <AddCustomerDialog
+                        customerId={customer.id}
+                        userId={user?.id}
+                      >
                         <FilePenLineIcon className="w-5 h-5 text-red-500 cursor-pointer" />
                       </AddCustomerDialog>
                     </TableCell>

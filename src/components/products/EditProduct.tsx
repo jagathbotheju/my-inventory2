@@ -26,15 +26,16 @@ import { useProductById } from "@/server/backend/queries/productQueries";
 
 interface Props {
   productId: string;
+  userId: string;
 }
 
-const EditProduct = ({ productId }: Props) => {
+const EditProduct = ({ productId, userId }: Props) => {
   const router = useRouter();
   const [supplier, setSupplier] = useState<Supplier>({} as Supplier);
   const [uom, setUom] = useState<UnitOfMeasurement>({} as UnitOfMeasurement);
 
   const { mutate: addProduct } = useAddProduct();
-  const { data: product } = useProductById(productId);
+  const { data: product } = useProductById({ productId, userId });
 
   const form = useForm<z.infer<typeof NewProductSchema>>({
     resolver: zodResolver(NewProductSchema),
@@ -50,9 +51,10 @@ const EditProduct = ({ productId }: Props) => {
       ...formData,
       supplierId: supplier.id,
       unitId: uom.id,
+      userId,
     };
     addProduct(
-      { data, productId },
+      { data, productId, userId },
       {
         onSuccess(data) {
           const { success } = data;
@@ -86,7 +88,8 @@ const EditProduct = ({ productId }: Props) => {
               <div className="col-span-3">
                 <SupplierPicker
                   setSupplier={setSupplier}
-                  supplierId={product?.suppliers.id}
+                  supplierId={product?.suppliers?.id}
+                  userId={userId}
                 />
               </div>
 
@@ -94,7 +97,7 @@ const EditProduct = ({ productId }: Props) => {
               <div className="col-span-3">
                 <UomPicker
                   setUom={setUom}
-                  unitId={product?.unitOfMeasurements.id}
+                  unitId={product?.unitOfMeasurements?.id}
                 />
               </div>
             </div>

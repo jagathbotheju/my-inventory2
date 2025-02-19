@@ -12,13 +12,15 @@ import {
 import { Button } from "../ui/button";
 import { useDeleteSupplier } from "@/server/backend/mutations/supplierMutations";
 import { Supplier } from "@/server/db/schema/suppliers";
+import { User } from "@/server/db/schema/users";
 
 interface Props {
   children: React.ReactNode;
   supplier: Supplier;
+  user: User;
 }
 
-const DeleteSupplierDialog = ({ children, supplier }: Props) => {
+const DeleteSupplierDialog = ({ children, supplier, user }: Props) => {
   const [open, setOpen] = useState(false);
   const { mutate: deleteSupplier } = useDeleteSupplier();
 
@@ -52,7 +54,7 @@ const DeleteSupplierDialog = ({ children, supplier }: Props) => {
             variant="destructive"
             type="submit"
             onClick={() => {
-              deleteSupplier(supplier.id);
+              deleteSupplier({ supplierId: supplier.id, userId: user?.id });
               setOpen(false);
             }}
           >

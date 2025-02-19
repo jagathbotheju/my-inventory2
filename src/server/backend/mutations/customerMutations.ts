@@ -11,10 +11,12 @@ export const useAddCustomer = () => {
     mutationFn: async ({
       formData,
       customerId,
+      userId,
     }: {
       formData: z.infer<typeof NewCustomerSchema>;
       customerId: string | undefined;
-    }) => addCustomer({ formData, customerId }),
+      userId: string;
+    }) => addCustomer({ formData, customerId, userId }),
     onSuccess: async (res) => {
       if (res?.success) {
         toast.success(res.success);

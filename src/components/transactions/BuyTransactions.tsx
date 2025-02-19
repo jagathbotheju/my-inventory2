@@ -55,7 +55,7 @@ const BuyTransactions = ({ user }: Props) => {
     timeFrame,
   });
 
-  // console.log("period", period);
+  // console.log("buyTransactions", buyTransactions);
 
   return (
     <div className="flex w-full flex-col">

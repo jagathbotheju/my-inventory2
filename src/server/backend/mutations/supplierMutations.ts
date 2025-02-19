@@ -11,10 +11,12 @@ export const useAddSupplier = () => {
     mutationFn: async ({
       formData,
       supplierId,
+      userId,
     }: {
       formData: z.infer<typeof NewSupplierSchema>;
       supplierId: string | undefined;
-    }) => addSupplier({ formData, supplierId }),
+      userId: string;
+    }) => addSupplier({ formData, supplierId, userId }),
     onSuccess: async (res) => {
       if (res?.success) {
         toast.success(res.success);
@@ -37,7 +39,13 @@ export const useDeleteSupplier = () => {
   const queryClient = useQueryClient();
 
   return useMutation({
-    mutationFn: async (id: string) => deleteSupplier(id),
+    mutationFn: async ({
+      supplierId,
+      userId,
+    }: {
+      supplierId: string;
+      userId: string;
+    }) => deleteSupplier({ supplierId, userId }),
     onSuccess: async (res) => {
       if (res?.success) {
         toast.success(res.success);

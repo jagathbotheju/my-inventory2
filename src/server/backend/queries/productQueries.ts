@@ -19,43 +19,64 @@ export const useSearchProducts = (searchTerm: string) => {
   });
 };
 
-export const useProducts = () => {
+export const useProducts = (userId: string) => {
   return useQuery({
-    queryKey: ["products"],
-    queryFn: () => getProducts(),
+    queryKey: ["products", userId],
+    queryFn: () => getProducts(userId),
   });
 };
 
-export const useProductById = (id: string) => {
+export const useProductById = ({
+  productId,
+  userId,
+}: {
+  productId: string;
+  userId: string;
+}) => {
   return useQuery({
-    queryKey: ["product-by-id", id],
-    queryFn: () => getProductById(id),
+    queryKey: ["product-by-id", productId, userId],
+    queryFn: () => getProductById({ productId, userId }),
   });
 };
 
-export const useProductsBySupplier = (supplierId: string) => {
+export const useProductsBySupplier = ({
+  supplierId,
+  userId,
+}: {
+  supplierId: string;
+  userId: string;
+}) => {
   return useQuery({
-    queryKey: ["products-by-supplier", supplierId],
-    queryFn: () => getProductsBySupplier(supplierId),
+    queryKey: ["products-by-supplier", supplierId, userId],
+    queryFn: () => getProductsBySupplier({ supplierId, userId }),
   });
 };
 
 export const useProductsBySupplierPagination = ({
   supplierId,
+  userId,
   page,
 }: {
   supplierId: string;
+  userId: string;
   page: number;
 }) => {
   return useQuery({
-    queryKey: ["products-by-supplier-pagination", supplierId, page],
-    queryFn: () => getProductsBySupplierPagination({ supplierId, page }),
+    queryKey: ["products-by-supplier-pagination", supplierId, page, userId],
+    queryFn: () =>
+      getProductsBySupplierPagination({ supplierId, page, userId }),
   });
 };
 
-export const useProductsCount = (supplierId: string) => {
+export const useProductsCount = ({
+  supplierId,
+  userId,
+}: {
+  supplierId: string;
+  userId: string;
+}) => {
   return useQuery({
     queryKey: ["products-count", supplierId],
-    queryFn: () => getProductsCount(supplierId),
+    queryFn: () => getProductsCount({ supplierId, userId }),
   });
 };

@@ -4,7 +4,21 @@ import {
   getBuyTxCount,
   getBuyTxYears,
   getByTxTotalPurchase,
+  getDailyBuyTransactions,
 } from "../actions/buyTxActions";
+
+export const useDailyBuyTransactions = ({
+  buyDate,
+  userId,
+}: {
+  buyDate: string;
+  userId: string;
+}) => {
+  return useQuery({
+    queryKey: ["daily-buy-transactions", buyDate, userId],
+    queryFn: () => getDailyBuyTransactions({ userId, buyDate }),
+  });
+};
 
 export const useBuyTransactionsPagination = ({
   userId,

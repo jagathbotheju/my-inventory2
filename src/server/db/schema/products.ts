@@ -3,11 +3,13 @@ import { pgTable, text, timestamp } from "drizzle-orm/pg-core";
 import { Supplier, suppliers } from "./suppliers";
 import { UnitOfMeasurement, unitOfMeasurements } from "./unitOfMeasurements";
 import { productBuyTransactions } from "./productBuyTransactions";
+import { users } from "./users";
 
 export const products = pgTable("products", {
   id: text("id")
     .primaryKey()
     .$defaultFn(() => crypto.randomUUID()),
+  userId: text("user_id").references(() => users.id, { onDelete: "cascade" }),
   productNumber: text("product_number").notNull().unique(),
   description: text("description"),
   supplierId: text("supplier_id")

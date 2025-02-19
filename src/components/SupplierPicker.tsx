@@ -22,12 +22,13 @@ import { useEffect, useState } from "react";
 interface Props {
   setSupplier: (supplier: Supplier) => void;
   supplierId?: string;
+  userId: string;
 }
 
-const SupplierPicker = ({ setSupplier, supplierId }: Props) => {
+const SupplierPicker = ({ setSupplier, supplierId, userId }: Props) => {
   const [open, setOpen] = useState(false);
   const [value, setValue] = useState("");
-  const { data: suppliers, isLoading } = useSuppliers();
+  const { data: suppliers, isLoading } = useSuppliers(userId);
 
   useEffect(() => {
     if (supplierId) {

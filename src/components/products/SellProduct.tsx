@@ -36,7 +36,7 @@ interface Props {
 const SellProduct = ({ productId, userId }: Props) => {
   const router = useRouter();
   const [customer, setCustomer] = useState<Customer>({} as Customer);
-  const { data: product, isLoading } = useProductById(productId);
+  const { data: product, isLoading } = useProductById({ productId, userId });
   const { mutate: addSellTransaction } = useAddSellTransaction();
 
   const form = useForm<z.infer<typeof SellProductSchema>>({
@@ -83,7 +83,7 @@ const SellProduct = ({ productId, userId }: Props) => {
                 Select Customer
               </p>
               <div className="whitespace-nowrap text-2xl col-span-8">
-                <CustomerPicker setCustomer={setCustomer} />
+                <CustomerPicker setCustomer={setCustomer} userId={userId} />
               </div>
 
               {/* product number */}

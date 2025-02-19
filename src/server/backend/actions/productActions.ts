@@ -2,7 +2,7 @@
 import { db } from "@/server/db";
 import { NewProductSchema } from "@/lib/schema";
 import { z } from "zod";
-import { count, desc, eq, ilike, or } from "drizzle-orm";
+import { and, count, desc, eq, ilike, or } from "drizzle-orm";
 import { ProductExt, products } from "@/server/db/schema/products";
 
 export const searchProducts = async (searchTerm: string) => {
@@ -20,20 +20,30 @@ export const searchProducts = async (searchTerm: string) => {
   return searchResult as ProductExt[];
 };
 
-export const getProducts = async () => {
+export const getProducts = async (userId: string) => {
   const allProducts = await db.query.products.findMany({
     with: {
       suppliers: true,
       unitOfMeasurements: true,
     },
+    where: eq(products.userId, userId),
     orderBy: desc(products.createdAt),
   });
   return allProducts as ProductExt[];
 };
 
-export const getProductsBySupplier = async (supplierId: string) => {
+export const getProductsBySupplier = async ({
+  supplierId,
+  userId,
+}: {
+  supplierId: string;
+  userId: string;
+}) => {
   const allProducts = await db.query.products.findMany({
-    where: eq(products.supplierId, supplierId),
+    where: and(
+      eq(products.supplierId, supplierId),
+      eq(products.userId, userId)
+    ),
     with: {
       suppliers: true,
       unitOfMeasurements: true,
@@ -46,13 +56,18 @@ export const getProductsBySupplierPagination = async ({
   supplierId,
   page,
   pageSize = 10,
+  userId,
 }: {
   supplierId: string;
   page: number;
+  userId: string;
   pageSize?: number;
 }) => {
   const allProducts = await db.query.products.findMany({
-    where: eq(products.supplierId, supplierId),
+    where: and(
+      eq(products.supplierId, supplierId),
+      eq(products.userId, userId)
+    ),
     with: {
       suppliers: true,
       unitOfMeasurements: true,
@@ -60,26 +75,44 @@ export const getProductsBySupplierPagination = async ({
     limit: pageSize,
     offset: (page - 1) * pageSize,
   });
+
   return allProducts as ProductExt[];
 };
 
-export const getProductsCount = async (supplierId: string) => {
+export const getProductsCount = async ({
+  supplierId,
+  userId,
+}: {
+  supplierId: string;
+  userId: string;
+}) => {
   const productCount = await db
     .select({ count: count() })
     .from(products)
-    .where(eq(products.supplierId, supplierId));
+    .where(
+      and(eq(products.supplierId, supplierId), eq(products.userId, userId))
+    );
   return productCount[0];
 };
 
-export const getProductById = async (id: string) => {
+export const getProductById = async ({
+  productId,
+  userId,
+}: {
+  productId: string;
+  userId: string;
+}) => {
   // const product = await db.select().from(products).where(eq(products.id, id));
   const product = await db.query.products.findFirst({
-    where: eq(products.id, id),
+    where: and(eq(products.id, productId), eq(products.userId, userId)),
     with: {
       suppliers: true,
       unitOfMeasurements: true,
     },
   });
+  console.log("product", product);
+  console.log("productId", productId);
+  console.log("userId", userId);
   if (product) return product as ProductExt;
   return {} as ProductExt;
 };
@@ -87,19 +120,21 @@ export const getProductById = async (id: string) => {
 export const addProduct = async ({
   data,
   productId,
+  userId,
 }: {
   data: z.infer<typeof NewProductSchema> & {
     supplierId: string;
     unitId: string;
   };
   productId: string | undefined;
+  userId: string;
 }) => {
   try {
     if (productId) {
       const updatedProduct = await db
         .update(products)
-        .set(data)
-        .where(eq(products.id, productId))
+        .set({ ...data, userId })
+        .where(and(eq(products.id, productId), eq(products.userId, userId)))
         .returning();
       if (updatedProduct.length) {
         return { success: "Product updated successfully" };
@@ -115,7 +150,10 @@ export const addProduct = async ({
         .where(ilike(products.productNumber, data.productNumber));
       if (exist.length) return { error: "This product already Exist" };
 
-      const newProduct = await db.insert(products).values(data).returning();
+      const newProduct = await db
+        .insert(products)
+        .values({ ...data, userId })
+        .returning();
       if (newProduct.length) {
         return {
           success: "Product added successfully",
@@ -130,11 +168,17 @@ export const addProduct = async ({
   }
 };
 
-export const deleteProduct = async (id: string) => {
+export const deleteProduct = async ({
+  productId,
+  userId,
+}: {
+  productId: string;
+  userId: string;
+}) => {
   try {
     const deletedProduct = await db
       .delete(products)
-      .where(eq(products.id, id))
+      .where(and(eq(products.id, productId), eq(products.userId, userId)))
       .returning();
     if (deletedProduct.length) {
       return { success: "Product deleted successfully" };

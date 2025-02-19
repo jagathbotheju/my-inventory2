@@ -1,10 +1,10 @@
 import { useQuery } from "@tanstack/react-query";
 import { getCustomerById, getCustomers } from "../actions/customerActions";
 
-export const useCustomers = () => {
+export const useCustomers = (userId: string) => {
   return useQuery({
-    queryKey: ["customers"],
-    queryFn: () => getCustomers(),
+    queryKey: ["customers", userId],
+    queryFn: () => getCustomers(userId),
   });
 };
 
