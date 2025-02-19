@@ -158,7 +158,7 @@ const TransactionsCharts = ({ user }: Props) => {
                 dataKey="sell"
                 stroke="#22c55e"
                 activeDot={{
-                  r: 4,
+                  r: 5,
                   cursor: "pointer",
                   onClick: (event, payload) => {
                     const data = payload as MouseEvent<
@@ -180,7 +180,7 @@ const TransactionsCharts = ({ user }: Props) => {
                 stroke="#3b82f6"
                 dataKey="buy"
                 activeDot={{
-                  r: 4,
+                  r: 5,
                   cursor: "pointer",
                   onClick: (event, payload) => {
                     const data = payload as MouseEvent<
