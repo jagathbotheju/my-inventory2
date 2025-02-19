@@ -55,7 +55,9 @@ const DailyTransactions = ({ userId }: Props) => {
       <Card className="flex flex-col w-full h-fit bg-transparent dark:border-primary/40">
         <CardHeader className="flex flex-col gap-4">
           <div className="flex items-center justify-between">
-            <CardTitle className="text-4xl font-bold">Daily Sales</CardTitle>
+            <CardTitle className="text-4xl font-bold">
+              Daily Sales, {format(buyDate, "yyyy MMMM dd")}
+            </CardTitle>
           </div>
         </CardHeader>
         <CardContent>
