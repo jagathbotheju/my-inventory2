@@ -9,6 +9,7 @@ import {
 import { users } from "./users";
 import { ProductExt, products } from "./products";
 import { Customer, customers } from "./customers";
+import { suppliers } from "./suppliers";
 
 export const sellTransactions = pgTable("sell_transactions", {
   id: text("id")
@@ -20,6 +21,8 @@ export const sellTransactions = pgTable("sell_transactions", {
   customerId: text("customer_id")
     .references(() => customers.id)
     .notNull(),
+  supplierId: text("supplier_id").references(() => suppliers.id),
+  purchasedPrice: doublePrecision("purchased_price").default(0),
   productId: text("product_id")
     .notNull()
     .references(() => products.id),

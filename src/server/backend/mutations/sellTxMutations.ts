@@ -1,7 +1,10 @@
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
 import { useRouter } from "next/navigation";
-import { SellTransaction } from "@/server/db/schema/sellTransactions";
+import {
+  SellTransaction,
+  SellTransactionExit,
+} from "@/server/db/schema/sellTransactions";
 import {
   addSellTransaction,
   deleteSellTransaction,
@@ -12,7 +15,13 @@ export const useAddSellTransaction = () => {
   const router = useRouter();
 
   return useMutation({
-    mutationFn: (data: SellTransaction) => addSellTransaction(data),
+    mutationFn: ({
+      data,
+      supplierId,
+    }: {
+      data: SellTransaction;
+      supplierId: string;
+    }) => addSellTransaction({ data, supplierId }),
     onSuccess: async (res) => {
       if (res?.success) {
         toast.success(res.success);
@@ -37,11 +46,11 @@ export const useDeleteSellTransaction = () => {
   return useMutation({
     mutationFn: ({
       userId,
-      transactionId,
+      sellTx,
     }: {
       userId: string;
-      transactionId: string;
-    }) => deleteSellTransaction({ userId, transactionId }),
+      sellTx: SellTransactionExit;
+    }) => deleteSellTransaction({ userId, sellTx }),
     onSuccess: async (res) => {
       if (res?.success) {
         toast.success(res.success);

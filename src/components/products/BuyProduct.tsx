@@ -49,6 +49,7 @@ const BuyProduct = ({ productId, userId }: Props) => {
       userId,
       supplierId: product?.suppliers.id as string,
       productId,
+      productNumber: product?.productNumber as string,
       date: formData.date.toDateString(),
       unitPrice: formData.unitPrice,
       quantity: formData.quantity,

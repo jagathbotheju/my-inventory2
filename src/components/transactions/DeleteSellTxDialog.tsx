@@ -23,6 +23,8 @@ const DeleteSellTxDialog = ({ children, tx, userId }: Props) => {
   const [open, setOpen] = useState(false);
   const { mutate: deleteSellTransaction } = useDeleteSellTransaction();
 
+  // console.log("selTx", tx);
+
   return (
     <Dialog open={open} onOpenChange={setOpen}>
       <DialogTrigger asChild>{children}</DialogTrigger>
@@ -53,7 +55,7 @@ const DeleteSellTxDialog = ({ children, tx, userId }: Props) => {
             variant="destructive"
             type="submit"
             onClick={() => {
-              deleteSellTransaction({ userId: userId, transactionId: tx.id });
+              deleteSellTransaction({ userId: userId, sellTx: tx });
               setOpen(false);
             }}
           >

@@ -27,6 +27,17 @@ import { Customer } from "@/server/db/schema/customers";
 import { useState } from "react";
 import CustomerPicker from "../CustomerPicker";
 import { toast } from "sonner";
+// import { useStocks } from "@/server/backend/queries/stockQueries";
+// import {
+//   Table,
+//   TableBody,
+//   TableCell,
+//   TableHead,
+//   TableHeader,
+//   TableRow,
+// } from "../ui/table";
+import { Stock } from "@/server/db/schema/stocks";
+import StockPricker from "../StockPricker";
 
 interface Props {
   productId: string;
@@ -36,8 +47,14 @@ interface Props {
 const SellProduct = ({ productId, userId }: Props) => {
   const router = useRouter();
   const [customer, setCustomer] = useState<Customer>({} as Customer);
+  const [stockProduct, setStockProduct] = useState<Stock>({} as Stock);
   const { data: product, isLoading } = useProductById({ productId, userId });
   const { mutate: addSellTransaction } = useAddSellTransaction();
+  // const { data: stocks } = useStocks({
+  //   userId,
+  //   productId,
+  //   supplierId: product?.suppliers.id as string,
+  // });
 
   const form = useForm<z.infer<typeof SellProductSchema>>({
     resolver: zodResolver(SellProductSchema),
@@ -49,21 +66,25 @@ const SellProduct = ({ productId, userId }: Props) => {
     mode: "all",
   });
 
+  // console.log("stockProduct", stockProduct);
+
   const onSubmit = (formData: z.infer<typeof SellProductSchema>) => {
     if (!customer.id) return toast.error("Please select customer");
     const data = {
       userId,
       customerId: customer.id,
+      supplierId: product?.suppliers.id as string,
       productId,
       date: formData.date.toDateString(),
       unitPrice: formData.unitPrice,
+      purchasedPrice: stockProduct.unitPrice,
       quantity: formData.quantity,
     } as SellTransaction;
-    addSellTransaction(data);
+    addSellTransaction({ data, supplierId: product?.suppliers.id as string });
   };
 
   return (
-    <Card className="dark:bg-transparent dark:border-primary/40">
+    <Card className="dark:bg-transparent dark:border-primary/40 relative">
       <CardHeader>
         <CardTitle className="text-4xl font-bold">Sell Products</CardTitle>
       </CardHeader>
@@ -84,6 +105,19 @@ const SellProduct = ({ productId, userId }: Props) => {
               </p>
               <div className="whitespace-nowrap text-2xl col-span-8">
                 <CustomerPicker setCustomer={setCustomer} userId={userId} />
+              </div>
+
+              {/* stock picker*/}
+              <p className="whitespace-nowrap text-2xl col-span-3 font-semibold text-muted-foreground">
+                Select Product
+              </p>
+              <div className="whitespace-nowrap text-2xl col-span-8">
+                <StockPricker
+                  setStockProduct={setStockProduct}
+                  userId={userId}
+                  supplierId={product?.supplierId as string}
+                  product={product}
+                />
               </div>
 
               {/* product number */}
@@ -230,6 +264,35 @@ const SellProduct = ({ productId, userId }: Props) => {
           </Form>
         )}
       </CardContent>
+
+      {/* stock */}
+      {/* <div className="absolute top-5 right-10 rounded-lg bg-secondary">
+        <div className="bg-primary/60 p-2 rounded-tl-lg rounded-tr-lg">
+          <h3 className="font-bold">Stock Balance</h3>
+        </div>
+        <div className="p-2">
+          <Table>
+            <TableHeader>
+              <TableRow>
+                <TableHead>Product Number</TableHead>
+                <TableHead>Stock BAL</TableHead>
+                <TableHead>Purchased Price</TableHead>
+              </TableRow>
+            </TableHeader>
+            <TableBody>
+              {stocks?.map((stock, index) => (
+                <TableRow key={index}>
+                  <TableCell>{product?.productNumber}</TableCell>
+                  <TableCell className="text-center">
+                    {stock.quantity}
+                  </TableCell>
+                  <TableCell>{formatPrice(stock.unitPrice)}</TableCell>
+                </TableRow>
+              ))}
+            </TableBody>
+          </Table>
+        </div>
+      </div> */}
     </Card>
   );
 };

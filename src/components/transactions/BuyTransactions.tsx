@@ -55,7 +55,7 @@ const BuyTransactions = ({ user }: Props) => {
     timeFrame,
   });
 
-  // console.log("buyTransactions", buyTransactions);
+  // console.log("buyTransactions", user);
 
   return (
     <div className="flex w-full flex-col">

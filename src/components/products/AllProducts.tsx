@@ -254,8 +254,7 @@ const AllProducts = ({ user }: Props) => {
           )}
         </CardContent>
       </Card>
-
-      {productsBySupplierPagination?.length && (
+      {productsBySupplierPagination?.length ? (
         <div className="self-end mt-6">
           <Pagination
             pageSize={10}
@@ -269,7 +268,7 @@ const AllProducts = ({ user }: Props) => {
             showTitle={false}
           />
         </div>
-      )}
+      ) : null}
     </div>
   );
 };

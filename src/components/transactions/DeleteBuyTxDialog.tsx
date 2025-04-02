@@ -53,7 +53,7 @@ const DeleteBuyTxDialog = ({ children, tx, userId }: Props) => {
             variant="destructive"
             type="submit"
             onClick={() => {
-              deleteBuyTransaction({ userId: userId, transactionId: tx.id });
+              deleteBuyTransaction({ userId: userId, buyTx: tx });
               setOpen(false);
             }}
           >

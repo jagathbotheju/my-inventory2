@@ -1,4 +1,7 @@
-import { BuyTransaction } from "@/server/db/schema/buyTransactions";
+import {
+  BuyTransaction,
+  BuyTransactionExt,
+} from "@/server/db/schema/buyTransactions";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import {
   addBuyTransaction,
@@ -37,11 +40,11 @@ export const useDeleteBuyTransaction = () => {
   return useMutation({
     mutationFn: ({
       userId,
-      transactionId,
+      buyTx,
     }: {
       userId: string;
-      transactionId: string;
-    }) => deleteBuyTransaction({ userId, transactionId }),
+      buyTx: BuyTransactionExt;
+    }) => deleteBuyTransaction({ userId, buyTx }),
     onSuccess: async (res) => {
       if (res?.success) {
         toast.success(res.success);

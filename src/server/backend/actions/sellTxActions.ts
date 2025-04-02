@@ -1,5 +1,6 @@
 "use server";
 import { db } from "@/server/db";
+import { stocks } from "@/server/db/schema";
 import {
   SellMonthHistory,
   sellMonthHistory,
@@ -13,9 +14,15 @@ import {
   SellYearHistory,
   sellYearHistory,
 } from "@/server/db/schema/sellYearHistory";
-import { and, count, desc, eq, sql, sum } from "drizzle-orm";
+import { and, asc, count, desc, eq, sql, sum } from "drizzle-orm";
 
-export const addSellTransaction = async (data: SellTransaction) => {
+export const addSellTransaction = async ({
+  data,
+  supplierId,
+}: {
+  data: SellTransaction;
+  supplierId: string;
+}) => {
   try {
     const newTransaction = await db
       .insert(sellTransactions)
@@ -41,6 +48,16 @@ export const addSellTransaction = async (data: SellTransaction) => {
           eq(sellYearHistory.userId, data.userId),
           eq(sellYearHistory.month, new Date(data.date).getUTCMonth() + 1),
           eq(sellYearHistory.year, new Date(data.date).getUTCFullYear())
+        )
+      );
+    const existStock = await db
+      .select()
+      .from(stocks)
+      .where(
+        and(
+          eq(stocks.userId, data.userId),
+          eq(stocks.productId, data.productId),
+          eq(stocks.supplierId, supplierId)
         )
       );
 
@@ -105,7 +122,29 @@ export const addSellTransaction = async (data: SellTransaction) => {
         .returning();
     }
 
-    if (newTransaction.length && monthHistory.length && yearHistory.length) {
+    //update stock
+    const updatedStock = await db
+      .update(stocks)
+      .set({
+        quantity: existStock[0].quantity - data.quantity,
+      })
+      .where(
+        and(
+          eq(stocks.userId, data.userId),
+          eq(stocks.productId, data.productId),
+          eq(stocks.supplierId, data.supplierId as string),
+          eq(stocks.unitPrice, data.purchasedPrice ?? 0)
+        )
+      )
+      .returning();
+    console.log("addSellTransaction", updatedStock);
+
+    if (
+      newTransaction.length &&
+      monthHistory.length &&
+      yearHistory.length &&
+      updatedStock.length
+    ) {
       return { success: "Sell Transaction added successfully" };
     }
 
@@ -118,17 +157,17 @@ export const addSellTransaction = async (data: SellTransaction) => {
 
 export const deleteSellTransaction = async ({
   userId,
-  transactionId,
+  sellTx,
 }: {
   userId: string;
-  transactionId: string;
+  sellTx: SellTransactionExit;
 }) => {
   try {
     const deletedTx = await db
       .delete(sellTransactions)
       .where(
         and(
-          eq(sellTransactions.id, transactionId),
+          eq(sellTransactions.id, sellTx.id),
           eq(sellTransactions.userId, userId)
         )
       )
@@ -271,7 +310,38 @@ export const deleteSellTransaction = async ({
         .returning();
     }
 
-    if (deletedTx.length)
+    //update stocks
+    const existStock = await db
+      .select()
+      .from(stocks)
+      .where(
+        and(
+          eq(stocks.userId, userId),
+          eq(stocks.supplierId, sellTx.supplierId as string),
+          eq(stocks.productId, sellTx.productId),
+          eq(stocks.unitPrice, sellTx.purchasedPrice ?? 0)
+        )
+      );
+
+    const updatedStock = await db
+      .update(stocks)
+      .set({
+        quantity: existStock[0].quantity + sellTx.quantity,
+      })
+      .where(
+        and(
+          eq(stocks.userId, sellTx.userId),
+          eq(stocks.productId, sellTx.productId),
+          eq(stocks.supplierId, sellTx.supplierId as string),
+          eq(stocks.unitPrice, sellTx.purchasedPrice ?? 0)
+        )
+      )
+      .returning();
+
+    // console.log("exist stock", existStock);
+    // console.log("updated stock", updatedStock);
+
+    if (deletedTx.length && updatedStock.length)
       return { success: "Transaction deleted successfully" };
     return { error: "Could not delete Transaction" };
   } catch (error) {
@@ -392,6 +462,30 @@ export const getDailySellTransactions = async ({
       customers: true,
     },
     orderBy: desc(sellTransactions.date),
+  });
+  return transactions as SellTransactionExit[];
+};
+
+export const getSellTxByUserProduct = async ({
+  userId,
+  productId,
+}: {
+  userId: string;
+  productId: string;
+}) => {
+  const transactions = await db.query.sellTransactions.findMany({
+    where: and(
+      eq(sellTransactions.userId, userId),
+      eq(sellTransactions.productId, productId)
+    ),
+    with: {
+      products: {
+        with: {
+          unitOfMeasurements: true,
+        },
+      },
+    },
+    orderBy: asc(sellTransactions.date),
   });
   return transactions as SellTransactionExit[];
 };

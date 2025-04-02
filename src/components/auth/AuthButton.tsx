@@ -3,10 +3,11 @@ import { Button } from "../ui/button";
 import Link from "next/link";
 import {
   BaggageClaimIcon,
+  BlocksIcon,
   LogIn,
   LogOutIcon,
   RulerIcon,
-  UserPen,
+  // UserPen,
   UserRoundPen,
   Users2Icon,
 } from "lucide-react";
@@ -79,6 +80,15 @@ const AuthButton = ({ user }: Props) => {
                 <span>Products</span>
               </DropdownMenuItem>
 
+              {/* stocks */}
+              <DropdownMenuItem
+                className="font-medium transition-all duration-500 cursor-pointer group ease-in-out"
+                onClick={() => router.push("/stocks")}
+              >
+                <BlocksIcon className="mr-2 w-4 group-hover:translate-x-1 transition-all duration-300 ease-in-out" />
+                <span>Stocks</span>
+              </DropdownMenuItem>
+
               {/* uom */}
               <DropdownMenuItem
                 className="font-medium transition-all duration-500 cursor-pointer group ease-in-out"
@@ -138,12 +148,12 @@ const AuthButton = ({ user }: Props) => {
               <span>Login</span>
             </Link>
           </Button>
-          <Button asChild size="sm">
+          {/* <Button asChild size="sm">
             <Link href="/auth/register" className="flex items-center gap-1">
               <UserPen size={16} />
               <span>Register</span>
             </Link>
-          </Button>
+          </Button> */}
         </>
       )}
     </div>

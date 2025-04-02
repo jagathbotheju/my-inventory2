@@ -1,6 +1,8 @@
 import { useQuery } from "@tanstack/react-query";
 import {
   getBuyTransactionsPagination,
+  getBuyTxByUser,
+  getBuyTxByUserProduct,
   getBuyTxCount,
   getBuyTxYears,
   getByTxTotalPurchase,
@@ -72,5 +74,25 @@ export const useBuyTxCount = ({
   return useQuery({
     queryKey: ["buy-tx-count", userId, period, timeFrame],
     queryFn: () => getBuyTxCount({ userId, period, timeFrame }),
+  });
+};
+
+export const useBuyTxByUser = (userId: string) => {
+  return useQuery({
+    queryKey: ["buy-tx-by-user", userId],
+    queryFn: () => getBuyTxByUser(userId),
+  });
+};
+
+export const useBuyTxByUserProduct = ({
+  userId,
+  productId,
+}: {
+  userId: string;
+  productId: string;
+}) => {
+  return useQuery({
+    queryKey: ["buy-tx-by-user-product", userId, productId],
+    queryFn: () => getBuyTxByUserProduct({ userId, productId }),
   });
 };

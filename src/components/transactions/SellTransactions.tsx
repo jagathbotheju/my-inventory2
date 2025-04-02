@@ -103,7 +103,7 @@ const SellTransactions = ({ user }: Props) => {
                   <TableHead>Date</TableHead>
                   <TableHead>Customer</TableHead>
                   <TableHead>Product Number</TableHead>
-                  <TableHead>Unit Price</TableHead>
+                  <TableHead>Selling Price</TableHead>
                   <TableHead>Quantity</TableHead>
                   <TableHead>TotalPrice</TableHead>
                 </TableRow>

@@ -1,6 +1,7 @@
 "use server";
 
 import { db } from "@/server/db";
+import { stocks } from "@/server/db/schema";
 import {
   BuyMonthHistory,
   buyMonthHistory,
@@ -14,6 +15,7 @@ import {
   BuyYearHistory,
   buyYearHistory,
 } from "@/server/db/schema/buyYearHistory";
+import { Stock } from "@/server/db/schema/stocks";
 import { and, asc, count, desc, eq, sql, sum } from "drizzle-orm";
 
 export const getDailyBuyTransactions = async ({
@@ -39,11 +41,13 @@ export const getDailyBuyTransactions = async ({
 
 export const addBuyTransaction = async (data: BuyTransaction) => {
   try {
+    //add new transaction
     const newTransaction = await db
       .insert(buyTransactions)
       .values(data)
       .returning();
 
+    //update history
     const existBuyMonthHistory = await db
       .select()
       .from(buyMonthHistory)
@@ -127,7 +131,54 @@ export const addBuyTransaction = async (data: BuyTransaction) => {
         .returning();
     }
 
-    if (newTransaction.length && monthHistory.length && yearHistory.length) {
+    //update stock
+    let stock = [] as Stock[];
+    const existStock = await db
+      .select()
+      .from(stocks)
+      .where(
+        and(
+          eq(stocks.userId, data.userId),
+          eq(stocks.supplierId, data.supplierId),
+          eq(stocks.unitPrice, data.unitPrice),
+          eq(stocks.productId, data.productId)
+        )
+      );
+    if (existStock.length) {
+      stock = await db
+        .update(stocks)
+        .set({
+          quantity: data.quantity + (existStock[0].quantity ?? 0),
+        })
+        .where(
+          and(
+            eq(stocks.userId, data.userId),
+            eq(stocks.supplierId, data.supplierId),
+            eq(stocks.productId, data.productId),
+            eq(stocks.unitPrice, data.unitPrice)
+          )
+        )
+        .returning();
+    } else {
+      stock = await db
+        .insert(stocks)
+        .values({
+          userId: data.userId,
+          supplierId: data.supplierId,
+          productId: data.productId,
+          productNumber: data.productNumber,
+          quantity: data.quantity,
+          unitPrice: data.unitPrice,
+        })
+        .returning();
+    }
+
+    if (
+      newTransaction.length &&
+      monthHistory.length &&
+      yearHistory.length &&
+      stock.length
+    ) {
       return { success: "Buy Transaction added successfully" };
     }
 
@@ -173,22 +224,21 @@ export const getBuyTransactionsPagination = async ({
 
 export const deleteBuyTransaction = async ({
   userId,
-  transactionId,
+  buyTx,
 }: {
   userId: string;
-  transactionId: string;
+  buyTx: BuyTransactionExt;
 }) => {
   try {
     const deletedTx = await db
       .delete(buyTransactions)
       .where(
         and(
-          eq(buyTransactions.id, transactionId),
+          eq(buyTransactions.id, buyTx.id),
           eq(buyTransactions.userId, userId)
         )
       )
       .returning();
-    console.log("deletedTx", deletedTx);
 
     const existBuyMonthHistory = await db
       .select()
@@ -320,6 +370,35 @@ export const deleteBuyTransaction = async ({
         .returning();
     }
 
+    //update stock
+    const existStock = await db
+      .select()
+      .from(stocks)
+      .where(
+        and(
+          eq(stocks.userId, userId),
+          eq(stocks.supplierId, buyTx.suppliers.id),
+          eq(stocks.unitPrice, buyTx.unitPrice),
+          eq(stocks.productId, buyTx.productId)
+        )
+      );
+    if (existStock.length) {
+      await db
+        .update(stocks)
+        .set({
+          quantity: existStock[0].quantity - buyTx.quantity,
+        })
+        .where(
+          and(
+            eq(stocks.userId, userId),
+            eq(stocks.supplierId, buyTx.suppliers.id),
+            eq(stocks.productId, buyTx.productId),
+            eq(stocks.unitPrice, buyTx.unitPrice)
+          )
+        )
+        .returning();
+    }
+
     if (deletedTx.length)
       return { success: "Transaction deleted successfully" };
     return { error: "Could not delete Transaction" };
@@ -389,4 +468,39 @@ export const getByTxTotalPurchase = async ({
     );
 
   return totalPurchase[0];
+};
+
+export const getBuyTxByUser = async (userId: string) => {
+  const transactions = await db.query.buyTransactions.findMany({
+    where: eq(buyTransactions.userId, userId),
+    with: {
+      products: {
+        with: {
+          unitOfMeasurements: true,
+        },
+      },
+    },
+  });
+  return transactions as BuyTransactionExt[];
+};
+
+export const getBuyTxByUserProduct = async ({
+  userId,
+  productId,
+}: {
+  userId: string;
+  productId: string;
+}) => {
+  const transactions = await db.query.buyTransactions.findFirst({
+    where: and(
+      eq(buyTransactions.userId, userId),
+      eq(buyTransactions.productId, productId)
+    ),
+    with: {
+      products: true,
+      suppliers: true,
+    },
+    orderBy: desc(buyTransactions.date),
+  });
+  return transactions as BuyTransactionExt;
 };
