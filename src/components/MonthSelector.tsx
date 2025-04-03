@@ -30,7 +30,6 @@ const MonthSelector = () => {
             "default",
             { month: "long" }
           );
-          // console.log("monthStr", monthStr);
 
           return (
             <SelectItem key={month + index} value={(month + 1).toString()}>

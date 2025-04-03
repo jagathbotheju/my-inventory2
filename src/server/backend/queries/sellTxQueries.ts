@@ -76,7 +76,7 @@ export const useSellTxByUserProduct = ({
   productId: string;
 }) => {
   return useQuery({
-    queryKey: ["sell-tx-by-user-product"],
+    queryKey: ["sell-tx-by-user-product", userId, productId],
     queryFn: () => getSellTxByUserProduct({ userId, productId }),
   });
 };

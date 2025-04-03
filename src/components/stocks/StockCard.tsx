@@ -29,7 +29,10 @@ const StockCard = ({
   buyTx,
 }: Props) => {
   const { data: sellTx } = useSellTxByUserProduct({ userId, productId });
-  const UOM = buyTx ? buyTx[0].products.unitOfMeasurements.unit : "";
+  const UOM =
+    buyTx && buyTx[0]?.products
+      ? buyTx[0].products.unitOfMeasurements.unit
+      : "";
   const txSummary: Array<{
     date: string;
     txType: string;
@@ -45,6 +48,7 @@ const StockCard = ({
     const txDate = format(new Date(tx.date), "yyyy-MM-dd");
     const txType = "SELL";
     const txQuantity = tx.quantity;
+    // if (tx.productId !== productId) return;
     txSummary.push({ date: txDate, txType, quantity: txQuantity });
   });
   txSummary.sort(

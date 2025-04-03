@@ -47,16 +47,16 @@ export const addBuyTransaction = async (data: BuyTransaction) => {
       .values(data)
       .returning();
 
-    //update history
+    // update history
     const existBuyMonthHistory = await db
       .select()
       .from(buyMonthHistory)
       .where(
         and(
           eq(buyMonthHistory.userId, data.userId),
-          eq(buyMonthHistory.day, new Date(data.date).getUTCDate() + 1),
-          eq(buyMonthHistory.month, new Date(data.date).getUTCMonth() + 1),
-          eq(buyMonthHistory.year, new Date(data.date).getUTCFullYear())
+          eq(buyMonthHistory.day, new Date(data.date).getDate()),
+          eq(buyMonthHistory.month, new Date(data.date).getMonth() + 1),
+          eq(buyMonthHistory.year, new Date(data.date).getFullYear())
         )
       );
     const existBuyYearHistory = await db
@@ -65,14 +65,12 @@ export const addBuyTransaction = async (data: BuyTransaction) => {
       .where(
         and(
           eq(buyYearHistory.userId, data.userId),
-          eq(buyYearHistory.month, new Date(data.date).getUTCMonth() + 1),
-          eq(buyYearHistory.year, new Date(data.date).getUTCFullYear())
+          eq(buyYearHistory.month, new Date(data.date).getMonth() + 1),
+          eq(buyYearHistory.year, new Date(data.date).getFullYear())
         )
       );
-
     let monthHistory = [] as BuyMonthHistory[];
     let yearHistory = [] as BuyYearHistory[];
-
     if (existBuyMonthHistory.length) {
       monthHistory = await db
         .update(buyMonthHistory)
@@ -84,9 +82,9 @@ export const addBuyTransaction = async (data: BuyTransaction) => {
         .where(
           and(
             eq(buyMonthHistory.userId, data.userId),
-            eq(buyMonthHistory.day, new Date(data.date).getUTCDate() + 1),
-            eq(buyMonthHistory.month, new Date(data.date).getUTCMonth() + 1),
-            eq(buyMonthHistory.year, new Date(data.date).getUTCFullYear())
+            eq(buyMonthHistory.day, new Date(data.date).getDate()),
+            eq(buyMonthHistory.month, new Date(data.date).getMonth() + 1),
+            eq(buyMonthHistory.year, new Date(data.date).getFullYear())
           )
         )
         .returning();
@@ -94,15 +92,14 @@ export const addBuyTransaction = async (data: BuyTransaction) => {
       monthHistory = await db
         .insert(buyMonthHistory)
         .values({
-          day: new Date(data.date).getUTCDate() + 1,
-          month: new Date(data.date).getUTCMonth() + 1,
-          year: new Date(data.date).getUTCFullYear(),
+          day: new Date(data.date).getDate(),
+          month: new Date(data.date).getMonth() + 1,
+          year: new Date(data.date).getFullYear(),
           userId: data.userId,
           totalPrice: data.quantity * (data.unitPrice ?? 0),
         })
         .returning();
     }
-
     if (existBuyYearHistory.length) {
       yearHistory = await db
         .update(buyYearHistory)
@@ -114,8 +111,8 @@ export const addBuyTransaction = async (data: BuyTransaction) => {
         .where(
           and(
             eq(buyYearHistory.userId, data.userId),
-            eq(buyYearHistory.month, new Date(data.date).getUTCMonth() + 1),
-            eq(buyYearHistory.year, new Date(data.date).getUTCFullYear())
+            eq(buyYearHistory.month, new Date(data.date).getMonth() + 1),
+            eq(buyYearHistory.year, new Date(data.date).getFullYear())
           )
         )
         .returning();
@@ -123,8 +120,8 @@ export const addBuyTransaction = async (data: BuyTransaction) => {
       yearHistory = await db
         .insert(buyYearHistory)
         .values({
-          month: new Date(data.date).getUTCMonth() + 1,
-          year: new Date(data.date).getUTCFullYear(),
+          month: new Date(data.date).getMonth() + 1,
+          year: new Date(data.date).getFullYear(),
           userId: data.userId,
           totalPrice: data.quantity * (data.unitPrice ?? 0),
         })
@@ -140,10 +137,11 @@ export const addBuyTransaction = async (data: BuyTransaction) => {
         and(
           eq(stocks.userId, data.userId),
           eq(stocks.supplierId, data.supplierId),
-          eq(stocks.unitPrice, data.unitPrice),
           eq(stocks.productId, data.productId)
+          // eq(stocks.unitPrice, data.unitPrice),
         )
       );
+
     if (existStock.length) {
       stock = await db
         .update(stocks)
@@ -154,8 +152,8 @@ export const addBuyTransaction = async (data: BuyTransaction) => {
           and(
             eq(stocks.userId, data.userId),
             eq(stocks.supplierId, data.supplierId),
-            eq(stocks.productId, data.productId),
-            eq(stocks.unitPrice, data.unitPrice)
+            eq(stocks.productId, data.productId)
+            // eq(stocks.unitPrice, data.unitPrice)
           )
         )
         .returning();
@@ -172,7 +170,6 @@ export const addBuyTransaction = async (data: BuyTransaction) => {
         })
         .returning();
     }
-
     if (
       newTransaction.length &&
       monthHistory.length &&
@@ -181,7 +178,6 @@ export const addBuyTransaction = async (data: BuyTransaction) => {
     ) {
       return { success: "Buy Transaction added successfully" };
     }
-
     return { error: "Count not add Transaction" };
   } catch (error) {
     console.log(error);
@@ -246,12 +242,9 @@ export const deleteBuyTransaction = async ({
       .where(
         and(
           eq(buyMonthHistory.userId, deletedTx[0].userId),
-          eq(buyMonthHistory.day, new Date(deletedTx[0].date).getUTCDate() + 1),
-          eq(
-            buyMonthHistory.month,
-            new Date(deletedTx[0].date).getUTCMonth() + 1
-          ),
-          eq(buyMonthHistory.year, new Date(deletedTx[0].date).getUTCFullYear())
+          eq(buyMonthHistory.day, new Date(deletedTx[0].date).getDate()),
+          eq(buyMonthHistory.month, new Date(deletedTx[0].date).getMonth() + 1),
+          eq(buyMonthHistory.year, new Date(deletedTx[0].date).getFullYear())
         )
       );
 
@@ -261,11 +254,8 @@ export const deleteBuyTransaction = async ({
       .where(
         and(
           eq(buyYearHistory.userId, deletedTx[0].userId),
-          eq(
-            buyYearHistory.month,
-            new Date(deletedTx[0].date).getUTCMonth() + 1
-          ),
-          eq(buyYearHistory.year, new Date(deletedTx[0].date).getUTCFullYear())
+          eq(buyYearHistory.month, new Date(deletedTx[0].date).getMonth() + 1),
+          eq(buyYearHistory.year, new Date(deletedTx[0].date).getFullYear())
         )
       );
 
@@ -289,18 +279,12 @@ export const deleteBuyTransaction = async ({
         .where(
           and(
             eq(buyMonthHistory.userId, deletedTx[0].userId),
-            eq(
-              buyMonthHistory.day,
-              new Date(deletedTx[0].date).getUTCDate() + 1
-            ),
+            eq(buyMonthHistory.day, new Date(deletedTx[0].date).getDate()),
             eq(
               buyMonthHistory.month,
-              new Date(deletedTx[0].date).getUTCMonth() + 1
+              new Date(deletedTx[0].date).getMonth() + 1
             ),
-            eq(
-              buyMonthHistory.year,
-              new Date(deletedTx[0].date).getUTCFullYear()
-            )
+            eq(buyMonthHistory.year, new Date(deletedTx[0].date).getFullYear())
           )
         )
         .returning();
@@ -310,18 +294,12 @@ export const deleteBuyTransaction = async ({
         .where(
           and(
             eq(buyMonthHistory.userId, deletedTx[0].userId),
-            eq(
-              buyMonthHistory.day,
-              new Date(deletedTx[0].date).getUTCDate() + 1
-            ),
+            eq(buyMonthHistory.day, new Date(deletedTx[0].date).getDate()),
             eq(
               buyMonthHistory.month,
-              new Date(deletedTx[0].date).getUTCMonth() + 1
+              new Date(deletedTx[0].date).getMonth() + 1
             ),
-            eq(
-              buyMonthHistory.year,
-              new Date(deletedTx[0].date).getUTCFullYear()
-            )
+            eq(buyMonthHistory.year, new Date(deletedTx[0].date).getFullYear())
           )
         )
         .returning();
@@ -342,12 +320,9 @@ export const deleteBuyTransaction = async ({
             eq(buyYearHistory.userId, deletedTx[0].userId),
             eq(
               buyYearHistory.month,
-              new Date(deletedTx[0].date).getUTCMonth() + 1
+              new Date(deletedTx[0].date).getMonth() + 1
             ),
-            eq(
-              buyYearHistory.year,
-              new Date(deletedTx[0].date).getUTCFullYear()
-            )
+            eq(buyYearHistory.year, new Date(deletedTx[0].date).getFullYear())
           )
         )
         .returning();
@@ -359,12 +334,9 @@ export const deleteBuyTransaction = async ({
             eq(buyYearHistory.userId, deletedTx[0].userId),
             eq(
               buyYearHistory.month,
-              new Date(deletedTx[0].date).getUTCMonth() + 1
+              new Date(deletedTx[0].date).getMonth() + 1
             ),
-            eq(
-              buyYearHistory.year,
-              new Date(deletedTx[0].date).getUTCFullYear()
-            )
+            eq(buyYearHistory.year, new Date(deletedTx[0].date).getFullYear())
           )
         )
         .returning();
@@ -378,8 +350,8 @@ export const deleteBuyTransaction = async ({
         and(
           eq(stocks.userId, userId),
           eq(stocks.supplierId, buyTx.suppliers.id),
-          eq(stocks.unitPrice, buyTx.unitPrice),
           eq(stocks.productId, buyTx.productId)
+          // eq(stocks.unitPrice, buyTx.unitPrice),
         )
       );
     if (existStock.length) {
@@ -392,8 +364,8 @@ export const deleteBuyTransaction = async ({
           and(
             eq(stocks.userId, userId),
             eq(stocks.supplierId, buyTx.suppliers.id),
-            eq(stocks.productId, buyTx.productId),
-            eq(stocks.unitPrice, buyTx.unitPrice)
+            eq(stocks.productId, buyTx.productId)
+            // eq(stocks.unitPrice, buyTx.unitPrice)
           )
         )
         .returning();

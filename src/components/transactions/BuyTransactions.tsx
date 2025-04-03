@@ -55,8 +55,6 @@ const BuyTransactions = ({ user }: Props) => {
     timeFrame,
   });
 
-  // console.log("buyTransactions", user);
-
   return (
     <div className="flex w-full flex-col">
       <Card className="flex flex-col w-full h-fit bg-transparent dark:border-primary/40">
@@ -137,7 +135,7 @@ const BuyTransactions = ({ user }: Props) => {
         </CardContent>
       </Card>
 
-      {buyTransactions?.length && (
+      {buyTransactions?.length ? (
         <div className="self-end mt-6">
           <Pagination
             pageSize={10}
@@ -151,7 +149,7 @@ const BuyTransactions = ({ user }: Props) => {
             showTitle={false}
           />
         </div>
-      )}
+      ) : null}
     </div>
   );
 };

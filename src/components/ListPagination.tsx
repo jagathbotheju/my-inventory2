@@ -24,8 +24,6 @@ const ListPagination = ({
   handleNextPage,
   setPage,
 }: Props) => {
-  console.log("allPages", page);
-
   return (
     <div className="mt-4 self-end">
       <Pagination>

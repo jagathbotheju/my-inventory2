@@ -143,7 +143,7 @@ const SellTransactions = ({ user }: Props) => {
         </CardContent>
       </Card>
 
-      {sellTransactions?.length && (
+      {sellTransactions?.length ? (
         <div className="self-end mt-6">
           <Pagination
             pageSize={10}
@@ -157,7 +157,7 @@ const SellTransactions = ({ user }: Props) => {
             showTitle={false}
           />
         </div>
-      )}
+      ) : null}
     </div>
   );
 };

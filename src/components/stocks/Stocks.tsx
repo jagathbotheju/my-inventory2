@@ -13,7 +13,6 @@ interface Props {
 const Stocks = ({ user }: Props) => {
   const { data: allStocks } = useAllStocks(user?.id as string);
   const { data: userByTx } = useBuyTxByUser(user.id);
-  // console.log("userByTx", userByTx);
 
   return (
     <Card className="flex flex-col w-full h-fit bg-transparent dark:border-primary/40">
@@ -30,7 +29,6 @@ const Stocks = ({ user }: Props) => {
             (buyTx) =>
               buyTx.productId === stock.productId && buyTx.userId === user.id
           );
-          console.log("productBuyTx", productBuyTx);
           return (
             <StockCard
               key={index}

@@ -17,7 +17,6 @@ export const getBuyMonthHistoryData = async ({
   year: number;
   month: number;
 }) => {
-  // console.log("month", month);
   const result = await db
     .select()
     .from(buyMonthHistory)
@@ -45,10 +44,8 @@ export const getBuyMonthHistoryData = async ({
       });
     }
 
-    // const marksTest = history.find((item) => item.day === 29) as HistoryData;
     return history;
   }
-
   return [];
 };
 

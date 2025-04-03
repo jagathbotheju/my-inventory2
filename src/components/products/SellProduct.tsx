@@ -50,11 +50,6 @@ const SellProduct = ({ productId, userId }: Props) => {
   const [stockProduct, setStockProduct] = useState<Stock>({} as Stock);
   const { data: product, isLoading } = useProductById({ productId, userId });
   const { mutate: addSellTransaction } = useAddSellTransaction();
-  // const { data: stocks } = useStocks({
-  //   userId,
-  //   productId,
-  //   supplierId: product?.suppliers.id as string,
-  // });
 
   const form = useForm<z.infer<typeof SellProductSchema>>({
     resolver: zodResolver(SellProductSchema),
@@ -65,8 +60,6 @@ const SellProduct = ({ productId, userId }: Props) => {
     },
     mode: "all",
   });
-
-  // console.log("stockProduct", stockProduct);
 
   const onSubmit = (formData: z.infer<typeof SellProductSchema>) => {
     if (!customer.id) return toast.error("Please select customer");

@@ -36,9 +36,6 @@ const SupplierPicker = ({ setSupplier, supplierId, userId }: Props) => {
     }
   }, [supplierId]);
 
-  // console.log("value ***", value);
-  // console.log(suppliers);
-
   return (
     <div className="flex">
       {isLoading ? (

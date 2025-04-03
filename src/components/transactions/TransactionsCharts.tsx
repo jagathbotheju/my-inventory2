@@ -78,7 +78,6 @@ const TransactionsCharts = ({ user }: Props) => {
     return yearData;
   };
   const yearHistoryChartData = yearHistoryData();
-  // console.log("yearHistoryChartData", yearHistoryChartData);
 
   //month history data
   const monthHistoryData = () => {
@@ -100,14 +99,12 @@ const TransactionsCharts = ({ user }: Props) => {
         month: buyMonthDate?.month,
         year: buyMonthDate?.year,
       };
-      // console.log("buyMOnthDate", data);
       monthData.push(data);
     }
 
     return monthData;
   };
   const monthHistoryChartData = monthHistoryData();
-  // console.log("monthHistoryChartData", monthHistoryChartData);
 
   return (
     <Card className="flex flex-col w-full h-fit bg-transparent dark:border-primary/40">

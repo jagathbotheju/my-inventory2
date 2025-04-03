@@ -55,7 +55,6 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
         session.user = tokenUser;
       }
 
-      // console.log("session user", session.user);
       return session;
     },
     async jwt({ token }) {
@@ -65,7 +64,6 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
         });
         token.user = studentDB;
       }
-      // console.log("jwt token sub", token.sub);
       return token;
     },
   },

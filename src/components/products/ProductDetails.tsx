@@ -14,7 +14,6 @@ interface Props {
 const ProductDetails = ({ productId, userId }: Props) => {
   const router = useRouter();
   const { data: product, isLoading } = useProductById({ productId, userId });
-  console.log("product", product);
 
   return (
     <Card className="flex flex-col  h-fit dark:bg-transparent dark:border-primary/40">
