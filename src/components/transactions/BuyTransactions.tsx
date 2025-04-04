@@ -95,7 +95,7 @@ const BuyTransactions = ({ user }: Props) => {
                   <TableHead>Date</TableHead>
                   <TableHead>Supplier</TableHead>
                   <TableHead>Product Number</TableHead>
-                  <TableHead>Unit Price</TableHead>
+                  <TableHead>Purchased Price</TableHead>
                   <TableHead>Quantity</TableHead>
                   <TableHead>TotalPrice</TableHead>
                 </TableRow>

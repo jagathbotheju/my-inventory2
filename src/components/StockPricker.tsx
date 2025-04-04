@@ -40,6 +40,8 @@ const StockPricker = ({
     (item) => `${item.productId}${item.unitPrice}${item.quantity}` === value
   );
 
+  console.log("stocks", stocks);
+
   return (
     <div className="flex">
       {isLoading ? (
