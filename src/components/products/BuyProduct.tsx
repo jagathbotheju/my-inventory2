@@ -32,7 +32,7 @@ interface Props {
 const BuyProduct = ({ productId, userId }: Props) => {
   const router = useRouter();
   const { data: product, isLoading } = useProductById({ productId, userId });
-  const { mutate: addBuyTransaction } = useAddBuyTransaction();
+  const { mutate: addBuyTransaction, isPending } = useAddBuyTransaction();
 
   const form = useForm<z.infer<typeof BuyProductSchema>>({
     resolver: zodResolver(BuyProductSchema),
@@ -200,7 +200,12 @@ const BuyProduct = ({ productId, userId }: Props) => {
               </div>
 
               <div className="flex items-center gap-4 mt-8 col-span-12">
-                <Button type="submit" className="font-semibold">
+                {/* add transaction */}
+                <Button
+                  type="submit"
+                  className="font-semibold"
+                  disabled={!form.formState.isValid || isPending}
+                >
                   Buy
                 </Button>
                 <Button

@@ -49,7 +49,7 @@ const SellProduct = ({ productId, userId }: Props) => {
   const [customer, setCustomer] = useState<Customer>({} as Customer);
   const [stockProduct, setStockProduct] = useState<Stock>({} as Stock);
   const { data: product, isLoading } = useProductById({ productId, userId });
-  const { mutate: addSellTransaction } = useAddSellTransaction();
+  const { mutate: addSellTransaction, isPending } = useAddSellTransaction();
 
   const form = useForm<z.infer<typeof SellProductSchema>>({
     resolver: zodResolver(SellProductSchema),
@@ -240,7 +240,12 @@ const SellProduct = ({ productId, userId }: Props) => {
               </div>
 
               <div className="flex items-center gap-4 mt-8 col-span-12">
-                <Button type="submit" className="font-semibold">
+                {/* sell product */}
+                <Button
+                  type="submit"
+                  className="font-semibold"
+                  disabled={!form.formState.isValid || isPending}
+                >
                   Sell
                 </Button>
                 <Button
