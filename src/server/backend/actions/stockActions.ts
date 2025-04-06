@@ -13,7 +13,7 @@ export const getStocks = async ({
   productId: string;
   supplierId: string;
 }) => {
-  const stock = await db.query.buyTransactions.findMany({
+  const stock = await db.query.stocks.findMany({
     where: and(
       eq(stocks.userId, userId),
       eq(stocks.productId, productId),

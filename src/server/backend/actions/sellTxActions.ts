@@ -50,16 +50,6 @@ export const addSellTransaction = async ({
           eq(sellYearHistory.year, new Date(data.date).getFullYear())
         )
       );
-    const existStock = await db
-      .select()
-      .from(stocks)
-      .where(
-        and(
-          eq(stocks.userId, data.userId),
-          eq(stocks.productId, data.productId),
-          eq(stocks.supplierId, supplierId)
-        )
-      );
 
     let monthHistory = [] as SellMonthHistory[];
     let yearHistory = [] as SellYearHistory[];
@@ -123,6 +113,18 @@ export const addSellTransaction = async ({
     }
 
     //update stock
+    const existStock = await db
+      .select()
+      .from(stocks)
+      .where(
+        and(
+          eq(stocks.userId, data.userId),
+          eq(stocks.productId, data.productId),
+          eq(stocks.supplierId, supplierId),
+          eq(stocks.unitPrice, data.purchasedPrice ?? 0)
+        )
+      );
+
     const updatedStock = await db
       .update(stocks)
       .set({

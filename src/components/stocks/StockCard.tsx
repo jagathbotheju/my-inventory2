@@ -12,6 +12,7 @@ import {
   DialogTrigger,
 } from "../ui/dialog";
 import { useSellTxByUserProduct } from "@/server/backend/queries/sellTxQueries";
+import { formatPrice } from "@/lib/utils";
 
 interface Props {
   userId: string;
@@ -37,19 +38,30 @@ const StockCard = ({
     date: string;
     txType: string;
     quantity: number;
+    unitPrice: number;
   }> = [];
   buyTx?.forEach((tx) => {
     const txDate = format(new Date(tx.date), "yyyy-MM-dd");
     const txType = "BUY";
     const txQuantity = tx.quantity;
-    txSummary.push({ date: txDate, txType, quantity: txQuantity });
+    txSummary.push({
+      date: txDate,
+      txType,
+      quantity: txQuantity,
+      unitPrice: tx.unitPrice,
+    });
   });
   sellTx?.forEach((tx) => {
     const txDate = format(new Date(tx.date), "yyyy-MM-dd");
     const txType = "SELL";
     const txQuantity = tx.quantity;
     // if (tx.productId !== productId) return;
-    txSummary.push({ date: txDate, txType, quantity: txQuantity });
+    txSummary.push({
+      date: txDate,
+      txType,
+      quantity: txQuantity,
+      unitPrice: tx.unitPrice ?? 0,
+    });
   });
   txSummary.sort(
     (a, b) => new Date(a.date).getTime() - new Date(b.date).getTime()
@@ -73,30 +85,42 @@ const StockCard = ({
           </CardContent>
         </Card>
       </DialogTrigger>
-      <DialogContent>
+      <DialogContent className="sm:max-w-[800px]">
         <DialogHeader>
           <DialogTitle>
-            Product, <span className="text-primary">{productNumber}</span> Stock
-            History
+            Product,{" "}
+            <span className="text-primary uppercase">{productNumber}</span>{" "}
+            Stock History
           </DialogTitle>
           <DialogDescription className="hidden">
             product stock history
           </DialogDescription>
         </DialogHeader>
 
-        <div className="flex flex-col gap-2">
+        <div className="flex flex-col gap-2 w-full">
+          <div className="grid gap-1 grid-cols-8 font-semibold text-lg border-b">
+            <p className="col-span-2 font-bold">Date</p>
+            <p className="col-span-2 font-bold">Tx.Type</p>
+            <p className="col-span-2 font-bold">Unit Price</p>
+            <p className="flex gap-1 col-span-2">Quantity</p>
+          </div>
+
           <div className="flex flex-col gap-1 max-h-96 overflow-y-auto">
             {/* buy transitions */}
             {txSummary?.map((tx, index) => (
-              <div key={index} className="grid gap-1 grid-cols-6">
-                <p className="col-span-2">
-                  {format(new Date(tx.date), "yyyy-MM-dd")}
-                </p>
+              <div
+                key={index}
+                className={`grid gap-1 grid-cols-8 text-lg hover:bg-secondary ${
+                  tx.txType === "BUY" ? "text-green-500" : "text-red-500"
+                }`}
+              >
+                {/* data */}
+                <p className="col-span-2">{tx.date}</p>
                 <p className="col-span-2">{tx.txType}</p>
-                <div className="flex gap-1">
-                  {tx.txType === "BUY" ? "+" : "-"}
+                <p className="col-span-2">{formatPrice(tx.unitPrice)}</p>
+                <div className="flex gap-1 col-span-2">
                   <p className="uppercase">{UOM}</p>
-                  <p className="col-span-2">{tx.quantity}</p>
+                  <p className="">{tx.quantity}</p>
                 </div>
               </div>
             ))}
@@ -104,10 +128,10 @@ const StockCard = ({
 
           <Separator className="my-1" />
           {/* final balance */}
-          <div className="grid gap-1 grid-cols-6 font-semibold text-lg">
+          <div className="grid gap-1 grid-cols-8 font-semibold text-lg">
             <p className="col-span-2">{format(new Date(), "yyyy-MM-dd")}</p>
-            <p className="col-span-2">FINAL BAL</p>
-            <div className="flex gap-1">
+            <p className="col-span-4">FINAL BAL</p>
+            <div className="flex gap-1 col-span-2">
               <p className="uppercase">{UOM}</p>
               <p className="col-span-2">{quantity}</p>
             </div>

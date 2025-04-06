@@ -137,8 +137,8 @@ export const addBuyTransaction = async (data: BuyTransaction) => {
         and(
           eq(stocks.userId, data.userId),
           eq(stocks.supplierId, data.supplierId),
-          eq(stocks.productId, data.productId)
-          // eq(stocks.unitPrice, data.unitPrice),
+          eq(stocks.productId, data.productId),
+          eq(stocks.unitPrice, data.unitPrice)
         )
       );
 
@@ -152,8 +152,8 @@ export const addBuyTransaction = async (data: BuyTransaction) => {
           and(
             eq(stocks.userId, data.userId),
             eq(stocks.supplierId, data.supplierId),
-            eq(stocks.productId, data.productId)
-            // eq(stocks.unitPrice, data.unitPrice)
+            eq(stocks.productId, data.productId),
+            eq(stocks.unitPrice, data.unitPrice)
           )
         )
         .returning();
@@ -170,6 +170,7 @@ export const addBuyTransaction = async (data: BuyTransaction) => {
         })
         .returning();
     }
+
     if (
       newTransaction.length &&
       monthHistory.length &&

@@ -36,11 +36,21 @@ const StockPricker = ({
     supplierId,
     productId: product?.id as string,
   });
+  // const filteredStocks = stocks?.reduce((acc: Stock[], stock: Stock) => {
+  //   const existingStock = acc.find(
+  //     (item) =>
+  //       item.productId === stock.productId && item.unitPrice === stock.unitPrice
+  //   );
+  //   if (!existingStock) {
+  //     acc.push(stock);
+  //   } else {
+  //     existingStock.quantity += stock.quantity;
+  //   }
+  //   return acc;
+  // }, []);
   const selectedStock = stocks?.find(
     (item) => `${item.productId}${item.unitPrice}${item.quantity}` === value
   );
-
-  console.log("stocks", stocks);
 
   return (
     <div className="flex">
