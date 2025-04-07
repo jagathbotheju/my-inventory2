@@ -40,6 +40,7 @@ const BuyProduct = ({ productId, userId }: Props) => {
       unitPrice: 0,
       quantity: 0,
       date: new Date(),
+      invoiceNumber: "",
     },
     mode: "all",
   });
@@ -53,6 +54,7 @@ const BuyProduct = ({ productId, userId }: Props) => {
       date: formData.date.toDateString(),
       unitPrice: formData.unitPrice,
       quantity: formData.quantity,
+      invoiceNumber: formData.invoiceNumber,
     } as BuyTransaction;
     addBuyTransaction(data);
   };
@@ -80,14 +82,32 @@ const BuyProduct = ({ productId, userId }: Props) => {
               <p className="whitespace-nowrap text-2xl col-span-8">
                 {product?.productNumber}
               </p>
-
-              {/* product number */}
               <p className="whitespace-nowrap text-2xl col-span-3 font-semibold">
                 Description
               </p>
               <p className="whitespace-nowrap text-2xl col-span-8">
                 {product?.description}
               </p>
+
+              {/* invoice number */}
+              <p className="whitespace-nowrap text-2xl col-span-3 font-semibold">
+                Invoice Number
+              </p>
+              <FormField
+                control={form.control}
+                name="invoiceNumber"
+                render={({ field }) => (
+                  <FormItem className="whitespace-nowrap text-2xl col-span-8">
+                    <FormControl>
+                      <Input
+                        {...field}
+                        className="uppercase font-semibold text-2xl"
+                      />
+                    </FormControl>
+                    <FormMessage className="dark:text-white" />
+                  </FormItem>
+                )}
+              />
 
               {/* supplier */}
               <p className="whitespace-nowrap text-2xl col-span-3 font-semibold">

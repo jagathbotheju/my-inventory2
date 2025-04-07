@@ -94,6 +94,7 @@ const BuyTransactions = ({ user }: Props) => {
                 <TableRow>
                   <TableHead>Date</TableHead>
                   <TableHead>Supplier</TableHead>
+                  <TableHead>Invoice Number</TableHead>
                   <TableHead>Product Number</TableHead>
                   <TableHead>Purchased Price</TableHead>
                   <TableHead>Quantity</TableHead>
@@ -105,7 +106,12 @@ const BuyTransactions = ({ user }: Props) => {
                   <TableRow key={tx.id}>
                     <TableCell>{format(tx.date, "PPP")}</TableCell>
                     <TableCell>{tx.suppliers.name}</TableCell>
-                    <TableCell>{tx.products.productNumber}</TableCell>
+                    <TableCell className="uppercase">
+                      {tx.invoiceNumber}
+                    </TableCell>
+                    <TableCell className="uppercase">
+                      {tx.products.productNumber}
+                    </TableCell>
                     <TableCell>{formatPrice(tx.unitPrice ?? 0)}</TableCell>
                     <TableCell>{tx.quantity}</TableCell>
                     <TableCell>

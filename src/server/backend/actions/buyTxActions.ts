@@ -42,6 +42,23 @@ export const getDailyBuyTransactions = async ({
 export const addBuyTransaction = async (data: BuyTransaction) => {
   try {
     //add new transaction
+    const existTransaction = await db
+      .select()
+      .from(buyTransactions)
+      .where(
+        and(
+          eq(buyTransactions.userId, data.userId),
+          eq(buyTransactions.supplierId, data.supplierId),
+          eq(buyTransactions.productId, data.productId),
+          eq(buyTransactions.quantity, data.quantity),
+          eq(buyTransactions.unitPrice, data.unitPrice),
+          eq(buyTransactions.date, data.date)
+        )
+      );
+    if (existTransaction.length) {
+      return { error: "Transaction already exist" };
+    }
+
     const newTransaction = await db
       .insert(buyTransactions)
       .values(data)

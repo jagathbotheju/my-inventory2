@@ -39,6 +39,7 @@ const StockCard = ({
     txType: string;
     quantity: number;
     unitPrice: number;
+    invoiceNumber?: string;
   }> = [];
   buyTx?.forEach((tx) => {
     const txDate = format(new Date(tx.date), "yyyy-MM-dd");
@@ -49,6 +50,7 @@ const StockCard = ({
       txType,
       quantity: txQuantity,
       unitPrice: tx.unitPrice,
+      invoiceNumber: tx.invoiceNumber ? tx.invoiceNumber : "",
     });
   });
   sellTx?.forEach((tx) => {
@@ -100,6 +102,7 @@ const StockCard = ({
         <div className="flex flex-col gap-2 w-full">
           <div className="grid gap-1 grid-cols-8 font-semibold text-lg border-b">
             <p className="col-span-2 font-bold">Date</p>
+            <p className="col-span-2 font-bold">Invoice Number</p>
             <p className="col-span-2 font-bold">Tx.Type</p>
             <p className="col-span-2 font-bold">Unit Price</p>
             <p className="flex gap-1 col-span-2">Quantity</p>
@@ -110,12 +113,15 @@ const StockCard = ({
             {txSummary?.map((tx, index) => (
               <div
                 key={index}
-                className={`grid gap-1 grid-cols-8 text-lg hover:bg-secondary ${
+                className={`grid gap-1 grid-cols-10 text-lg hover:bg-secondary ${
                   tx.txType === "BUY" ? "text-green-500" : "text-red-500"
                 }`}
               >
                 {/* data */}
                 <p className="col-span-2">{tx.date}</p>
+                <p className="col-span-2 uppercase">
+                  {tx.invoiceNumber ? tx.invoiceNumber : ""}
+                </p>
                 <p className="col-span-2">{tx.txType}</p>
                 <p className="col-span-2">{formatPrice(tx.unitPrice)}</p>
                 <div className="flex gap-1 col-span-2">
@@ -128,9 +134,9 @@ const StockCard = ({
 
           <Separator className="my-1" />
           {/* final balance */}
-          <div className="grid gap-1 grid-cols-8 font-semibold text-lg">
+          <div className="grid gap-1 grid-cols-10 font-semibold text-lg">
             <p className="col-span-2">{format(new Date(), "yyyy-MM-dd")}</p>
-            <p className="col-span-4">FINAL BAL</p>
+            <p className="col-span-6">FINAL BAL</p>
             <div className="flex gap-1 col-span-2">
               <p className="uppercase">{UOM}</p>
               <p className="col-span-2">{quantity}</p>
