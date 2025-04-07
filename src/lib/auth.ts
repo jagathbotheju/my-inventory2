@@ -54,6 +54,18 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
       if (tokenUser) {
         session.user = tokenUser;
       }
+      console.log("session user", tokenUser);
+
+      if (!tokenUser || !tokenUser.id) {
+        if (token && token.sub) {
+          const studentDB = await db.query.users.findFirst({
+            where: eq(users.id, token.sub),
+          });
+          if (studentDB) {
+            session.user = studentDB;
+          }
+        }
+      }
 
       return session;
     },
