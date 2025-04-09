@@ -111,6 +111,7 @@ const TransactionsCharts = ({ user }: Props) => {
       <CardHeader className="flex flex-col gap-4">
         <div className="flex items-center justify-between">
           <CardTitle className="text-4xl font-bold">
+            {period.year}{" "}
             {timeFrame === "month" ? `${getFullMonth(period.month)}` : ``}
           </CardTitle>
         </div>

@@ -87,7 +87,7 @@ const StockCard = ({
           </CardContent>
         </Card>
       </DialogTrigger>
-      <DialogContent className="sm:max-w-[800px]">
+      <DialogContent className="sm:max-w-[900px]">
         <DialogHeader>
           <DialogTitle>
             Product,{" "}
@@ -100,7 +100,7 @@ const StockCard = ({
         </DialogHeader>
 
         <div className="flex flex-col gap-2 w-full">
-          <div className="grid gap-1 grid-cols-8 font-semibold text-lg border-b">
+          <div className="grid gap-1 grid-cols-10 font-semibold text-lg border-b">
             <p className="col-span-2 font-bold">Date</p>
             <p className="col-span-2 font-bold">Invoice Number</p>
             <p className="col-span-2 font-bold">Tx.Type</p>

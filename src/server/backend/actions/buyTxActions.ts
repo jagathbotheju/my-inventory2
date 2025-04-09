@@ -368,12 +368,13 @@ export const deleteBuyTransaction = async ({
         and(
           eq(stocks.userId, userId),
           eq(stocks.supplierId, buyTx.suppliers.id),
-          eq(stocks.productId, buyTx.productId)
-          // eq(stocks.unitPrice, buyTx.unitPrice),
+          eq(stocks.productId, buyTx.productId),
+          eq(stocks.unitPrice, buyTx.unitPrice)
         )
       );
+    console.log("existStock", existStock);
     if (existStock.length) {
-      await db
+      const updatedStock = await db
         .update(stocks)
         .set({
           quantity: existStock[0].quantity - buyTx.quantity,
@@ -382,11 +383,12 @@ export const deleteBuyTransaction = async ({
           and(
             eq(stocks.userId, userId),
             eq(stocks.supplierId, buyTx.suppliers.id),
-            eq(stocks.productId, buyTx.productId)
-            // eq(stocks.unitPrice, buyTx.unitPrice)
+            eq(stocks.productId, buyTx.productId),
+            eq(stocks.unitPrice, buyTx.unitPrice)
           )
         )
         .returning();
+      console.log("updatedStock", updatedStock);
     }
 
     if (deletedTx.length)

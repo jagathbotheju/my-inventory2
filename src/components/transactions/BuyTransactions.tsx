@@ -55,6 +55,8 @@ const BuyTransactions = ({ user }: Props) => {
     timeFrame,
   });
 
+  // console.log("totalPurchase", totalPurchase);
+
   return (
     <div className="flex w-full flex-col">
       <Card className="flex flex-col w-full h-fit bg-transparent dark:border-primary/40">
