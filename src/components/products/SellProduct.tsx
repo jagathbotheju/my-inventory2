@@ -57,6 +57,7 @@ const SellProduct = ({ productId, userId }: Props) => {
       unitPrice: 0,
       quantity: 0,
       date: new Date(),
+      invoiceNumber: "",
     },
     mode: "all",
   });
@@ -72,6 +73,7 @@ const SellProduct = ({ productId, userId }: Props) => {
       unitPrice: formData.unitPrice,
       purchasedPrice: stockProduct.unitPrice,
       quantity: formData.quantity,
+      invoiceNumber: formData.invoiceNumber,
     } as SellTransaction;
     addSellTransaction({ data, supplierId: product?.suppliers.id as string });
   };
@@ -112,6 +114,26 @@ const SellProduct = ({ productId, userId }: Props) => {
                   product={product}
                 />
               </div>
+
+              {/* invoice number */}
+              <p className="whitespace-nowrap text-2xl col-span-3 text-muted-foreground font-semibold">
+                Invoice Number
+              </p>
+              <FormField
+                control={form.control}
+                name="invoiceNumber"
+                render={({ field }) => (
+                  <FormItem className="whitespace-nowrap text-2xl col-span-8">
+                    <FormControl>
+                      <Input
+                        {...field}
+                        className="uppercase font-semibold text-2xl"
+                      />
+                    </FormControl>
+                    <FormMessage className="dark:text-white" />
+                  </FormItem>
+                )}
+              />
 
               {/* product number */}
               <p className="whitespace-nowrap text-2xl col-span-3 font-semibold text-muted-foreground">

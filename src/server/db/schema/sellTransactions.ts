@@ -28,6 +28,7 @@ export const sellTransactions = pgTable("sell_transactions", {
     .references(() => products.id),
   quantity: integer("quantity").notNull(),
   unitPrice: doublePrecision("unit_price").default(0),
+  invoiceNumber: text("invoice_number"),
   date: timestamp("date", { mode: "string" }).notNull().defaultNow(),
   createdAt: timestamp("created_at", { mode: "string" }).notNull().defaultNow(),
 });

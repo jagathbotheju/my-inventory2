@@ -33,6 +33,7 @@ export const SellProductSchema = z.object({
       message: "must be positive value",
     }),
   date: z.date({ required_error: "purchase date is required" }),
+  invoiceNumber: z.string().min(1, "invoice number is required"),
 });
 
 export const NewSupplierSchema = z.object({

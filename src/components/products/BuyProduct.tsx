@@ -75,20 +75,6 @@ const BuyProduct = ({ productId, userId }: Props) => {
               onSubmit={form.handleSubmit(onSubmit)}
               className="grid grid-cols-12 gap-4"
             >
-              {/* product number */}
-              <p className="whitespace-nowrap text-2xl col-span-3 font-semibold">
-                Product Number
-              </p>
-              <p className="whitespace-nowrap text-2xl col-span-8">
-                {product?.productNumber}
-              </p>
-              <p className="whitespace-nowrap text-2xl col-span-3 font-semibold">
-                Description
-              </p>
-              <p className="whitespace-nowrap text-2xl col-span-8">
-                {product?.description}
-              </p>
-
               {/* invoice number */}
               <p className="whitespace-nowrap text-2xl col-span-3 font-semibold">
                 Invoice Number
@@ -108,6 +94,20 @@ const BuyProduct = ({ productId, userId }: Props) => {
                   </FormItem>
                 )}
               />
+
+              {/* product number */}
+              <p className="whitespace-nowrap text-2xl col-span-3 font-semibold">
+                Product Number
+              </p>
+              <p className="whitespace-nowrap text-2xl col-span-8">
+                {product?.productNumber}
+              </p>
+              <p className="whitespace-nowrap text-2xl col-span-3 font-semibold">
+                Description
+              </p>
+              <p className="whitespace-nowrap text-2xl col-span-8">
+                {product?.description}
+              </p>
 
               {/* supplier */}
               <p className="whitespace-nowrap text-2xl col-span-3 font-semibold">

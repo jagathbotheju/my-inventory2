@@ -39,18 +39,25 @@ const BuyTransactions = ({ user }: Props) => {
   const [page, setPage] = useState(1);
   const { period, timeFrame } = useTimeFrameStore((state) => state);
   const { data: buyTransactions, isLoading } = useBuyTransactionsPagination({
-    userId: user.id,
+    // userId: user.id,
+    userId: "7e397cd1-19ad-4c68-aa50-a77c06450bc7",
     period,
     timeFrame,
     page,
   });
+  console.log("buyTransactions", buyTransactions);
+
   const { data: buyTxCount } = useBuyTxCount({
-    userId: user.id,
+    // userId: user.id,
+    userId: "7e397cd1-19ad-4c68-aa50-a77c06450bc7",
     period,
     timeFrame,
   });
+  console.log("buyTxCount", buyTxCount);
+
   const { data: totalPurchase } = useByTxTotalPurchase({
-    userId: user.id,
+    // userId: user.id,
+    userId: "7e397cd1-19ad-4c68-aa50-a77c06450bc7",
     period,
     timeFrame,
   });

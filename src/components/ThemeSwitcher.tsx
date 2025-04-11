@@ -18,12 +18,12 @@ export function ThemeSwitcher() {
     <div className="flex w-full justify-between items-center">
       <div className="flex group items-center">
         {theme === "dark" && (
-          <Sun className="group-hover:text-yellow-600 cursor-pointer text-foreground mr-1 w-5 group-hover:rotate-180 transition-all duration-300 ease-in-out" />
+          <Sun className="group-hover:text-primary cursor-pointer text-foreground mr-1 w-5 group-hover:rotate-180 transition-all duration-300 ease-in-out" />
         )}
         {theme === "light" && (
-          <Moon className="group-hover:text-blue-400 cursor-pointer text-foreground mr-1 w-5 group-hover:rotate-180 transition-all duration-300 ease-in-out" />
+          <Moon className="group-hover:text-primary cursor-pointer text-foreground mr-1 w-5 group-hover:rotate-180 transition-all duration-300 ease-in-out" />
         )}
-        <span className="dark:text-blue-400 text-secondary-foreground/75 text-yellow-600">
+        <span className="hover:text-primary ml-1">
           Theme {theme?.toLocaleUpperCase()}
         </span>
       </div>

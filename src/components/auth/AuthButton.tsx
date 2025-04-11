@@ -6,6 +6,7 @@ import {
   BlocksIcon,
   LogIn,
   LogOutIcon,
+  ReceiptTextIcon,
   RulerIcon,
   // UserPen,
   UserRoundPen,
@@ -60,8 +61,8 @@ const AuthButton = ({ user }: Props) => {
                 className="font-medium transition-all duration-500 cursor-pointer group ease-in-out"
                 onClick={() => router.push("/suppliers")}
               >
-                <LucideFactory className="mr-2 w-4 group-hover:translate-x-1 transition-all duration-300 ease-in-out" />
-                <span>Suppliers</span>
+                <LucideFactory className="mr-2 w-4 group-hover:translate-x-1 transition-all duration-300 ease-in-out group-hover:text-primary group-hover:font-semibold" />
+                <span className="hover:text-primary">Suppliers</span>
               </DropdownMenuItem>
 
               {/* customers */}
@@ -69,8 +70,8 @@ const AuthButton = ({ user }: Props) => {
                 className="font-medium transition-all duration-500 cursor-pointer group ease-in-out"
                 onClick={() => router.push("/customers")}
               >
-                <Users2Icon className="mr-2 w-4 group-hover:translate-x-1 transition-all duration-300 ease-in-out" />
-                <span>Customers</span>
+                <Users2Icon className="mr-2 w-4 group-hover:translate-x-1 transition-all duration-300 ease-in-out group-hover:text-primary group-hover:font-semibold" />
+                <span className="hover:text-primary">Customers</span>
               </DropdownMenuItem>
 
               {/* products */}
@@ -78,8 +79,17 @@ const AuthButton = ({ user }: Props) => {
                 className="font-medium transition-all duration-500 cursor-pointer group ease-in-out"
                 onClick={() => router.push("/products")}
               >
-                <BaggageClaimIcon className="mr-2 w-4 group-hover:translate-x-1 transition-all duration-300 ease-in-out" />
-                <span>Products</span>
+                <BaggageClaimIcon className="mr-2 w-4 group-hover:translate-x-1 transition-all duration-300 ease-in-out group-hover:text-primary group-hover:font-semibold" />
+                <span className="hover:text-primary">Products</span>
+              </DropdownMenuItem>
+
+              {/* invoice */}
+              <DropdownMenuItem
+                className="font-medium transition-all duration-500 cursor-pointer group ease-in-out group-hover:text-primary group-hover:font-semibold"
+                onClick={() => router.push("/invoice")}
+              >
+                <ReceiptTextIcon className="mr-2 w-4 group-hover:translate-x-1 transition-all duration-300 ease-in-out" />
+                <span className="hover:text-primary">Invoice</span>
               </DropdownMenuItem>
 
               {/* stocks */}
@@ -87,8 +97,8 @@ const AuthButton = ({ user }: Props) => {
                 className="font-medium transition-all duration-500 cursor-pointer group ease-in-out"
                 onClick={() => router.push("/stocks")}
               >
-                <BlocksIcon className="mr-2 w-4 group-hover:translate-x-1 transition-all duration-300 ease-in-out" />
-                <span>Stocks</span>
+                <BlocksIcon className="mr-2 w-4 group-hover:translate-x-1 transition-all duration-300 ease-in-out group-hover:text-primary group-hover:font-semibold" />
+                <span className="hover:text-primary">Stocks</span>
               </DropdownMenuItem>
 
               {/* uom */}
@@ -96,8 +106,8 @@ const AuthButton = ({ user }: Props) => {
                 className="font-medium transition-all duration-500 cursor-pointer group ease-in-out"
                 onClick={() => router.push("/uoms")}
               >
-                <RulerIcon className="mr-2 w-4 group-hover:translate-x-1 transition-all duration-300 ease-in-out" />
-                <span>UMOs</span>
+                <RulerIcon className="mr-2 w-4 group-hover:translate-x-1 transition-all duration-300 ease-in-out group-hover:text-primary group-hover:font-semibold" />
+                <span className="hover:text-primary">UMOs</span>
               </DropdownMenuItem>
 
               {/* profiles */}
@@ -105,8 +115,8 @@ const AuthButton = ({ user }: Props) => {
                 onClick={() => router.push("/user/profile")}
                 className="font-medium transition-all duration-500 cursor-pointer group ease-in-out"
               >
-                <UserRoundPen className="mr-2 w-4 group-hover:translate-x-1 transition-all duration-300 ease-in-out" />
-                <span className="">Profile</span>
+                <UserRoundPen className="mr-2 w-4 group-hover:translate-x-1 transition-all duration-300 ease-in-out group-hover:text-primary group-hover:font-semibold" />
+                <span className="hover:text-primary">Profile</span>
               </DropdownMenuItem>
 
               {/* theme switch */}
@@ -127,7 +137,7 @@ const AuthButton = ({ user }: Props) => {
                   onClick={() => router.push("/admin")}
                 >
                   <LogOutIcon className="mr-2 w-4 group-hover:rotate-180 transition-all duration-300 ease-in-out" />
-                  <span>Admin</span>
+                  <span className="hover:text-primary">Admin</span>
                 </DropdownMenuItem>
               )}
 
@@ -136,8 +146,8 @@ const AuthButton = ({ user }: Props) => {
                 className="font-medium transition-all duration-500 cursor-pointer group ease-in-out"
                 onClick={() => signOut()}
               >
-                <LogOutIcon className="mr-2 w-4 group-hover:rotate-180 transition-all duration-300 ease-in-out" />
-                <span>Logout</span>
+                <LogOutIcon className="mr-2 w-4 group-hover:rotate-180 transition-all duration-300 ease-in-out group-hover:text-primary group-hover:font-semibold" />
+                <span className="hover:text-primary">Logout</span>
               </DropdownMenuItem>
             </DropdownMenuContent>
           </DropdownMenu>

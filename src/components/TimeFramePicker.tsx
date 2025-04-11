@@ -17,10 +17,16 @@ const TimeFramePicker = () => {
         }}
       >
         <TabsList>
-          <TabsTrigger className="data-[state=active]:bg-primary" value="year">
+          <TabsTrigger
+            className="data-[state=active]:bg-primary/70 data-[state=active]:font-semibold"
+            value="year"
+          >
             Year
           </TabsTrigger>
-          <TabsTrigger className="data-[state=active]:bg-primary" value="month">
+          <TabsTrigger
+            className="data-[state=active]:bg-primary/70 data-[state=active]:font-semibold"
+            value="month"
+          >
             Month
           </TabsTrigger>
         </TabsList>
