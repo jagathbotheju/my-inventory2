@@ -489,10 +489,6 @@ export const getBuyTxByUserByPeriod = async ({
   const month =
     period.month.toString().length > 1 ? period.month : `0${period.month}`;
 
-  console.log("userId", userId);
-  console.log("period", period);
-  console.log("timeFrame", timeFrame);
-
   const transactions = await db.query.buyTransactions.findMany({
     where:
       timeFrame === "month"

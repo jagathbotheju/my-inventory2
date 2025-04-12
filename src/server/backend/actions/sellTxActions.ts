@@ -376,9 +376,9 @@ export const getSellTransactionsPagination = async ({
       products: true,
       customers: true,
     },
+    orderBy: (desc(sellTransactions.date), desc(sellTransactions.id)),
     limit: pageSize,
     offset: (page - 1) * pageSize,
-    orderBy: desc(sellTransactions.date),
   });
   return transactions as SellTransactionExit[];
 };
@@ -478,5 +478,28 @@ export const getSellTxByUserProduct = async ({
     },
     orderBy: asc(sellTransactions.date),
   });
+  return transactions as SellTransactionExit[];
+};
+
+export const getSellTxByUserByPeriod = async ({
+  userId,
+  period,
+  timeFrame,
+}: {
+  userId: string;
+  period: Period;
+  timeFrame: TimeFrame;
+}) => {
+  const year = period.year;
+  const month =
+    period.month.toString().length > 1 ? period.month : `0${period.month}`;
+
+  const transactions = await db.query.sellTransactions.findMany({
+    where:
+      timeFrame === "month"
+        ? sql`to_char(${sellTransactions.date},'MM') like ${month} and to_char(${sellTransactions.date},'YYYY') like ${year} and ${sellTransactions.userId} like ${userId}`
+        : sql`to_char(${sellTransactions.date},'YYYY') like ${year} and ${sellTransactions.userId} like ${userId}`,
+  });
+
   return transactions as SellTransactionExit[];
 };

@@ -2,6 +2,7 @@ import { useQuery } from "@tanstack/react-query";
 import {
   getDailySellTransactions,
   getSellTransactionsPagination,
+  getSellTxByUserByPeriod,
   getSellTxByUserProduct,
   getSellTxCount,
   getSellTxTotalSales,
@@ -78,5 +79,20 @@ export const useSellTxByUserProduct = ({
   return useQuery({
     queryKey: ["sell-tx-by-user-product", userId, productId],
     queryFn: () => getSellTxByUserProduct({ userId, productId }),
+  });
+};
+
+export const useSellTxByUserByPeriod = ({
+  userId,
+  period,
+  timeFrame,
+}: {
+  userId: string;
+  period: Period;
+  timeFrame: TimeFrame;
+}) => {
+  return useQuery({
+    queryKey: ["sell-tx-user-period", userId, period, timeFrame],
+    queryFn: () => getSellTxByUserByPeriod({ userId, period, timeFrame }),
   });
 };

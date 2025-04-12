@@ -95,7 +95,7 @@ export const useBuyTxByUserByPeriod = ({
   timeFrame: TimeFrame;
 }) => {
   return useQuery({
-    queryKey: ["buy-tx-user-period", userId],
+    queryKey: ["buy-tx-user-period", userId, period, timeFrame],
     queryFn: () => getBuyTxByUserByPeriod({ userId, period, timeFrame }),
   });
 };
