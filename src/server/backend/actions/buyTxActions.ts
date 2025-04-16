@@ -229,7 +229,7 @@ export const getBuyTransactionsPagination = async ({
       products: true,
       suppliers: true,
     },
-    orderBy: (desc(buyTransactions.date), desc(buyTransactions.id)),
+    orderBy: desc(buyTransactions.date),
     limit: pageSize,
     offset: (page - 1) * pageSize,
   });

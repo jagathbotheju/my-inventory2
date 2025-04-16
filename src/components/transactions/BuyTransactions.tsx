@@ -45,7 +45,6 @@ const BuyTransactions = ({ user }: Props) => {
     timeFrame,
     page,
   });
-  // console.log("buyTransactions", buyTransactions);
 
   const { data: buyTxCount } = useBuyTxCount({
     userId: user.id,
@@ -53,7 +52,6 @@ const BuyTransactions = ({ user }: Props) => {
     period,
     timeFrame,
   });
-  // console.log("buyTxCount", buyTxCount);
 
   const { data: totalPurchase } = useByTxTotalPurchase({
     userId: user.id,
@@ -61,8 +59,6 @@ const BuyTransactions = ({ user }: Props) => {
     period,
     timeFrame,
   });
-
-  // console.log("totalPurchase", totalPurchase);
 
   return (
     <div className="flex w-full flex-col">
@@ -98,7 +94,7 @@ const BuyTransactions = ({ user }: Props) => {
               </h1>
             </div>
           ) : (
-            <Table className="text-lg w-full">
+            <Table className="text-[1.1rem] w-full">
               <TableHeader>
                 <TableRow>
                   <TableHead>Date</TableHead>

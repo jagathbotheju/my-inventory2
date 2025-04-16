@@ -50,6 +50,8 @@ const Invoice = ({ user }: Props) => {
     timeFrame,
   });
 
+  // console.log("buyTxs", buyTxs);
+
   const filteredBuyTxs = buyTxs?.reduce(
     (acc, buyTx) => {
       const exist = acc.find(
@@ -168,11 +170,17 @@ const Invoice = ({ user }: Props) => {
                     </div>
                     <Separator className="bg-primary/20 mb-2" />
                     {txs?.map((tx, index) => (
-                      <div key={index} className="grid grid-cols-10 gap-5">
+                      <div
+                        key={index}
+                        className="grid grid-cols-10 gap-5 hover:bg-primary/10"
+                      >
                         <p className="col-span-2 justify-self-end">
                           {format(tx.date, "yyyy-MM-dd")}
                         </p>
                         <p className="col-span-4">{tx.productNumber}</p>
+                        <p className="col-span-2">
+                          ({tx.quantity} X {formatPrice(tx.unitPrice)})
+                        </p>
                         <p className="col-span-2">
                           {formatPrice(tx.quantity * tx.unitPrice)}
                         </p>
@@ -205,11 +213,17 @@ const Invoice = ({ user }: Props) => {
                   </div>
                   <Separator className="bg-primary/20 mb-2" />
                   {txs?.map((tx, index) => (
-                    <div key={index} className="grid grid-cols-10 gap-5">
+                    <div
+                      key={index}
+                      className="grid grid-cols-10 gap-5 hover:bg-primary/10"
+                    >
                       <p className="col-span-2 justify-self-end">
                         {format(tx.date, "yyyy-MM-dd")}
                       </p>
                       <p className="col-span-4">{tx.products?.productNumber}</p>
+                      <p className="col-span-2">
+                        ({tx.quantity} X {formatPrice(tx.unitPrice ?? 0)})
+                      </p>
                       <p className="col-span-2">
                         {formatPrice(tx.quantity * (tx.unitPrice ?? 0))}
                       </p>

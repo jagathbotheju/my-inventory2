@@ -54,11 +54,13 @@ const AllProducts = ({ user }: Props) => {
       supplierId: supplier.id,
       page,
       userId: user?.id,
+      // userId: "7e397cd1-19ad-4c68-aa50-a77c06450bc7",
     });
 
   const { data: productsCount } = useProductsCount({
     supplierId: supplier.id,
     userId: user?.id,
+    // userId: "7e397cd1-19ad-4c68-aa50-a77c06450bc7",
   });
 
   useEffect(() => {

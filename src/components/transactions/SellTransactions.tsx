@@ -99,7 +99,7 @@ const SellTransactions = ({ user }: Props) => {
               </h1>
             </div>
           ) : (
-            <Table className="text-lg w-full">
+            <Table className="text-[1.1rem] w-full">
               <TableHeader>
                 <TableRow>
                   <TableHead>Date</TableHead>
