@@ -36,6 +36,7 @@ import {
 import Pagination from "rc-pagination";
 import "rc-pagination/assets/index.css";
 import { User } from "@/server/db/schema/users";
+import { format } from "date-fns";
 
 interface Props {
   user: User;
@@ -52,6 +53,7 @@ const AllProducts = ({ user }: Props) => {
   const { data: productsBySupplierPagination, isLoading } =
     useProductsBySupplierPagination({
       supplierId: supplier.id,
+      // supplierId: "c55b7f22-38cb-40d4-bad4-4cb1bf63c4ab",
       page,
       userId: user?.id,
       // userId: "7e397cd1-19ad-4c68-aa50-a77c06450bc7",
@@ -59,9 +61,12 @@ const AllProducts = ({ user }: Props) => {
 
   const { data: productsCount } = useProductsCount({
     supplierId: supplier.id,
+    // supplierId: "c55b7f22-38cb-40d4-bad4-4cb1bf63c4ab",
     userId: user?.id,
     // userId: "7e397cd1-19ad-4c68-aa50-a77c06450bc7",
   });
+
+  // console.log("products", productsBySupplierPagination);
 
   useEffect(() => {
     if (searchParams && searchParams.get("productId")) {
@@ -109,9 +114,10 @@ const AllProducts = ({ user }: Props) => {
             </div>
           ) : (
             <div className="mt-8 flex-col">
-              <Table className="w-full text-lg">
+              <Table className="w-full text-base">
                 <TableHeader>
                   <TableRow>
+                    <TableHead className="whitespace-nowrap">Date</TableHead>
                     <TableHead className="whitespace-nowrap">
                       Product Number
                     </TableHead>
@@ -125,6 +131,9 @@ const AllProducts = ({ user }: Props) => {
                 <TableBody className="w-full">
                   {productsBySupplierPagination?.map((product) => (
                     <TableRow key={product.id}>
+                      <TableCell className="uppercase whitespace-nowrap">
+                        {format(product.createdAt, "yyyy-MM-dd")}
+                      </TableCell>
                       <TableCell className="uppercase whitespace-nowrap">
                         {product.productNumber}
                       </TableCell>
