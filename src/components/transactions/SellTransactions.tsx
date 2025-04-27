@@ -41,23 +41,26 @@ const SellTransactions = ({ user }: Props) => {
   const { data: sellTransactions, isLoading: sellTxPaginationLoading } =
     useSellTransactionsPagination({
       userId: user.id,
+      // userId: "7e397cd1-19ad-4c68-aa50-a77c06450bc7",
       period,
       timeFrame,
       page,
     });
   const { data: sellTxCount } = useSellTxCount({
     userId: user.id,
+    // userId: "7e397cd1-19ad-4c68-aa50-a77c06450bc7",
     period,
     timeFrame,
   });
   const { data: totalPurchase, isLoading: sellTxTotalSalesLoading } =
     useSellTxTotalSales({
       userId: user.id,
+      // userId: "7e397cd1-19ad-4c68-aa50-a77c06450bc7",
       period,
       timeFrame,
     });
 
-  // console.log("totalPurchase", totalPurchase);
+  // console.log("sellTransactions", sellTransactions);
 
   return (
     <div className="flex w-full flex-col">

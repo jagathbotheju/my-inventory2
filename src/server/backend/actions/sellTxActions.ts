@@ -376,7 +376,7 @@ export const getSellTransactionsPagination = async ({
       products: true,
       customers: true,
     },
-    orderBy: (desc(sellTransactions.date), desc(sellTransactions.id)),
+    orderBy: desc(sellTransactions.date),
     limit: pageSize,
     offset: (page - 1) * pageSize,
   });

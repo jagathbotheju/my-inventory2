@@ -53,7 +53,7 @@ const PurchaseInvoice = ({ user }: Props) => {
     }>()
   );
 
-  console.log("invoices", buyTxs);
+  // console.log("invoices", buyTxs);
 
   return (
     <Card className="dark:bg-transparent dark:border-primary/40">
