@@ -7,9 +7,10 @@ import {
   timestamp,
 } from "drizzle-orm/pg-core";
 import { users } from "./users";
-import { InferSelectModel } from "drizzle-orm";
-import { products } from "./products";
-import { suppliers } from "./suppliers";
+import { InferSelectModel, relations } from "drizzle-orm";
+import { ProductExt, products } from "./products";
+import { Supplier, suppliers } from "./suppliers";
+import { UnitOfMeasurement } from "./unitOfMeasurements";
 
 export const stocks = pgTable(
   "stocks",
@@ -44,4 +45,16 @@ export const stocks = pgTable(
   ]
 );
 
+export const stocksRelations = relations(stocks, ({ one }) => ({
+  products: one(products, {
+    fields: [stocks.productId],
+    references: [products.id],
+  }),
+}));
+
 export type Stock = InferSelectModel<typeof stocks>;
+export type StockExt = InferSelectModel<typeof stocks> & {
+  products: ProductExt;
+  suppliers: Supplier;
+  unitOfMeasurements: UnitOfMeasurement;
+};

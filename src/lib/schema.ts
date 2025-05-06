@@ -36,6 +36,32 @@ export const SellProductSchema = z.object({
   invoiceNumber: z.string().min(1, "invoice number is required"),
 });
 
+export const SellProductsSchema = z.object({
+  date: z.date({ required_error: "purchase date is required" }),
+  invoiceNumber: z.string().min(1, "invoice number is required"),
+  products: z
+    .array(
+      z.object({
+        productId: z.string().optional(),
+        productNumber: z.string().optional(),
+        quantity: z.coerce
+          .number({
+            message: "must be a number",
+          })
+          .int({
+            message: "must be a whole number",
+          })
+          .positive({
+            message: "must be positive value",
+          }),
+        unitPrice: z.coerce
+          .number()
+          .refine(async (val) => val > 0, "must be a positive number"),
+      })
+    )
+    .nonempty({ message: "Product is required" }),
+});
+
 export const NewSupplierSchema = z.object({
   name: z.string().min(1, "suppler name is required"),
   salesPerson: z.string().optional(),

@@ -1,8 +1,8 @@
 "use server";
 import { db } from "@/server/db";
 import { stocks } from "@/server/db/schema";
-import { Stock } from "@/server/db/schema/stocks";
-import { and, eq } from "drizzle-orm";
+import { Stock, StockExt } from "@/server/db/schema/stocks";
+import { and, desc, eq } from "drizzle-orm";
 
 export const getStocks = async ({
   userId,
@@ -23,9 +23,32 @@ export const getStocks = async ({
   return stock as Stock[];
 };
 
+export const getStocksBySupplier = async ({
+  userId,
+  supplierId,
+}: {
+  userId: string;
+  supplierId: string;
+}) => {
+  const stock = await db.query.stocks.findMany({
+    where: and(eq(stocks.userId, userId), eq(stocks.supplierId, supplierId)),
+    with: {
+      products: {
+        with: {
+          unitOfMeasurements: true,
+          suppliers: true,
+        },
+      },
+    },
+    orderBy: desc(stocks.productNumber),
+  });
+  return stock as StockExt[];
+};
+
 export const getAllStocks = async (userId: string) => {
   const stock = await db.query.stocks.findMany({
     where: eq(stocks.userId, userId),
+    orderBy: desc(stocks.productNumber),
   });
   return stock as Stock[];
 };
