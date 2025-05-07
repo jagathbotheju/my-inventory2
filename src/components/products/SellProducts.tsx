@@ -15,28 +15,16 @@ import {
 } from "../ui/form";
 import { Input } from "../ui/input";
 import { Button } from "../ui/button";
-import { useRouter } from "next/navigation";
 import { Popover, PopoverContent, PopoverTrigger } from "../ui/popover";
 import { cn, formatPrice } from "@/lib/utils";
 import { format } from "date-fns";
 import { Calendar } from "../ui/calendar";
-import { useAddSellTransaction } from "@/server/backend/mutations/sellTxMutations";
+import { useAddSellTransactions } from "@/server/backend/mutations/sellTxMutations";
 import { SellTransaction } from "@/server/db/schema/sellTransactions";
 import { Customer } from "@/server/db/schema/customers";
-import { useCallback, useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import CustomerPicker from "../CustomerPicker";
 import { toast } from "sonner";
-// import { useStocks } from "@/server/backend/queries/stockQueries";
-// import {
-//   Table,
-//   TableBody,
-//   TableCell,
-//   TableHead,
-//   TableHeader,
-//   TableRow,
-// } from "../ui/table";
-import { Stock } from "@/server/db/schema/stocks";
-import StockPricker from "../StockPricker";
 import ProductsPickerDialog, { TableData } from "../ProductsPickerDialog";
 import { useProductStore } from "@/store/productStore";
 
@@ -44,12 +32,18 @@ interface Props {
   userId: string;
 }
 
+export type SellProductsData = z.infer<typeof SellProductsSchema> & {
+  userId: string;
+  customerId: string;
+  supplierId: string;
+};
+
 const SellProducts = ({ userId }: Props) => {
   // const router = useRouter();
   const total: number[] = [];
   const [customer, setCustomer] = useState<Customer>({} as Customer);
   // const [stockProduct, setStockProduct] = useState<Stock>({} as Stock);
-  // const { mutate: addSellTransaction, isPending } = useAddSellTransaction();
+  const mutate = useAddSellTransactions();
   // const [products, setProducts] = useState<SelectedProduct[]>([]);
   const {
     selectedProducts,
@@ -68,6 +62,7 @@ const SellProducts = ({ userId }: Props) => {
         {
           unitPrice: 0,
           quantity: 0,
+          purchasedPrice: 0,
           productNumber: "",
           productId: "",
         },
@@ -93,29 +88,32 @@ const SellProducts = ({ userId }: Props) => {
 
   // console.log("selectedProducts", selectedProducts);
 
-  const onSubmit = (formData: z.infer<typeof SellProductsSchema>) => {
-    console.log("submitting...");
+  const onSubmit = async (formData: z.infer<typeof SellProductsSchema>) => {
     if (!customer.id) return toast.error("Please select customer");
-    const data = {
-      userId,
-      customerId: customer.id,
-      supplierId: currentSupplier.id,
-      date: formData.date.toDateString(),
-      invoiceNumber: formData.invoiceNumber,
-      products: formData.products,
-      // products: selectedProducts.map((product) => ({
-      //   productId: product.productId,
-      //   unitPrice: formData.products.unitPrice,
-      //   purchasedPrice: product.purchasedPrice,
-      //   quantity: formData.products.quantity,
-      // })),
-      // productId,
-      // unitPrice: formData.unitPrice,
-      // purchasedPrice: stockProduct.unitPrice,
-      // quantity: formData.quantity,
-    };
-    // addSellTransaction({ data, supplierId: product?.suppliers.id as string });
-    console.log("formData", data);
+    const products = formData.products;
+    if (!products.length) return;
+
+    const allMutations = products.map((item) => {
+      const data = {
+        productId: item.productId as string,
+        quantity: item.quantity,
+        unitPrice: item.unitPrice,
+        purchasedPrice: item.purchasedPrice ?? 0,
+        userId,
+        customerId: customer.id,
+        supplierId: currentSupplier.id,
+        date: formData.date.toDateString(),
+        invoiceNumber: formData.invoiceNumber,
+      } as SellTransaction;
+      return mutate.mutateAsync(data);
+    });
+
+    try {
+      await Promise.all(allMutations);
+    } catch (error) {
+      console.log(error);
+      toast.error("Could not add Sell Transactions");
+    }
   };
 
   const removeSelected = (product: TableData) => {
@@ -123,13 +121,13 @@ const SellProducts = ({ userId }: Props) => {
     removeSelectedProductId(product.selectedRowId as string);
   };
 
-  // useEffect(() => {
-  //   if (selectedProducts?.length) {
-  //     addFromFields();
-  //   }
-  // }, [selectedProducts, addFromFields]);
+  useEffect(() => {
+    if (selectedProducts?.length) {
+      addFromFields();
+    }
+  }, [selectedProducts, addFromFields]);
 
-  console.log("formFields", fields);
+  // console.log("formFields", fields);
   if (!fields.length) return null;
 
   return (
@@ -208,6 +206,10 @@ const SellProducts = ({ userId }: Props) => {
                       form.setValue(
                         `products.${index}.productNumber`,
                         product.productNumber
+                      );
+                      form.setValue(
+                        `products.${index}.purchasedPrice`,
+                        product.purchasedPrice
                       );
                       form.setValue(
                         `products.${index}.productId`,

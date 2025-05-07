@@ -44,6 +44,7 @@ export const SellProductsSchema = z.object({
       z.object({
         productId: z.string().optional(),
         productNumber: z.string().optional(),
+        purchasedPrice: z.number().optional(),
         quantity: z.coerce
           .number({
             message: "must be a number",

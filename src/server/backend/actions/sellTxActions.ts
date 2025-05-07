@@ -176,6 +176,160 @@ export const addSellTransaction = async ({
   }
 };
 
+export const addSellTransactions = async (data: SellTransaction) => {
+  try {
+    //check if transaction exist
+    const existTransaction = await db
+      .select()
+      .from(sellTransactions)
+      .where(
+        and(
+          eq(sellTransactions.productId, data.productId),
+          eq(sellTransactions.quantity, data.quantity),
+          eq(sellTransactions.unitPrice, data.unitPrice ?? 0),
+          eq(sellTransactions.purchasedPrice, data.purchasedPrice ?? 0),
+          eq(sellTransactions.userId, data.userId),
+          eq(sellTransactions.customerId, data.customerId),
+          eq(sellTransactions.supplierId, data.supplierId as string),
+          eq(sellTransactions.date, data.date)
+        )
+      );
+    if (existTransaction.length) {
+      return { error: "Transaction already exist" };
+    }
+
+    const newTransaction = await db
+      .insert(sellTransactions)
+      .values(data)
+      .returning();
+
+    const existSellMonthHistory = await db
+      .select()
+      .from(sellMonthHistory)
+      .where(
+        and(
+          eq(sellMonthHistory.userId, data.userId),
+          eq(sellMonthHistory.day, new Date(data.date).getDate()),
+          eq(sellMonthHistory.month, new Date(data.date).getMonth() + 1),
+          eq(sellMonthHistory.year, new Date(data.date).getFullYear())
+        )
+      );
+    const existSellYearHistory = await db
+      .select()
+      .from(sellYearHistory)
+      .where(
+        and(
+          eq(sellYearHistory.userId, data.userId),
+          eq(sellYearHistory.month, new Date(data.date).getMonth() + 1),
+          eq(sellYearHistory.year, new Date(data.date).getFullYear())
+        )
+      );
+
+    let monthHistory = [] as SellMonthHistory[];
+    let yearHistory = [] as SellYearHistory[];
+
+    if (existSellMonthHistory.length) {
+      monthHistory = await db
+        .update(sellMonthHistory)
+        .set({
+          totalPrice:
+            data.quantity * (data.unitPrice ?? 0) +
+            (existSellMonthHistory[0].totalPrice ?? 0),
+        })
+        .where(
+          and(
+            eq(sellMonthHistory.userId, data.userId),
+            eq(sellMonthHistory.day, new Date(data.date).getDate()),
+            eq(sellMonthHistory.month, new Date(data.date).getMonth() + 1),
+            eq(sellMonthHistory.year, new Date(data.date).getFullYear())
+          )
+        )
+        .returning();
+    } else {
+      monthHistory = await db
+        .insert(sellMonthHistory)
+        .values({
+          day: new Date(data.date).getDate(),
+          month: new Date(data.date).getMonth() + 1,
+          year: new Date(data.date).getFullYear(),
+          userId: data.userId,
+          totalPrice: data.quantity * (data.unitPrice ?? 0),
+        })
+        .returning();
+    }
+
+    if (existSellYearHistory.length) {
+      yearHistory = await db
+        .update(sellYearHistory)
+        .set({
+          totalPrice:
+            data.quantity * (data.unitPrice ?? 0) +
+            (existSellYearHistory[0].totalPrice ?? 0),
+        })
+        .where(
+          and(
+            eq(sellYearHistory.userId, data.userId),
+            eq(sellYearHistory.month, new Date(data.date).getMonth() + 1),
+            eq(sellYearHistory.year, new Date(data.date).getFullYear())
+          )
+        )
+        .returning();
+    } else {
+      yearHistory = await db
+        .insert(sellYearHistory)
+        .values({
+          month: new Date(data.date).getMonth() + 1,
+          year: new Date(data.date).getFullYear(),
+          userId: data.userId,
+          totalPrice: data.quantity * (data.unitPrice ?? 0),
+        })
+        .returning();
+    }
+
+    //update stock
+    const existStock = await db
+      .select()
+      .from(stocks)
+      .where(
+        and(
+          eq(stocks.userId, data.userId),
+          eq(stocks.productId, data.productId),
+          eq(stocks.supplierId, data.supplierId as string),
+          eq(stocks.unitPrice, data.purchasedPrice ?? 0)
+        )
+      );
+
+    const updatedStock = await db
+      .update(stocks)
+      .set({
+        quantity: existStock[0].quantity - data.quantity,
+      })
+      .where(
+        and(
+          eq(stocks.userId, data.userId),
+          eq(stocks.productId, data.productId),
+          eq(stocks.supplierId, data.supplierId as string),
+          eq(stocks.unitPrice, data.purchasedPrice ?? 0)
+        )
+      )
+      .returning();
+
+    if (
+      newTransaction.length &&
+      monthHistory.length &&
+      yearHistory.length &&
+      updatedStock.length
+    ) {
+      return { success: "Sell Transaction added successfully" };
+    }
+
+    return { error: "Count not add Transaction" };
+  } catch (error) {
+    console.log(error);
+    return { error: "Count not add Transaction" };
+  }
+};
+
 export const deleteSellTransaction = async ({
   userId,
   sellTx,

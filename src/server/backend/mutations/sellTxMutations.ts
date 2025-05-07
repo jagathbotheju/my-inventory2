@@ -7,6 +7,7 @@ import {
 } from "@/server/db/schema/sellTransactions";
 import {
   addSellTransaction,
+  addSellTransactions,
   deleteSellTransaction,
 } from "../actions/sellTxActions";
 
@@ -45,18 +46,8 @@ export const useAddSellTransactions = () => {
   const router = useRouter();
 
   return useMutation({
-    mutationFn: ({
-      userId,
-      customerId,
-      supplierId,
-      data,
-    }: {
-      userId: string;
-      customerId: string;
-      supplierId: string;
-      data: SellTransaction;
-    }) => {
-      return addSellTransaction({ data, supplierId });
+    mutationFn: (data: SellTransaction) => {
+      return addSellTransactions(data);
     },
     onSuccess: async (res) => {
       if (res?.success) {
