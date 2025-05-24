@@ -34,6 +34,7 @@ const StockCard = ({
     buyTx && buyTx[0]?.products
       ? buyTx[0].products.unitOfMeasurements.unit
       : "";
+
   const txSummary: Array<{
     date: string;
     txType: string;
@@ -53,6 +54,7 @@ const StockCard = ({
       invoiceNumber: tx.invoiceNumber ? tx.invoiceNumber : "",
     });
   });
+
   sellTx?.forEach((tx) => {
     const txDate = format(new Date(tx.date), "yyyy-MM-dd");
     const txType = "SELL";
@@ -72,11 +74,11 @@ const StockCard = ({
   return (
     <Dialog>
       <DialogTrigger>
-        <Card className="p-0 cursor-pointer">
-          <CardTitle className="text-2xl font-bold uppercase bg-primary/40 p-2 text-center rounded-tr-lg rounded-tl-lg">
+        <Card className="p-0 cursor-pointer w-full">
+          <CardTitle className="text-xl text-left font-bold uppercase bg-slate-200 p-2 rounded-tr-lg rounded-tl-lg">
             {productNumber}
           </CardTitle>
-          <CardContent className="p-2 flex items-center justify-center font-semibold text-lg">
+          <CardContent className="p-2 flex font-semibold text-lg">
             <div className="flex gap-4">
               <p className="col-span-2">stock balance</p>
               <div className="flex gap-1">

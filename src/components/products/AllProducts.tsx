@@ -54,9 +54,9 @@ const AllProducts = ({ user }: Props) => {
     useProductsBySupplierPagination({
       supplierId: supplier.id,
       // supplierId: "c55b7f22-38cb-40d4-bad4-4cb1bf63c4ab",
-      page,
       userId: user?.id,
       // userId: "7e397cd1-19ad-4c68-aa50-a77c06450bc7",
+      page,
     });
 
   const { data: productsCount } = useProductsCount({

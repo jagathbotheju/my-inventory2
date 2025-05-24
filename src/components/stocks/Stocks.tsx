@@ -6,6 +6,7 @@ import StockCard from "./StockCard";
 import { useBuyTxByUser } from "@/server/backend/queries/buyTxQueries";
 import { format } from "date-fns";
 import { Stock } from "@/server/db/schema/stocks";
+import { useMemo } from "react";
 
 interface Props {
   user: User;
@@ -13,31 +14,40 @@ interface Props {
 
 const Stocks = ({ user }: Props) => {
   const { data: allStocks } = useAllStocks(user?.id as string);
+  // const { data: allStocks } = useAllStocks(
+  //   "7e397cd1-19ad-4c68-aa50-a77c06450bc7"
+  // );
   const { data: userByTx } = useBuyTxByUser(user.id);
 
-  const filteredStocks = allStocks?.reduce(
-    (acc, stock: Stock) => {
-      const existingStock = acc.find(
-        (item) => item.productId === stock.productId
-      );
+  const filteredStocks = useMemo(
+    () =>
+      allStocks?.reduce(
+        (acc, stock: Stock) => {
+          const existingStock = acc.find(
+            (item) => item.productId === stock.productId
+          );
 
-      if (!existingStock) {
-        acc.push({
-          productId: stock.productId,
-          productNumber: stock.productNumber as string,
-          quantity: stock.quantity,
-        });
-      } else {
-        existingStock.quantity += stock.quantity;
-      }
-      return acc;
-    },
-    Array<{
-      productId: string;
-      productNumber: string;
-      quantity: number;
-    }>()
+          if (!existingStock) {
+            acc.push({
+              productId: stock.productId,
+              productNumber: stock.productNumber as string,
+              quantity: stock.quantity,
+            });
+          } else {
+            existingStock.quantity += stock.quantity;
+          }
+          return acc;
+        },
+        Array<{
+          productId: string;
+          productNumber: string;
+          quantity: number;
+        }>()
+      ),
+    [allStocks]
   );
+
+  // console.log("Filtered Stocks:", filteredStocks);
 
   return (
     <Card className="flex flex-col w-full h-fit bg-transparent dark:border-primary/40">
@@ -48,7 +58,7 @@ const Stocks = ({ user }: Props) => {
           </CardTitle>
         </div>
       </CardHeader>
-      <CardContent className="gap-5 flex flex-wrap">
+      <CardContent className="gap-5 grid grid-cols-2">
         {filteredStocks?.map((stock, index) => {
           const productBuyTx = userByTx?.filter(
             (buyTx) =>

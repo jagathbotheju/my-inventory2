@@ -67,7 +67,7 @@ export function DataTable<TData, TValue>({
           productId: row.getValue("productId"),
           supplierId: row.getValue("supplierId"),
           unit: row.getValue("unit"),
-          supplier: row.getValue("supplier"),
+          // supplier: row.getValue("supplier"),
           selectedRowId: row.id,
         };
       });
@@ -151,6 +151,12 @@ export function DataTable<TData, TValue>({
         </div>
 
         <div className="flex items-center gap-3">
+          <div className="flex items-center gap-1">
+            <span className="text-sm text-muted-foreground">
+              page {table.getState().pagination.pageIndex + 1} of{" "}
+              {table.getPageCount()}
+            </span>
+          </div>
           <Button
             variant="outline"
             size="sm"

@@ -50,6 +50,8 @@ const SellProducts = ({ userId }: Props) => {
     currentSupplier,
     removeSelectedProduct,
     removeSelectedProductId,
+    setSelectedProducts,
+    setSelectedProductIds,
   } = useProductStore();
   const isLoading = false;
 
@@ -126,6 +128,11 @@ const SellProducts = ({ userId }: Props) => {
       addFromFields();
     }
   }, [selectedProducts, addFromFields]);
+
+  useEffect(() => {
+    setSelectedProducts([]);
+    setSelectedProductIds({});
+  }, [setSelectedProducts, setSelectedProductIds]);
 
   // console.log("formFields", fields);
   if (!fields.length) return null;

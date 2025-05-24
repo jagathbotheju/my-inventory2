@@ -30,10 +30,10 @@ export type TableData = {
   productId: string;
   supplierId: string;
   unit: string;
-  supplier: string;
+  // supplier: string;
   selectedRowId?: string;
-  sellQuantity?:number;
-  sellUnitPrice?:number
+  sellQuantity?: number;
+  sellUnitPrice?: number;
 };
 
 const ProductsPickerDialog = ({ children, userId }: Props) => {
@@ -43,8 +43,11 @@ const ProductsPickerDialog = ({ children, userId }: Props) => {
 
   const { data: stocks } = useStocksBySupplier({
     userId,
+    // userId: "7e397cd1-19ad-4c68-aa50-a77c06450bc7",
     supplierId: supplier.id,
+    // supplierId: "c55b7f22-38cb-40d4-bad4-4cb1bf63c4ab",
   });
+
   const tableData: TableData[] | undefined = stocks?.map((stock) => {
     const data = {
       productNumber: stock.productNumber as string,

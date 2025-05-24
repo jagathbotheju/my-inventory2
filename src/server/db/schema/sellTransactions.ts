@@ -25,7 +25,7 @@ export const sellTransactions = pgTable("sell_transactions", {
   purchasedPrice: doublePrecision("purchased_price").default(0),
   productId: text("product_id")
     .notNull()
-    .references(() => products.id),
+    .references(() => products.id, { onDelete: "cascade" }),
   quantity: integer("quantity").notNull(),
   unitPrice: doublePrecision("unit_price").default(0),
   invoiceNumber: text("invoice_number"),

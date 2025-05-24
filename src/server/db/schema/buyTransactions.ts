@@ -22,7 +22,7 @@ export const buyTransactions = pgTable("buy_transactions", {
     .notNull(),
   productId: text("product_id")
     .notNull()
-    .references(() => products.id),
+    .references(() => products.id, { onDelete: "cascade" }),
   productNumber: text("product_number"),
   invoiceNumber: text("invoice_number"),
   quantity: integer("quantity").notNull(),

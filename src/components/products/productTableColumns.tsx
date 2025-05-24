@@ -26,10 +26,10 @@ export const productTableColumns: ColumnDef<TableData>[] = [
     enableSorting: false,
     enableHiding: false,
   },
-  {
-    accessorKey: "supplier",
-    header: "Supplier",
-  },
+  // {
+  //   accessorKey: "supplier",
+  //   header: "Supplier",
+  // },
   {
     accessorKey: "productNumber",
     header: "Product Number",
