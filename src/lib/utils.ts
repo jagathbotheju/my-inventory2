@@ -12,6 +12,12 @@ export const formatPrice = (amount: number) => {
   }).format(amount);
 };
 
+export const paymentModes = [
+  { value: "credit", label: "Credit" },
+  { value: "cash", label: "Cash" },
+  { value: "cash-cheque", label: "Cash&Cheque" },
+];
+
 export const getFullMonth = (month: number) => {
   return month === 1
     ? "January"

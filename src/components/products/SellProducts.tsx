@@ -320,6 +320,11 @@ const SellProducts = ({ userId }: Props) => {
                   : 0}
               </p>
 
+              {/* payment mode
+              <p className="whitespace-nowrap text-2xl col-span-3 font-semibold text-muted-foreground">
+                Payment Mode
+              </p> */}
+
               {/* date */}
               <p className="whitespace-nowrap text-2xl col-span-3 font-semibold text-muted-foreground">
                 Date
