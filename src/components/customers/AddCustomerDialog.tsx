@@ -86,18 +86,21 @@ const AddCustomerDialog = ({ children, customerId, userId }: Props) => {
               <FormField
                 control={form.control}
                 name="name"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Customer Name</FormLabel>
-                    <FormControl>
-                      <div className="flex relative">
-                        <UserRoundIcon className="absolute top-1 bottom-1 left-1 text-primary" />
-                        <Input {...field} className="pl-9" />
-                      </div>
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
+                render={({ field }) => {
+                  console.log("field cus", field);
+                  return (
+                    <FormItem>
+                      <FormLabel>Customer Name</FormLabel>
+                      <FormControl>
+                        <div className="flex relative">
+                          <UserRoundIcon className="absolute top-1 bottom-1 left-1 text-primary" />
+                          <Input {...field} className="pl-9" />
+                        </div>
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  );
+                }}
               />
 
               {/* address */}

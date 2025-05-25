@@ -68,12 +68,13 @@ const SellProduct = ({ productId, userId }: Props) => {
       userId,
       customerId: customer.id,
       supplierId: product?.suppliers.id as string,
-      productId,
       date: formData.date.toDateString(),
+      invoiceNumber: formData.invoiceNumber,
+
+      productId,
       unitPrice: formData.unitPrice,
       purchasedPrice: stockProduct.unitPrice,
       quantity: formData.quantity,
-      invoiceNumber: formData.invoiceNumber,
     } as SellTransaction;
     addSellTransaction({ data, supplierId: product?.suppliers.id as string });
   };

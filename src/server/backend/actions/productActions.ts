@@ -2,7 +2,7 @@
 import { db } from "@/server/db";
 import { NewProductSchema } from "@/lib/schema";
 import { z } from "zod";
-import { and, count, desc, eq, ilike, or } from "drizzle-orm";
+import { and, asc, count, desc, eq, ilike, or } from "drizzle-orm";
 import { ProductExt, products } from "@/server/db/schema/products";
 
 export const searchProducts = async (searchTerm: string) => {
@@ -72,7 +72,7 @@ export const getProductsBySupplierPagination = async ({
       suppliers: true,
       unitOfMeasurements: true,
     },
-    orderBy: desc(products.createdAt),
+    orderBy: asc(products.productNumber),
     limit: pageSize,
     offset: (page - 1) * pageSize,
   });

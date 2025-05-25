@@ -8,7 +8,7 @@ export const productSellTransactions = pgTable(
   {
     productId: text("product_id")
       .notNull()
-      .references(() => products.id),
+      .references(() => products.id, { onDelete: "cascade" }),
     sellTransactionId: text("sell_transaction_id")
       .notNull()
       .references(() => sellTransactions.id),

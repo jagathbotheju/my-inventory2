@@ -40,9 +40,17 @@ const AuthButton = ({ user }: Props) => {
     <div className="flex items-center gap-2">
       {user ? (
         <div className="flex gap-4 items-center">
-          <div className="flex flex-col">
-            <h3 className="font-semibold text-xl">{user.name}</h3>
-            <p className="text-xs text-muted-foreground">{user.email}</p>
+          <div className="flex gap-6 items-center">
+            <Button
+              onClick={() => router.push("/products")}
+              className="font-semibold"
+            >
+              Products
+            </Button>
+            <div className="flex flex-col">
+              <h3 className="font-semibold text-xl">{user.name}</h3>
+              <p className="text-xs text-muted-foreground">{user.email}</p>
+            </div>
           </div>
           <DropdownMenu modal={false}>
             <DropdownMenuTrigger className="focus-visible:outline-none">

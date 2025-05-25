@@ -49,7 +49,7 @@ const SupplierPicker = ({ setSupplier, supplierId, userId }: Props) => {
       {isLoading ? (
         <Loader2Icon className="w-4 h-4 animate-spin" />
       ) : (
-        <Popover open={open} onOpenChange={setOpen}>
+        <Popover open={open} onOpenChange={setOpen} modal={true}>
           <PopoverTrigger asChild className="dark:bg-slate-900">
             <Button
               variant="outline"
