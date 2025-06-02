@@ -1,9 +1,8 @@
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
-import { useRouter } from "next/navigation";
 import {
   SellTransaction,
-  SellTransactionExit,
+  SellTransactionExt,
 } from "@/server/db/schema/sellTransactions";
 import {
   addSellTransaction,
@@ -12,9 +11,6 @@ import {
 } from "../actions/sellTxActions";
 
 export const useAddSellTransaction = () => {
-  const queryClient = useQueryClient();
-  const router = useRouter();
-
   return useMutation({
     mutationFn: ({
       data,
@@ -23,46 +19,26 @@ export const useAddSellTransaction = () => {
       data: SellTransaction;
       supplierId: string;
     }) => addSellTransaction({ data, supplierId }),
-    onSuccess: async (res) => {
-      if (res?.success) {
-        toast.success(res.success);
-        queryClient.invalidateQueries({ queryKey: ["sell-transactions"] });
-        router.push("/transactions/sell");
-      }
-      if (res?.error) {
-        toast.error(res.error);
-      }
-    },
-    onError: (res) => {
-      const err = res.message;
-      toast.error(err);
-      toast.success("Could not add Sell Transaction");
-    },
   });
 };
 
 export const useAddSellTransactions = () => {
-  const queryClient = useQueryClient();
-  const router = useRouter();
-
   return useMutation({
-    mutationFn: (data: SellTransaction) => {
-      return addSellTransactions(data);
-    },
-    onSuccess: async (res) => {
-      if (res?.success) {
-        toast.success(res.success);
-        queryClient.invalidateQueries({ queryKey: ["sell-transactions"] });
-        router.push("/transactions/sell");
-      }
-      if (res?.error) {
-        toast.error(res.error);
-      }
-    },
-    onError: (res) => {
-      const err = res.message;
-      toast.error(err);
-      toast.success("Could not add Sell Transaction");
+    mutationFn: ({
+      sellTxData,
+      chequeData,
+    }: {
+      sellTxData: SellTransaction;
+      chequeData:
+        | {
+            chequeNumber?: string | undefined;
+            chequeDate?: Date | undefined;
+            bankName?: string | undefined;
+            amount?: number | undefined;
+          }[]
+        | undefined;
+    }) => {
+      return addSellTransactions({ sellTxData, chequeData });
     },
   });
 };
@@ -76,7 +52,7 @@ export const useDeleteSellTransaction = () => {
       sellTx,
     }: {
       userId: string;
-      sellTx: SellTransactionExit;
+      sellTx: SellTransactionExt;
     }) => deleteSellTransaction({ userId, sellTx }),
     onSuccess: async (res) => {
       if (res?.success) {

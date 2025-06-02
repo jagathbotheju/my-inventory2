@@ -114,7 +114,7 @@ const BuyProduct = ({ productId, userId }: Props) => {
                 Supplier
               </p>
               <p className="whitespace-nowrap text-2xl col-span-8">
-                {product?.suppliers.name}
+                {product?.suppliers?.name}
               </p>
 
               {/* sales person */}
@@ -122,7 +122,7 @@ const BuyProduct = ({ productId, userId }: Props) => {
                 Sales Person
               </p>
               <p className="whitespace-nowrap text-2xl col-span-8">
-                {product?.suppliers.salesPerson}
+                {product?.suppliers?.salesPerson}
               </p>
 
               {/* unit price */}
@@ -160,7 +160,7 @@ const BuyProduct = ({ productId, userId }: Props) => {
                   )}
                 />
                 <p className="uppercase font-semibold">
-                  {product?.unitOfMeasurements.unit}
+                  {product?.unitOfMeasurements?.unit}
                 </p>
               </div>
 

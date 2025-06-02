@@ -31,3 +31,27 @@ type ChartData = {
 type Payload = {
   payload: ChartData;
 };
+
+type TxCheques =
+  | {
+      chequeNumber?: string | undefined;
+      bankName?: string | undefined;
+      amount?: number | undefined;
+      chequeDate?: Date | undefined;
+    }[]
+  | undefined;
+
+type TxPayments = {
+  userId: string;
+  invoiceNumber: string;
+  paymentMode: string;
+  cacheAmount?: number;
+  cheques?: [
+    {
+      chequeNumber?: string;
+      bankName?: string;
+      amount?: number;
+      chequeDate?: Date;
+    }
+  ];
+};

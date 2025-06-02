@@ -15,6 +15,7 @@ export const formatPrice = (amount: number) => {
 export const paymentModes = [
   { value: "credit", label: "Credit" },
   { value: "cash", label: "Cash" },
+  { value: "cheque", label: "Cheque" },
   { value: "cash-cheque", label: "Cash&Cheque" },
 ];
 

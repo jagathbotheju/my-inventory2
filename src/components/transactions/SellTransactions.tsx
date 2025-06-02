@@ -106,8 +106,8 @@ const SellTransactions = ({ user }: Props) => {
               <TableHeader>
                 <TableRow>
                   <TableHead>Date</TableHead>
-                  <TableHead>Customer</TableHead>
                   <TableHead>Invoice Number</TableHead>
+                  <TableHead>Customer</TableHead>
                   <TableHead>Product Number</TableHead>
                   <TableHead>Selling Price</TableHead>
                   <TableHead>Quantity</TableHead>
@@ -118,10 +118,10 @@ const SellTransactions = ({ user }: Props) => {
                 {sellTransactions?.map((tx) => (
                   <TableRow key={tx.id}>
                     <TableCell>{format(tx.date, "PPP")}</TableCell>
-                    <TableCell>{tx.customers.name}</TableCell>
                     <TableCell className="uppercase">
                       {tx.invoiceNumber}
                     </TableCell>
+                    <TableCell>{tx.customers.name}</TableCell>
                     <TableCell>{tx.products.productNumber}</TableCell>
                     <TableCell>{formatPrice(tx.unitPrice ?? 0)}</TableCell>
                     <TableCell>{tx.quantity}</TableCell>

@@ -39,6 +39,18 @@ export const SellProductSchema = z.object({
 export const SellProductsSchema = z.object({
   date: z.date({ required_error: "purchase date is required" }),
   invoiceNumber: z.string().min(1, "invoice number is required"),
+  paymentMode: z.string().min(1, "payment mode is required"),
+  cacheAmount: z.coerce.number().optional(),
+  cheques: z
+    .array(
+      z.object({
+        chequeNumber: z.string().optional(),
+        chequeDate: z.date().optional(),
+        bankName: z.string().optional(),
+        amount: z.coerce.number().optional(),
+      })
+    )
+    .optional(),
   products: z
     .array(
       z.object({

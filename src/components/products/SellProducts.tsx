@@ -11,6 +11,7 @@ import {
   FormControl,
   FormField,
   FormItem,
+  FormLabel,
   FormMessage,
 } from "../ui/form";
 import { Input } from "../ui/input";
@@ -27,6 +28,8 @@ import CustomerPicker from "../CustomerPicker";
 import { toast } from "sonner";
 import ProductsPickerDialog, { TableData } from "../ProductsPickerDialog";
 import { useProductStore } from "@/store/productStore";
+import PaymentModePicker from "../PaymentModePicker";
+import { useRouter } from "next/navigation";
 
 interface Props {
   userId: string;
@@ -39,12 +42,12 @@ export type SellProductsData = z.infer<typeof SellProductsSchema> & {
 };
 
 const SellProducts = ({ userId }: Props) => {
-  // const router = useRouter();
+  const router = useRouter();
   const total: number[] = [];
+  const [paymentMode, setPaymentMode] = useState<string>("");
   const [customer, setCustomer] = useState<Customer>({} as Customer);
-  // const [stockProduct, setStockProduct] = useState<Stock>({} as Stock);
+  const [isLoading, setIsLoading] = useState<boolean>(false);
   const mutate = useAddSellTransactions();
-  // const [products, setProducts] = useState<SelectedProduct[]>([]);
   const {
     selectedProducts,
     currentSupplier,
@@ -53,13 +56,14 @@ const SellProducts = ({ userId }: Props) => {
     setSelectedProducts,
     setSelectedProductIds,
   } = useProductStore();
-  const isLoading = false;
 
   const form = useForm<z.infer<typeof SellProductsSchema>>({
     resolver: zodResolver(SellProductsSchema),
     defaultValues: {
       date: new Date(),
       invoiceNumber: "",
+      paymentMode: "",
+      cacheAmount: 0,
       products: [
         {
           unitPrice: 0,
@@ -69,12 +73,29 @@ const SellProducts = ({ userId }: Props) => {
           productId: "",
         },
       ],
+      cheques: [
+        {
+          chequeNumber: "",
+          chequeDate: new Date(),
+          bankName: "",
+          amount: 0,
+        },
+      ],
     },
     mode: "all",
   });
 
   const { fields, append, remove } = useFieldArray({
     name: "products",
+    control: form.control,
+  });
+
+  const {
+    fields: checkFields,
+    append: checkAppend,
+    remove: checkRemove,
+  } = useFieldArray({
+    name: "cheques",
     control: form.control,
   });
 
@@ -88,15 +109,14 @@ const SellProducts = ({ userId }: Props) => {
     });
   }, [append, selectedProducts, remove]);
 
-  // console.log("selectedProducts", selectedProducts);
-
   const onSubmit = async (formData: z.infer<typeof SellProductsSchema>) => {
     if (!customer.id) return toast.error("Please select customer");
     const products = formData.products;
     if (!products.length) return;
 
+    setIsLoading(true);
     const allMutations = products.map((item) => {
-      const data = {
+      const sellTxData = {
         productId: item.productId as string,
         quantity: item.quantity,
         unitPrice: item.unitPrice,
@@ -106,12 +126,29 @@ const SellProducts = ({ userId }: Props) => {
         supplierId: currentSupplier.id,
         date: formData.date.toDateString(),
         invoiceNumber: formData.invoiceNumber,
+        paymentMode: formData.paymentMode,
+        cacheAmount: formData.cacheAmount,
       } as SellTransaction;
-      return mutate.mutateAsync(data);
+      return mutate.mutateAsync({ sellTxData, chequeData: formData.cheques });
     });
 
     try {
-      await Promise.all(allMutations);
+      await Promise.all(allMutations)
+        .then((res) => {
+          if (res.length) {
+            toast.success("Sell Transactions added successfully");
+          }
+        })
+        .catch((error) => {
+          console.error("Error in adding sell transactions:", error);
+          toast.error("Could not add Sell Transactions");
+        })
+        .finally(() => {
+          setIsLoading(false);
+          setSelectedProducts([]);
+          setSelectedProductIds({});
+          router.push("/transactions/sell");
+        });
     } catch (error) {
       console.log(error);
       toast.error("Could not add Sell Transactions");
@@ -121,6 +158,18 @@ const SellProducts = ({ userId }: Props) => {
   const removeSelected = (product: TableData) => {
     removeSelectedProduct(product.productId);
     removeSelectedProductId(product.selectedRowId as string);
+  };
+
+  const clearFields = () => {
+    form.setValue("cacheAmount", 0);
+    form.setValue("cheques", [
+      {
+        chequeNumber: "",
+        chequeDate: new Date(),
+        bankName: "",
+        amount: 0,
+      },
+    ]);
   };
 
   useEffect(() => {
@@ -134,7 +183,6 @@ const SellProducts = ({ userId }: Props) => {
     setSelectedProductIds({});
   }, [setSelectedProducts, setSelectedProductIds]);
 
-  // console.log("formFields", fields);
   if (!fields.length) return null;
 
   return (
@@ -149,8 +197,8 @@ const SellProducts = ({ userId }: Props) => {
       </CardHeader>
       <CardContent>
         {isLoading ? (
-          <div className="flex w-full justify-center items-center">
-            <Loader2Icon className="w-6 h-6 animate-spin" />
+          <div className="flex w-full h-full justify-center items-center">
+            <Loader2Icon className="w-10 h-10 animate-spin" />
           </div>
         ) : (
           <Form {...form}>
@@ -182,14 +230,11 @@ const SellProducts = ({ userId }: Props) => {
                 control={form.control}
                 name="invoiceNumber"
                 render={({ field }) => (
-                  <FormItem className="whitespace-nowrap text-2xl col-span-8">
+                  <FormItem className="whitespace-nowrap text-2xl col-span-8 relative">
                     <FormControl>
-                      <Input
-                        {...field}
-                        className="uppercase font-semibold text-2xl"
-                      />
+                      <Input {...field} className="uppercase" />
                     </FormControl>
-                    <FormMessage className="dark:text-white" />
+                    <FormMessage className="dark:text-white absolute -bottom-7" />
                   </FormItem>
                 )}
               />
@@ -320,16 +365,356 @@ const SellProducts = ({ userId }: Props) => {
                   : 0}
               </p>
 
-              {/* payment mode
+              {/* payment mode */}
               <p className="whitespace-nowrap text-2xl col-span-3 font-semibold text-muted-foreground">
                 Payment Mode
-              </p> */}
+              </p>
+              <div className="col-span-8">
+                <FormField
+                  control={form.control}
+                  name="paymentMode"
+                  render={({ field }) => (
+                    <FormItem className="whitespace-nowrap text-2xl relative">
+                      <PaymentModePicker
+                        value={field.value}
+                        setValue={(value) => {
+                          field.onChange(value);
+                          setPaymentMode(value);
+                        }}
+                        clearFields={clearFields}
+                      />
+                      <FormMessage className="dark:text-white absolute -bottom-7" />
+                    </FormItem>
+                  )}
+                />
+              </div>
+
+              {paymentMode === "cash" && (
+                <>
+                  {/* <div className="col-span-1" /> */}
+                  <div className="col-span-12 flex items-center gap-4 border border-1 rounded-md p-4">
+                    <p className="whitespace-nowrap font-semibold text-muted-foreground ml-12">
+                      Amount
+                    </p>
+
+                    {/* cache amount */}
+                    <FormField
+                      control={form.control}
+                      name="cacheAmount"
+                      render={({ field }) => (
+                        <FormItem className="whitespace-nowrap text-2xl relative">
+                          <FormControl>
+                            <Input
+                              {...field}
+                              placeholder="Enter cash amount"
+                              className="text-2xl font-semibold"
+                            />
+                          </FormControl>
+                          <FormMessage className="dark:text-white absolute -bottom-7" />
+                        </FormItem>
+                      )}
+                    />
+                  </div>
+                </>
+              )}
+
+              {paymentMode === "cheque" && (
+                <>
+                  {/* <div className="col-span-3" /> */}
+                  <div className="col-span-12 border border-1 rounded-md p-6">
+                    <div className="flex flex-col gap-6 ml-12 justify-center w-full">
+                      {checkFields.map((field, index) => (
+                        <div key={field.id} className="flex items-center gap-5">
+                          {/* cheque number */}
+                          <FormField
+                            control={form.control}
+                            name={`cheques.${index}.chequeNumber`}
+                            render={({ field }) => (
+                              <FormItem className="whitespace-nowrap text-2xl col-span-2 relative my-1">
+                                <FormLabel className="absolute -top-3">
+                                  cheque number
+                                </FormLabel>
+                                <FormControl>
+                                  <Input {...field} />
+                                </FormControl>
+                                <FormMessage className="dark:text-white absolute -bottom-7" />
+                              </FormItem>
+                            )}
+                          />
+
+                          {/* bank name */}
+                          <FormField
+                            control={form.control}
+                            name={`cheques.${index}.bankName`}
+                            render={({ field }) => (
+                              <FormItem className="whitespace-nowrap text-2xl col-span-2 relative my-1">
+                                <FormLabel className="absolute -top-3">
+                                  bank name
+                                </FormLabel>
+                                <FormControl>
+                                  <Input {...field} />
+                                </FormControl>
+                                <FormMessage className="dark:text-white absolute -bottom-7" />
+                              </FormItem>
+                            )}
+                          />
+
+                          {/* amount */}
+                          <FormField
+                            control={form.control}
+                            name={`cheques.${index}.amount`}
+                            render={({ field }) => (
+                              <FormItem className="whitespace-nowrap text-2xl col-span-2 relative my-1">
+                                <FormLabel className="absolute -top-3">
+                                  amount
+                                </FormLabel>
+                                <FormControl>
+                                  <Input
+                                    {...field}
+                                    type="number"
+                                    placeholder="Amount"
+                                  />
+                                </FormControl>
+                                <FormMessage className="dark:text-white absolute -bottom-7" />
+                              </FormItem>
+                            )}
+                          />
+
+                          {/* date */}
+                          <FormField
+                            control={form.control}
+                            name={`cheques.${index}.chequeDate`}
+                            render={({ field }) => (
+                              <FormItem className="whitespace-nowrap text-2xl col-span-2 relative my-1">
+                                <FormLabel className="absolute -top-3">
+                                  date
+                                </FormLabel>
+                                <Popover>
+                                  <PopoverTrigger asChild>
+                                    <FormControl>
+                                      <Button
+                                        variant={"outline"}
+                                        className={cn(
+                                          "w-[240px] pl-3 text-left font-normal dark:bg-slate-800",
+                                          !field.value &&
+                                            "text-muted-foreground"
+                                        )}
+                                      >
+                                        {field.value ? (
+                                          format(field.value, "PPP")
+                                        ) : (
+                                          <span>Pick a date</span>
+                                        )}
+                                        <CalendarIcon className="ml-auto h-4 w-4 opacity-50" />
+                                      </Button>
+                                    </FormControl>
+                                  </PopoverTrigger>
+                                  <PopoverContent
+                                    className="w-auto p-0"
+                                    align="start"
+                                  >
+                                    <Calendar
+                                      mode="single"
+                                      selected={field.value}
+                                      onSelect={field.onChange}
+                                      initialFocus
+                                    />
+                                  </PopoverContent>
+                                </Popover>
+                                <FormMessage className="dark:text-white absolute -bottom-7" />
+                              </FormItem>
+                            )}
+                          />
+
+                          {/* delete cheque */}
+                          {checkFields.length > 1 && (
+                            <Trash2Icon
+                              onClick={() => checkRemove(index)}
+                              className="text-red-500 w-5 h-5 cursor-pointer col-span-2 -mb-1"
+                            />
+                          )}
+
+                          {/* add cheque */}
+                          <Button
+                            type="button"
+                            className="w-fit font-semibold col-span-2 -mb-2"
+                            onClick={() =>
+                              checkAppend({
+                                chequeNumber: "",
+                                bankName: "",
+                                amount: 0,
+                              })
+                            }
+                          >
+                            New
+                          </Button>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                </>
+              )}
+
+              {paymentMode === "cash-cheque" && (
+                <div className="col-span-12 border border-1 rounded-md p-6">
+                  {/* cache */}
+                  <div className="col-span-12 flex items-center gap-4 ml-12">
+                    <p className="whitespace-nowrap font-semibold text-muted-foreground">
+                      Cache Amount
+                    </p>
+
+                    {/* cache amount */}
+                    <FormField
+                      control={form.control}
+                      name="cacheAmount"
+                      render={({ field }) => (
+                        <FormItem className="whitespace-nowrap text-2xl relative">
+                          <FormControl>
+                            <Input {...field} placeholder="Enter cash amount" />
+                          </FormControl>
+                          <FormMessage className="dark:text-white absolute -bottom-7" />
+                        </FormItem>
+                      )}
+                    />
+                  </div>
+
+                  {/* cheque */}
+                  <div className="flex flex-col gap-6 ml-12 col-span-12 mt-8">
+                    {checkFields.map((field, index) => (
+                      <div key={field.id} className="flex items-center gap-5">
+                        {/* cheque number */}
+                        <FormField
+                          control={form.control}
+                          name={`cheques.${index}.chequeNumber`}
+                          render={({ field }) => (
+                            <FormItem className="whitespace-nowrap text-2xl col-span-2 relative my-1">
+                              <FormLabel className="absolute -top-3">
+                                cheque number
+                              </FormLabel>
+                              <FormControl>
+                                <Input {...field} />
+                              </FormControl>
+                              <FormMessage className="dark:text-white absolute -bottom-7" />
+                            </FormItem>
+                          )}
+                        />
+
+                        {/* bank name */}
+                        <FormField
+                          control={form.control}
+                          name={`cheques.${index}.bankName`}
+                          render={({ field }) => (
+                            <FormItem className="whitespace-nowrap text-2xl col-span-2 relative my-1">
+                              <FormLabel className="absolute -top-3">
+                                bank name
+                              </FormLabel>
+                              <FormControl>
+                                <Input {...field} />
+                              </FormControl>
+                              <FormMessage className="dark:text-white absolute -bottom-7" />
+                            </FormItem>
+                          )}
+                        />
+
+                        {/* amount */}
+                        <FormField
+                          control={form.control}
+                          name={`cheques.${index}.amount`}
+                          render={({ field }) => (
+                            <FormItem className="whitespace-nowrap text-2xl col-span-2 relative my-1">
+                              <FormLabel className="absolute -top-3">
+                                amount
+                              </FormLabel>
+                              <FormControl>
+                                <Input
+                                  {...field}
+                                  type="number"
+                                  placeholder="Amount"
+                                />
+                              </FormControl>
+                              <FormMessage className="dark:text-white absolute -bottom-7" />
+                            </FormItem>
+                          )}
+                        />
+
+                        {/* date */}
+                        <FormField
+                          control={form.control}
+                          name={`cheques.${index}.chequeDate`}
+                          render={({ field }) => (
+                            <FormItem className="whitespace-nowrap text-2xl col-span-2 relative my-1">
+                              <FormLabel className="absolute -top-3">
+                                date
+                              </FormLabel>
+                              <Popover>
+                                <PopoverTrigger asChild>
+                                  <FormControl>
+                                    <Button
+                                      variant={"outline"}
+                                      className={cn(
+                                        "w-[240px] pl-3 text-left font-normal dark:bg-slate-800",
+                                        !field.value && "text-muted-foreground"
+                                      )}
+                                    >
+                                      {field.value ? (
+                                        format(field.value, "PPP")
+                                      ) : (
+                                        <span>Pick a date</span>
+                                      )}
+                                      <CalendarIcon className="ml-auto h-4 w-4 opacity-50" />
+                                    </Button>
+                                  </FormControl>
+                                </PopoverTrigger>
+                                <PopoverContent
+                                  className="w-auto p-0"
+                                  align="start"
+                                >
+                                  <Calendar
+                                    mode="single"
+                                    selected={field.value}
+                                    onSelect={field.onChange}
+                                    initialFocus
+                                  />
+                                </PopoverContent>
+                              </Popover>
+                              <FormMessage className="dark:text-white absolute -bottom-7" />
+                            </FormItem>
+                          )}
+                        />
+
+                        {/* delete cheque */}
+                        {checkFields.length > 1 && (
+                          <Trash2Icon
+                            onClick={() => checkRemove(index)}
+                            className="text-red-500 w-5 h-5 cursor-pointer col-span-1"
+                          />
+                        )}
+
+                        {/* add cheque */}
+                        <Button
+                          type="button"
+                          className="w-fit font-semibold"
+                          onClick={() =>
+                            checkAppend({
+                              chequeNumber: "",
+                              bankName: "",
+                              amount: 0,
+                            })
+                          }
+                        >
+                          New
+                        </Button>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              )}
 
               {/* date */}
-              <p className="whitespace-nowrap text-2xl col-span-3 font-semibold text-muted-foreground">
+              <p className="whitespace-nowrap text-2xl col-span-3 font-semibold text-muted-foreground mt-4">
                 Date
               </p>
-              <div className="whitespace-nowrap text-2xl col-span-8">
+              <div className="whitespace-nowrap text-2xl col-span-8 mt-4">
                 <FormField
                   control={form.control}
                   name="date"
@@ -371,7 +756,6 @@ const SellProducts = ({ userId }: Props) => {
                   )}
                 />
               </div>
-
               <div className="flex items-center gap-4 mt-8 col-span-12">
                 {/* sell product */}
                 <Button

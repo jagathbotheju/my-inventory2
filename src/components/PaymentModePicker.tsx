@@ -4,7 +4,6 @@ import {
   Command,
   CommandEmpty,
   CommandGroup,
-  CommandInput,
   CommandItem,
   CommandList,
 } from "@/components/ui/command";
@@ -17,9 +16,14 @@ import { Check, ChevronsUpDown } from "lucide-react";
 import { cn, paymentModes } from "@/lib/utils";
 import { useState } from "react";
 
-const PaymentModePicker = () => {
+interface Props {
+  value: string;
+  setValue: (value: string) => void;
+  clearFields: () => void;
+}
+
+const PaymentModePicker = ({ value, setValue, clearFields }: Props) => {
   const [open, setOpen] = useState(false);
-  const [value, setValue] = useState("");
 
   return (
     <Popover open={open} onOpenChange={setOpen}>
@@ -28,7 +32,7 @@ const PaymentModePicker = () => {
           variant="outline"
           role="combobox"
           aria-expanded={open}
-          className="justify-between text-lg"
+          className="justify-between"
         >
           {value
             ? paymentModes?.find((item) => item.value === value)?.label
@@ -38,16 +42,15 @@ const PaymentModePicker = () => {
       </PopoverTrigger>
       <PopoverContent className="p-0 dark:bg-slate-900 w-full">
         <Command className="dark:bg-slate-900 w-full">
-          <CommandInput placeholder="Search customers..." className="w-full" />
           <CommandList className="w-full">
             <CommandEmpty>No customers found</CommandEmpty>
             <CommandGroup className="w-full">
               {paymentModes?.map((item) => (
                 <CommandItem
-                  className="text-lg"
                   key={item.value}
                   value={item.value}
                   onSelect={(currentValue) => {
+                    clearFields();
                     setValue(currentValue === value ? "" : currentValue);
                     setOpen(false);
                   }}

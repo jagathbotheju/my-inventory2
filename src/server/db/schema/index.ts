@@ -8,6 +8,10 @@ export { users } from "@/server/db/schema/users";
 export { customers } from "@/server/db/schema/customers";
 export { stocks, stocksRelations } from "@/server/db/schema/stocks";
 export {
+  sellTxCheques,
+  sellTxChequeRelations,
+} from "@/server/db/schema/sellTxCheques";
+export {
   buyTransactions,
   buyTransactionRelations,
 } from "@/server/db/schema/buyTransactions";

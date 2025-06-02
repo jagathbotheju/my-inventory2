@@ -1,13 +1,13 @@
 "use server";
 import { db } from "@/server/db";
-import { stocks } from "@/server/db/schema";
+import { sellTxCheques, stocks } from "@/server/db/schema";
 import {
   SellMonthHistory,
   sellMonthHistory,
 } from "@/server/db/schema/sellMonthHistory";
 import {
   SellTransaction,
-  SellTransactionExit,
+  SellTransactionExt,
   sellTransactions,
 } from "@/server/db/schema/sellTransactions";
 import {
@@ -176,7 +176,20 @@ export const addSellTransaction = async ({
   }
 };
 
-export const addSellTransactions = async (data: SellTransaction) => {
+export const addSellTransactions = async ({
+  sellTxData,
+  chequeData,
+}: {
+  sellTxData: SellTransaction;
+  chequeData:
+    | {
+        chequeNumber?: string | undefined;
+        chequeDate?: Date | undefined;
+        bankName?: string | undefined;
+        amount?: number | undefined;
+      }[]
+    | undefined;
+}) => {
   try {
     //check if transaction exist
     const existTransaction = await db
@@ -184,14 +197,15 @@ export const addSellTransactions = async (data: SellTransaction) => {
       .from(sellTransactions)
       .where(
         and(
-          eq(sellTransactions.productId, data.productId),
-          eq(sellTransactions.quantity, data.quantity),
-          eq(sellTransactions.unitPrice, data.unitPrice ?? 0),
-          eq(sellTransactions.purchasedPrice, data.purchasedPrice ?? 0),
-          eq(sellTransactions.userId, data.userId),
-          eq(sellTransactions.customerId, data.customerId),
-          eq(sellTransactions.supplierId, data.supplierId as string),
-          eq(sellTransactions.date, data.date)
+          eq(sellTransactions.productId, sellTxData.productId),
+          eq(sellTransactions.quantity, sellTxData.quantity),
+          eq(sellTransactions.unitPrice, sellTxData.unitPrice ?? 0),
+          eq(sellTransactions.purchasedPrice, sellTxData.purchasedPrice ?? 0),
+          eq(sellTransactions.userId, sellTxData.userId),
+          eq(sellTransactions.customerId, sellTxData.customerId),
+          eq(sellTransactions.supplierId, sellTxData.supplierId as string),
+          eq(sellTransactions.date, sellTxData.date),
+          eq(sellTransactions.invoiceNumber, sellTxData.invoiceNumber)
         )
       );
     if (existTransaction.length) {
@@ -200,18 +214,39 @@ export const addSellTransactions = async (data: SellTransaction) => {
 
     const newTransaction = await db
       .insert(sellTransactions)
-      .values(data)
+      .values(sellTxData)
       .returning();
+
+    if (
+      (sellTxData.paymentMode === "cheque" ||
+        sellTxData.paymentMode === "cash-cheque") &&
+      newTransaction.length &&
+      chequeData &&
+      chequeData.length
+    ) {
+      chequeData.map(async (cheque) => {
+        await db
+          .insert(sellTxCheques)
+          .values({
+            sellTransactionsId: newTransaction[0].id,
+            chequeNumber: cheque.chequeNumber as string,
+            bankName: cheque.bankName as string,
+            amount: cheque.amount ?? 0,
+            chequeDate: cheque.chequeDate?.toDateString(),
+          })
+          .returning();
+      });
+    }
 
     const existSellMonthHistory = await db
       .select()
       .from(sellMonthHistory)
       .where(
         and(
-          eq(sellMonthHistory.userId, data.userId),
-          eq(sellMonthHistory.day, new Date(data.date).getDate()),
-          eq(sellMonthHistory.month, new Date(data.date).getMonth() + 1),
-          eq(sellMonthHistory.year, new Date(data.date).getFullYear())
+          eq(sellMonthHistory.userId, sellTxData.userId),
+          eq(sellMonthHistory.day, new Date(sellTxData.date).getDate()),
+          eq(sellMonthHistory.month, new Date(sellTxData.date).getMonth() + 1),
+          eq(sellMonthHistory.year, new Date(sellTxData.date).getFullYear())
         )
       );
     const existSellYearHistory = await db
@@ -219,9 +254,9 @@ export const addSellTransactions = async (data: SellTransaction) => {
       .from(sellYearHistory)
       .where(
         and(
-          eq(sellYearHistory.userId, data.userId),
-          eq(sellYearHistory.month, new Date(data.date).getMonth() + 1),
-          eq(sellYearHistory.year, new Date(data.date).getFullYear())
+          eq(sellYearHistory.userId, sellTxData.userId),
+          eq(sellYearHistory.month, new Date(sellTxData.date).getMonth() + 1),
+          eq(sellYearHistory.year, new Date(sellTxData.date).getFullYear())
         )
       );
 
@@ -233,15 +268,18 @@ export const addSellTransactions = async (data: SellTransaction) => {
         .update(sellMonthHistory)
         .set({
           totalPrice:
-            data.quantity * (data.unitPrice ?? 0) +
+            sellTxData.quantity * (sellTxData.unitPrice ?? 0) +
             (existSellMonthHistory[0].totalPrice ?? 0),
         })
         .where(
           and(
-            eq(sellMonthHistory.userId, data.userId),
-            eq(sellMonthHistory.day, new Date(data.date).getDate()),
-            eq(sellMonthHistory.month, new Date(data.date).getMonth() + 1),
-            eq(sellMonthHistory.year, new Date(data.date).getFullYear())
+            eq(sellMonthHistory.userId, sellTxData.userId),
+            eq(sellMonthHistory.day, new Date(sellTxData.date).getDate()),
+            eq(
+              sellMonthHistory.month,
+              new Date(sellTxData.date).getMonth() + 1
+            ),
+            eq(sellMonthHistory.year, new Date(sellTxData.date).getFullYear())
           )
         )
         .returning();
@@ -249,11 +287,11 @@ export const addSellTransactions = async (data: SellTransaction) => {
       monthHistory = await db
         .insert(sellMonthHistory)
         .values({
-          day: new Date(data.date).getDate(),
-          month: new Date(data.date).getMonth() + 1,
-          year: new Date(data.date).getFullYear(),
-          userId: data.userId,
-          totalPrice: data.quantity * (data.unitPrice ?? 0),
+          day: new Date(sellTxData.date).getDate(),
+          month: new Date(sellTxData.date).getMonth() + 1,
+          year: new Date(sellTxData.date).getFullYear(),
+          userId: sellTxData.userId,
+          totalPrice: sellTxData.quantity * (sellTxData.unitPrice ?? 0),
         })
         .returning();
     }
@@ -263,14 +301,14 @@ export const addSellTransactions = async (data: SellTransaction) => {
         .update(sellYearHistory)
         .set({
           totalPrice:
-            data.quantity * (data.unitPrice ?? 0) +
+            sellTxData.quantity * (sellTxData.unitPrice ?? 0) +
             (existSellYearHistory[0].totalPrice ?? 0),
         })
         .where(
           and(
-            eq(sellYearHistory.userId, data.userId),
-            eq(sellYearHistory.month, new Date(data.date).getMonth() + 1),
-            eq(sellYearHistory.year, new Date(data.date).getFullYear())
+            eq(sellYearHistory.userId, sellTxData.userId),
+            eq(sellYearHistory.month, new Date(sellTxData.date).getMonth() + 1),
+            eq(sellYearHistory.year, new Date(sellTxData.date).getFullYear())
           )
         )
         .returning();
@@ -278,10 +316,10 @@ export const addSellTransactions = async (data: SellTransaction) => {
       yearHistory = await db
         .insert(sellYearHistory)
         .values({
-          month: new Date(data.date).getMonth() + 1,
-          year: new Date(data.date).getFullYear(),
-          userId: data.userId,
-          totalPrice: data.quantity * (data.unitPrice ?? 0),
+          month: new Date(sellTxData.date).getMonth() + 1,
+          year: new Date(sellTxData.date).getFullYear(),
+          userId: sellTxData.userId,
+          totalPrice: sellTxData.quantity * (sellTxData.unitPrice ?? 0),
         })
         .returning();
     }
@@ -292,24 +330,24 @@ export const addSellTransactions = async (data: SellTransaction) => {
       .from(stocks)
       .where(
         and(
-          eq(stocks.userId, data.userId),
-          eq(stocks.productId, data.productId),
-          eq(stocks.supplierId, data.supplierId as string),
-          eq(stocks.unitPrice, data.purchasedPrice ?? 0)
+          eq(stocks.userId, sellTxData.userId),
+          eq(stocks.productId, sellTxData.productId),
+          eq(stocks.supplierId, sellTxData.supplierId as string),
+          eq(stocks.unitPrice, sellTxData.purchasedPrice ?? 0)
         )
       );
 
     const updatedStock = await db
       .update(stocks)
       .set({
-        quantity: existStock[0].quantity - data.quantity,
+        quantity: existStock[0].quantity - sellTxData.quantity,
       })
       .where(
         and(
-          eq(stocks.userId, data.userId),
-          eq(stocks.productId, data.productId),
-          eq(stocks.supplierId, data.supplierId as string),
-          eq(stocks.unitPrice, data.purchasedPrice ?? 0)
+          eq(stocks.userId, sellTxData.userId),
+          eq(stocks.productId, sellTxData.productId),
+          eq(stocks.supplierId, sellTxData.supplierId as string),
+          eq(stocks.unitPrice, sellTxData.purchasedPrice ?? 0)
         )
       )
       .returning();
@@ -330,12 +368,66 @@ export const addSellTransactions = async (data: SellTransaction) => {
   }
 };
 
+// export const addSellTxPayments = async (data: TxPayments) => {
+//   try {
+//     const cheques = data.cheques;
+//     const paymentMode = data.paymentMode;
+//     let newCheques = [];
+//     // let newPayment = [];
+
+//     const newPayment = await db
+//       .insert(sellTxPayments)
+//       .values({
+//         invoiceNumber: data.invoiceNumber,
+//         paymentMode: data.paymentMode,
+//         cacheAmount: data.cacheAmount,
+//         userId: data.userId,
+//       })
+//       .returning();
+//     console.log("newPayment", newPayment);
+
+//     if (paymentMode === "credit") {
+//       return { success: "Payment added successfully" };
+//     }
+
+//     if (cheques && cheques.length) {
+//       const chequeData = cheques.map((cheque) => ({
+//         chequeNumber: cheque.chequeNumber,
+//         bankName: cheque.bankName,
+//         amount: cheque.amount,
+//         chequeData: cheque.chequeDate,
+//         userId: data.userId,
+//       }));
+
+//       newCheques = await db
+//         .insert(sellTxCheques)
+//         .values(
+//           chequeData.map((cheque) => ({
+//             chequeNumber: cheque.chequeNumber,
+//             invoiceNumber: data.invoiceNumber,
+//             cacheAmount: data.cacheAmount,
+//             bankName: cheque.bankName,
+//             chequeData: cheque.chequeData,
+//           }))
+//         )
+//         .returning();
+//     }
+//     if (newPayment.length && newCheques.length) {
+//       return { success: "Payment added successfully" };
+//     }
+//     return { error: "Could not add Payment" };
+//   } catch (error) {
+//     console.log(error);
+//     return { error: "Could not add Payment" };
+//   }
+// };
+
 export const deleteSellTransaction = async ({
   userId,
   sellTx,
 }: {
   userId: string;
-  sellTx: SellTransactionExit;
+  sellTx: SellTransactionExt;
 }) => {
   try {
     const deletedTx = await db
@@ -486,6 +578,26 @@ export const deleteSellTransaction = async ({
       )
       .returning();
 
+    //update sellTxPayments
+    // await db
+    //   .delete(sellTxPayments)
+    //   .where(
+    //     and(
+    //       eq(sellTxPayments.userId, userId),
+    //       eq(sellTxPayments.invoiceNumber, sellTx.invoiceNumber)
+    //     )
+    //   )
+    //   .returning();
+    // await db
+    //   .delete(sellTxCheques)
+    //   .where(
+    //     and(
+    //       eq(sellTxCheques.userId, userId),
+    //       eq(sellTxCheques.invoiceNumber, sellTx.invoiceNumber)
+    //     )
+    //   )
+    //   .returning();
+
     if (deletedTx.length && updatedStock.length)
       return { success: "Transaction deleted successfully" };
     return { error: "Could not delete Transaction" };
@@ -534,7 +646,7 @@ export const getSellTransactionsPagination = async ({
     limit: pageSize,
     offset: (page - 1) * pageSize,
   });
-  return transactions as SellTransactionExit[];
+  return transactions as SellTransactionExt[];
 };
 
 export const getSellTxCount = async ({
@@ -608,7 +720,7 @@ export const getDailySellTransactions = async ({
     },
     orderBy: desc(sellTransactions.date),
   });
-  return transactions as SellTransactionExit[];
+  return transactions as SellTransactionExt[];
 };
 
 export const getSellTxByUserProduct = async ({
@@ -632,7 +744,7 @@ export const getSellTxByUserProduct = async ({
     },
     orderBy: asc(sellTransactions.date),
   });
-  return transactions as SellTransactionExit[];
+  return transactions as SellTransactionExt[];
 };
 
 export const getSellTxByUserByPeriod = async ({
@@ -653,7 +765,16 @@ export const getSellTxByUserByPeriod = async ({
       timeFrame === "month"
         ? sql`to_char(${sellTransactions.date},'MM') like ${month} and to_char(${sellTransactions.date},'YYYY') like ${year} and ${sellTransactions.userId} like ${userId}`
         : sql`to_char(${sellTransactions.date},'YYYY') like ${year} and ${sellTransactions.userId} like ${userId}`,
+    with: {
+      products: {
+        with: {
+          unitOfMeasurements: true,
+        },
+      },
+      customers: true,
+      sellTxCheques: true,
+    },
   });
 
-  return transactions as SellTransactionExit[];
+  return transactions as SellTransactionExt[];
 };

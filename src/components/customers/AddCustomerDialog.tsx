@@ -87,7 +87,6 @@ const AddCustomerDialog = ({ children, customerId, userId }: Props) => {
                 control={form.control}
                 name="name"
                 render={({ field }) => {
-                  console.log("field cus", field);
                   return (
                     <FormItem>
                       <FormLabel>Customer Name</FormLabel>

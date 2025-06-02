@@ -11,11 +11,11 @@ import {
 } from "../ui/dialog";
 import { Button } from "../ui/button";
 import { useDeleteSellTransaction } from "@/server/backend/mutations/sellTxMutations";
-import { SellTransactionExit } from "@/server/db/schema/sellTransactions";
+import { SellTransactionExt } from "@/server/db/schema/sellTransactions";
 
 interface Props {
   children: React.ReactNode;
-  tx: SellTransactionExit;
+  tx: SellTransactionExt;
   userId: string;
 }
 
