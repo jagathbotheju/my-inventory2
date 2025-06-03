@@ -33,19 +33,11 @@ const Invoice = ({ user }: Props) => {
     timeFrame,
   });
   const { data: sellTxs } = useSellTxByUserByPeriod({
-    userId: user.id,
-    // userId: "7e397cd1-19ad-4c68-aa50-a77c06450bc7",
+    // userId: user.id,
+    userId: "7e397cd1-19ad-4c68-aa50-a77c06450bc7",
     period,
     timeFrame,
   });
-
-  // const sellTxInvoices = _.uniqBy(
-  //   sellTxs?.map((tx) => ({
-  //     invoiceNumber: tx.invoiceNumber,
-  //   })),
-  //   "invoiceNumber"
-  // ).map((tx) => tx.invoiceNumber);
-  // console.log("sellTxInvoices", sellTxInvoices);
 
   const { data: totalPurchase } = useByTxTotalPurchase({
     userId: user.id,
@@ -53,6 +45,7 @@ const Invoice = ({ user }: Props) => {
     period,
     timeFrame,
   });
+
   const { data: totalSales } = useSellTxTotalSales({
     userId: user.id,
     // userId: "7e397cd1-19ad-4c68-aa50-a77c06450bc7",
@@ -83,28 +76,6 @@ const Invoice = ({ user }: Props) => {
       totalPrice: number;
     }>()
   );
-
-  // const filteredSellTxs = sellTxs?.reduce(
-  //   (acc, sellTx) => {
-  //     const exist = acc.find(
-  //       (item) => item.invoiceNumber === sellTx.invoiceNumber
-  //     );
-
-  //     if (!exist) {
-  //       acc.push({
-  //         invoiceNumber: sellTx.invoiceNumber as string,
-  //         totalPrice: sellTx.quantity * (sellTx?.unitPrice ?? 0),
-  //       });
-  //     } else {
-  //       exist.totalPrice += sellTx.quantity * (sellTx.unitPrice ?? 0);
-  //     }
-  //     return acc;
-  //   },
-  //   Array<{
-  //     invoiceNumber: string;
-  //     totalPrice: number;
-  //   }>()
-  // );
 
   const getCashAmount = (sellTx: SellTransactionExt, exist: boolean) => {
     let cash = 0;
@@ -156,7 +127,7 @@ const Invoice = ({ user }: Props) => {
     }>()
   );
 
-  console.log("SellTxsTest", filteredSellTxs);
+  // console.log("SellTxsTest", filteredSellTxs);
 
   return (
     <Card className="dark:bg-transparent dark:border-primary/40">

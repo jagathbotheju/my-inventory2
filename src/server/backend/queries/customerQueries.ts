@@ -12,5 +12,6 @@ export const useCustomerById = (id: string) => {
   return useQuery({
     queryKey: ["customer-by-id", id],
     queryFn: () => getCustomerById(id),
+    enabled: !!id,
   });
 };

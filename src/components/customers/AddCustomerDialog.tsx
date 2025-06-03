@@ -29,6 +29,7 @@ import { Button } from "../ui/button";
 import { useEffect, useState } from "react";
 import { useAddCustomer } from "@/server/backend/mutations/customerMutations";
 import { useCustomerById } from "@/server/backend/queries/customerQueries";
+import SupplierPicker from "../SupplierPicker";
 
 interface Props {
   children: React.ReactNode;
@@ -45,10 +46,11 @@ const AddCustomerDialog = ({ children, customerId, userId }: Props) => {
   const form = useForm<z.infer<typeof NewCustomerSchema>>({
     resolver: zodResolver(NewCustomerSchema),
     defaultValues: {
-      name: customer ? customer[0]?.name : "",
-      address: (customer && customer[0]?.address) ?? "",
-      landPhone: (customer && customer[0]?.landPhone) ?? "",
-      mobilePhone: (customer && customer[0]?.mobilePhone) ?? "",
+      supplier: customer && customer?.suppliers ? customer?.suppliers.name : "",
+      name: customer ? customer?.name : "",
+      address: (customer && customer?.address) ?? "",
+      landPhone: (customer && customer?.landPhone) ?? "",
+      mobilePhone: (customer && customer?.mobilePhone) ?? "",
     },
     mode: "all",
   });
@@ -61,10 +63,11 @@ const AddCustomerDialog = ({ children, customerId, userId }: Props) => {
   useEffect(() => {
     form.reset();
     if (customerId && customer) {
-      form.setValue("name", customer[0]?.name);
-      form.setValue("address", customer[0].address ?? "");
-      form.setValue("landPhone", customer[0].landPhone ?? "");
-      form.setValue("mobilePhone", customer[0].mobilePhone ?? "");
+      // form.setValue("supplier", customer?.suppliers?.id);
+      form.setValue("name", customer?.name);
+      form.setValue("address", customer?.address ?? "");
+      form.setValue("landPhone", customer?.landPhone ?? "");
+      form.setValue("mobilePhone", customer?.mobilePhone ?? "");
     }
   }, [form, customer, customerId]);
 
@@ -73,15 +76,40 @@ const AddCustomerDialog = ({ children, customerId, userId }: Props) => {
       <DialogTrigger asChild>{children}</DialogTrigger>
       <DialogContent className="sm:max-w-[425px]">
         <DialogHeader>
-          <DialogTitle>Register New Customer</DialogTitle>
+          <DialogTitle>
+            {customerId ? "Edit Customer" : "Register New Customer"}
+          </DialogTitle>
           <DialogDescription className="hidden">
-            Register new Customer
+            {customerId ? "Edit Customer" : "Register New Customer"}
           </DialogDescription>
         </DialogHeader>
 
         <div className="flex flex-col gap-4">
           <Form {...form}>
             <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
+              {/* supplier */}
+              <FormField
+                control={form.control}
+                name="supplier"
+                render={({ field }) => {
+                  return (
+                    <FormItem>
+                      <FormLabel>Supplier</FormLabel>
+                      <FormControl>
+                        <SupplierPicker
+                          setSupplier={(supplier) => {
+                            field.onChange(supplier.id);
+                          }}
+                          supplierId={customer ? customer?.suppliers?.id : ""}
+                          userId={userId}
+                        />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  );
+                }}
+              />
+
               {/* name */}
               <FormField
                 control={form.control}
@@ -164,7 +192,7 @@ const AddCustomerDialog = ({ children, customerId, userId }: Props) => {
                       : {})}
                     type="submit"
                   >
-                    Register
+                    {customerId ? "Update" : "Register"}
                   </Button>
                   <DialogClose asChild>
                     <Button

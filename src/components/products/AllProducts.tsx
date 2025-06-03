@@ -66,8 +66,6 @@ const AllProducts = ({ user }: Props) => {
     // userId: "7e397cd1-19ad-4c68-aa50-a77c06450bc7",
   });
 
-  // console.log("products", productsBySupplierPagination);
-
   useEffect(() => {
     if (searchParams && searchParams.get("productId")) {
       setProductId(searchParams.get("productId") as string);

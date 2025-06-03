@@ -60,7 +60,7 @@ const SellTransactions = ({ user }: Props) => {
       timeFrame,
     });
 
-  // console.log("sellTransactions", sellTransactions);
+  // console.log("sellTransactions", totalPurchase);
 
   return (
     <div className="flex w-full flex-col">

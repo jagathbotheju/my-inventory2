@@ -16,6 +16,7 @@ export const useAddCustomer = () => {
       formData: z.infer<typeof NewCustomerSchema>;
       customerId: string | undefined;
       userId: string;
+      // supplierId: string;
     }) => addCustomer({ formData, customerId, userId }),
     onSuccess: async (res) => {
       if (res?.success) {

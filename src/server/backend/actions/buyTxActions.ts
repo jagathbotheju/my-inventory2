@@ -372,9 +372,8 @@ export const deleteBuyTransaction = async ({
           eq(stocks.unitPrice, buyTx.unitPrice)
         )
       );
-    console.log("existStock", existStock);
     if (existStock.length) {
-      const updatedStock = await db
+      await db
         .update(stocks)
         .set({
           quantity: existStock[0].quantity - buyTx.quantity,
@@ -388,7 +387,6 @@ export const deleteBuyTransaction = async ({
           )
         )
         .returning();
-      console.log("updatedStock", updatedStock);
     }
 
     if (deletedTx.length)

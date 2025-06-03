@@ -18,7 +18,6 @@ import { Check, ChevronsUpDown, Loader2Icon } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useSuppliers } from "@/server/backend/queries/supplierQueries";
 import { useEffect, useState } from "react";
-import { useProductStore } from "@/store/productStore";
 
 interface Props {
   setSupplier: (supplier: Supplier) => void;
@@ -29,20 +28,13 @@ interface Props {
 const SupplierPicker = ({ setSupplier, supplierId, userId }: Props) => {
   const [open, setOpen] = useState(false);
   const [value, setValue] = useState("");
-  const { setCurrentSupplier, currentSupplier } = useProductStore(
-    (state) => state
-  );
   const { data: suppliers, isLoading } = useSuppliers(userId);
 
   useEffect(() => {
     if (supplierId) {
       setValue(supplierId);
     }
-    if (currentSupplier) {
-      setSupplier(currentSupplier);
-      setValue(currentSupplier.id);
-    }
-  }, [supplierId, currentSupplier, setSupplier]);
+  }, [supplierId]);
 
   return (
     <div className="flex">
@@ -75,11 +67,11 @@ const SupplierPicker = ({ setSupplier, supplierId, userId }: Props) => {
                   {suppliers?.map((item) => (
                     <CommandItem
                       key={item.id}
-                      value={item.id}
-                      onSelect={(currentValue) => {
-                        setValue(currentValue === value ? "" : currentValue);
+                      value={item.name}
+                      onSelect={() => {
+                        setValue(item.id);
                         setSupplier(item);
-                        setCurrentSupplier(item);
+                        // setCurrentSupplier(item);
                         setOpen(false);
                       }}
                     >

@@ -5,7 +5,7 @@ export { sessions } from "@/server/db/schema/sessions";
 export { suppliers, supplierRelations } from "@/server/db/schema/suppliers";
 export { unitOfMeasurements } from "@/server/db/schema/unitOfMeasurements";
 export { users } from "@/server/db/schema/users";
-export { customers } from "@/server/db/schema/customers";
+export { customers, customerRelations } from "@/server/db/schema/customers";
 export { stocks, stocksRelations } from "@/server/db/schema/stocks";
 export {
   sellTxCheques,

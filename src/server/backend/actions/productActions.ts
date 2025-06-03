@@ -111,7 +111,6 @@ export const getProductById = async ({
       unitOfMeasurements: true,
     },
   });
-  console.log("product", product);
   if (product) return product as ProductExt;
   return {} as ProductExt;
 };

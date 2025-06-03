@@ -1,7 +1,8 @@
 import { InferSelectModel, relations } from "drizzle-orm";
 import { pgTable, text, timestamp } from "drizzle-orm/pg-core";
-import { products } from "./products";
+import { Product, products } from "./products";
 import { users } from "./users";
+import { Customer, customers } from "./customers";
 
 export const suppliers = pgTable("suppliers", {
   id: text("id")
@@ -19,6 +20,11 @@ export const suppliers = pgTable("suppliers", {
 
 export const supplierRelations = relations(suppliers, ({ many }) => ({
   products: many(products),
+  customers: many(customers),
 }));
 
 export type Supplier = InferSelectModel<typeof suppliers>;
+export type SupplierExt = InferSelectModel<typeof products> & {
+  products: Product[];
+  customers: Customer[];
+};

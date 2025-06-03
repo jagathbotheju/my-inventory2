@@ -50,6 +50,7 @@ const Customers = ({ user }: Props) => {
             <Table className="w-full text-xl">
               <TableHeader>
                 <TableRow>
+                  <TableHead>Supplier</TableHead>
                   <TableHead>Name</TableHead>
                   <TableHead>Address</TableHead>
                   <TableHead>Land Phone</TableHead>
@@ -59,6 +60,9 @@ const Customers = ({ user }: Props) => {
               <TableBody>
                 {customers?.map((customer) => (
                   <TableRow key={customer.id}>
+                    <TableCell>
+                      {customer.suppliers?.name || "No Supplier"}
+                    </TableCell>
                     <TableCell>{customer.name}</TableCell>
                     <TableCell>{customer.address}</TableCell>
                     <TableCell>{customer.landPhone}</TableCell>

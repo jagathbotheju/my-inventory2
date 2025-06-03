@@ -2,23 +2,30 @@
 import { db } from "@/server/db";
 import { NewCustomerSchema } from "@/lib/schema";
 import { z } from "zod";
-import { eq } from "drizzle-orm";
-import { Customer, customers } from "@/server/db/schema/customers";
+import { desc, eq } from "drizzle-orm";
+import { CustomerExt, customers } from "@/server/db/schema/customers";
 
 export const getCustomers = async (userId: string) => {
-  const allCustomers = await db
-    .select()
-    .from(customers)
-    .where(eq(customers.userId, userId));
-  return allCustomers as Customer[];
+  const allCustomers = await db.query.customers.findMany({
+    where: eq(customers.userId, userId),
+    with: {
+      suppliers: true,
+    },
+    orderBy: desc(customers.createdAt),
+  });
+
+  return allCustomers as CustomerExt[];
 };
 
 export const getCustomerById = async (id: string) => {
-  const customer = await db
-    .select()
-    .from(customers)
-    .where(eq(customers.id, id));
-  return customer as Customer[];
+  const customer = await db.query.customers.findFirst({
+    where: eq(customers.id, id),
+    with: {
+      suppliers: true,
+    },
+  });
+  if (customer) return customer as CustomerExt;
+  return {} as CustomerExt;
 };
 
 export const addCustomer = async ({
@@ -34,7 +41,11 @@ export const addCustomer = async ({
     if (customerId) {
       const updatedCustomer = await db
         .update(customers)
-        .set({ ...formData, userId })
+        .set({
+          supplierId: formData.supplier,
+          ...formData,
+          userId,
+        })
         .where(eq(customers.id, customerId))
         .returning();
       if (updatedCustomer.length) {
@@ -44,7 +55,11 @@ export const addCustomer = async ({
     } else {
       const newCustomer = await db
         .insert(customers)
-        .values({ ...formData, userId })
+        .values({
+          userId,
+          supplierId: formData.supplier,
+          ...formData,
+        })
         .returning();
       if (newCustomer.length) {
         return { success: "Customer registered successfully" };
