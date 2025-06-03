@@ -40,11 +40,12 @@ const ProductsPickerDialog = ({ children, userId }: Props) => {
   const [open, setOpen] = useState(false);
   const [supplier, setSupplier] = useState<Supplier>({} as Supplier);
   const { setSelectedProducts, setSelectedProductIds } = useProductStore();
+  const { currentSupplier } = useProductStore();
 
   const { data: stocks } = useStocksBySupplier({
     userId,
     // userId: "7e397cd1-19ad-4c68-aa50-a77c06450bc7",
-    supplierId: supplier.id,
+    supplierId: supplier && supplier.id ? supplier.id : currentSupplier?.id,
     // supplierId: "c55b7f22-38cb-40d4-bad4-4cb1bf63c4ab",
   });
 
@@ -80,7 +81,11 @@ const ProductsPickerDialog = ({ children, userId }: Props) => {
               Select Supplier
             </p>
             <div className="whitespace-nowrap text-lg col-span-8">
-              <SupplierPicker userId={userId} setSupplier={setSupplier} />
+              <SupplierPicker
+                userId={userId}
+                setSupplier={setSupplier}
+                supplierId={currentSupplier ? currentSupplier.id : ""}
+              />
             </div>
           </div>
 

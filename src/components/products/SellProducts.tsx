@@ -57,6 +57,8 @@ const SellProducts = ({ userId }: Props) => {
     setSelectedProductIds,
   } = useProductStore();
 
+  console.log("currentSupplier", currentSupplier.name);
+
   const form = useForm<z.infer<typeof SellProductsSchema>>({
     resolver: zodResolver(SellProductsSchema),
     defaultValues: {
@@ -219,7 +221,11 @@ const SellProducts = ({ userId }: Props) => {
                 Select Customer
               </p>
               <div className="whitespace-nowrap text-2xl col-span-8">
-                <CustomerPicker setCustomer={setCustomer} userId={userId} />
+                <CustomerPicker
+                  setCustomer={setCustomer}
+                  userId={userId}
+                  supplierId={currentSupplier.id}
+                />
               </div>
 
               {/* invoice number */}
@@ -766,9 +772,10 @@ const SellProducts = ({ userId }: Props) => {
                   Sell
                 </Button>
                 <Button
-                  // onClick={() =>
-                  //   router.push(`/products?productId=${product?.id}`)
-                  // }
+                  onClick={() =>
+                    // router.push(`/products?productId=${product?.id}`)
+                    router.back()
+                  }
                   variant="secondary"
                   type="button"
                 >

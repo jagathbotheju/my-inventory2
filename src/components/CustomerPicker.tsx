@@ -17,18 +17,27 @@ import { Check, ChevronsUpDown, Loader2Icon } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useEffect, useState } from "react";
 import { Customer } from "@/server/db/schema/customers";
-import { useCustomers } from "@/server/backend/queries/customerQueries";
+import { useCustomersBySupplier } from "@/server/backend/queries/customerQueries";
 
 interface Props {
   setCustomer: (customer: Customer) => void;
   userId: string;
   customerId?: string;
+  supplierId?: string;
 }
 
-const CustomerPicker = ({ setCustomer, customerId, userId }: Props) => {
+const CustomerPicker = ({
+  setCustomer,
+  customerId,
+  userId,
+  supplierId,
+}: Props) => {
   const [open, setOpen] = useState(false);
   const [value, setValue] = useState("");
-  const { data: customers, isLoading } = useCustomers(userId);
+  const { data: customers, isLoading } = useCustomersBySupplier({
+    userId,
+    supplierId: supplierId as string,
+  });
 
   useEffect(() => {
     if (customerId) {
@@ -68,7 +77,7 @@ const CustomerPicker = ({ setCustomer, customerId, userId }: Props) => {
                     <CommandItem
                       className="text-lg"
                       key={item.id}
-                      value={item.id}
+                      value={item.name}
                       onSelect={(currentValue) => {
                         setValue(currentValue === value ? "" : currentValue);
                         setCustomer(item);

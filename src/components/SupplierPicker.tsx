@@ -18,6 +18,7 @@ import { Check, ChevronsUpDown, Loader2Icon } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useSuppliers } from "@/server/backend/queries/supplierQueries";
 import { useEffect, useState } from "react";
+import { useProductStore } from "@/store/productStore";
 
 interface Props {
   setSupplier: (supplier: Supplier) => void;
@@ -29,6 +30,7 @@ const SupplierPicker = ({ setSupplier, supplierId, userId }: Props) => {
   const [open, setOpen] = useState(false);
   const [value, setValue] = useState("");
   const { data: suppliers, isLoading } = useSuppliers(userId);
+  const { setCurrentSupplier } = useProductStore();
 
   useEffect(() => {
     if (supplierId) {
@@ -71,7 +73,7 @@ const SupplierPicker = ({ setSupplier, supplierId, userId }: Props) => {
                       onSelect={() => {
                         setValue(item.id);
                         setSupplier(item);
-                        // setCurrentSupplier(item);
+                        setCurrentSupplier(item);
                         setOpen(false);
                       }}
                     >

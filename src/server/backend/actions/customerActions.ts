@@ -2,8 +2,8 @@
 import { db } from "@/server/db";
 import { NewCustomerSchema } from "@/lib/schema";
 import { z } from "zod";
-import { desc, eq } from "drizzle-orm";
-import { CustomerExt, customers } from "@/server/db/schema/customers";
+import { and, desc, eq } from "drizzle-orm";
+import { Customer, CustomerExt, customers } from "@/server/db/schema/customers";
 
 export const getCustomers = async (userId: string) => {
   const allCustomers = await db.query.customers.findMany({
@@ -15,6 +15,23 @@ export const getCustomers = async (userId: string) => {
   });
 
   return allCustomers as CustomerExt[];
+};
+
+export const getCustomersBySupplier = async ({
+  userId,
+  supplierId,
+}: {
+  userId: string;
+  supplierId: string;
+}) => {
+  const allCustomers = await db.query.customers.findMany({
+    where: and(
+      eq(customers.userId, userId),
+      eq(customers.supplierId, supplierId)
+    ),
+  });
+
+  return allCustomers as Customer[];
 };
 
 export const getCustomerById = async (id: string) => {

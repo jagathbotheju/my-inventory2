@@ -37,6 +37,7 @@ import Pagination from "rc-pagination";
 import "rc-pagination/assets/index.css";
 import { User } from "@/server/db/schema/users";
 import { format } from "date-fns";
+import { useProductStore } from "@/store/productStore";
 
 interface Props {
   user: User;
@@ -48,11 +49,12 @@ const AllProducts = ({ user }: Props) => {
   const [supplier, setSupplier] = useState<Supplier>({} as Supplier);
   const [productId, setProductId] = useState("");
   const [page, setPage] = useState(1);
+  const { currentSupplier } = useProductStore();
 
   const { data: product } = useProductById({ productId, userId: user?.id });
   const { data: productsBySupplierPagination, isLoading } =
     useProductsBySupplierPagination({
-      supplierId: supplier.id,
+      supplierId: supplier && supplier.id ? supplier.id : currentSupplier.id,
       // supplierId: "c55b7f22-38cb-40d4-bad4-4cb1bf63c4ab",
       userId: user?.id,
       // userId: "7e397cd1-19ad-4c68-aa50-a77c06450bc7",
@@ -60,11 +62,17 @@ const AllProducts = ({ user }: Props) => {
     });
 
   const { data: productsCount } = useProductsCount({
-    supplierId: supplier.id,
+    supplierId: supplier && supplier.id ? supplier.id : currentSupplier.id,
     // supplierId: "c55b7f22-38cb-40d4-bad4-4cb1bf63c4ab",
     userId: user?.id,
     // userId: "7e397cd1-19ad-4c68-aa50-a77c06450bc7",
   });
+
+  // useEffect(() => {
+  //   if (supplier) {
+  //     setCurrentSupplier(supplier);
+  //   }
+  // }, [setCurrentSupplier, supplier]);
 
   useEffect(() => {
     if (searchParams && searchParams.get("productId")) {
@@ -84,7 +92,7 @@ const AllProducts = ({ user }: Props) => {
             <div className="flex items-center gap-4">
               <SupplierPicker
                 setSupplier={setSupplier}
-                supplierId={product?.suppliers?.id}
+                supplierId={currentSupplier?.id}
                 userId={user?.id}
               />
               <Button
@@ -108,7 +116,7 @@ const AllProducts = ({ user }: Props) => {
             <div className="flex items-center justify-center">
               <Loader2Icon className="w-10 h-10 animate-spin" />
             </div>
-          ) : !supplier.id ? (
+          ) : !(supplier.id || currentSupplier.id) ? (
             <div className="flex flex-col gap-2 w-full mt-8 justify-center items-center dark:text-slate-400 text-slate-500">
               <h1 className="text-4xl font-bold">Please Select Supplier...</h1>
             </div>

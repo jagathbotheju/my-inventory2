@@ -51,7 +51,7 @@ const Customers = ({ user }: Props) => {
               <TableHeader>
                 <TableRow>
                   <TableHead>Supplier</TableHead>
-                  <TableHead>Name</TableHead>
+                  <TableHead>Customer</TableHead>
                   <TableHead>Address</TableHead>
                   <TableHead>Land Phone</TableHead>
                   <TableHead>Mobile Phone</TableHead>

@@ -27,28 +27,28 @@ const Invoice = ({ user }: Props) => {
   const [isBuyTx, setIsBuyTx] = useState(true);
   const { period, timeFrame } = useTimeFrameStore((state) => state);
   const { data: buyTxs } = useBuyTxByUserByPeriod({
+    // userId: user.id,
+    userId: "7e397cd1-19ad-4c68-aa50-a77c06450bc7",
+    period,
+    timeFrame,
+  });
+  const { data: sellTxs } = useSellTxByUserByPeriod({
     userId: user.id,
     // userId: "7e397cd1-19ad-4c68-aa50-a77c06450bc7",
     period,
     timeFrame,
   });
-  const { data: sellTxs } = useSellTxByUserByPeriod({
+
+  const { data: totalPurchase } = useByTxTotalPurchase({
     // userId: user.id,
     userId: "7e397cd1-19ad-4c68-aa50-a77c06450bc7",
     period,
     timeFrame,
   });
 
-  const { data: totalPurchase } = useByTxTotalPurchase({
-    userId: user.id,
-    // userId: "7e397cd1-19ad-4c68-aa50-a77c06450bc7",
-    period,
-    timeFrame,
-  });
-
   const { data: totalSales } = useSellTxTotalSales({
-    userId: user.id,
-    // userId: "7e397cd1-19ad-4c68-aa50-a77c06450bc7",
+    // userId: user.id,
+    userId: "7e397cd1-19ad-4c68-aa50-a77c06450bc7",
     period,
     timeFrame,
   });
