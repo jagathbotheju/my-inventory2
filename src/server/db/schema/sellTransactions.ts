@@ -11,6 +11,7 @@ import { ProductExt, products } from "./products";
 import { Customer, customers } from "./customers";
 import { suppliers } from "./suppliers";
 import { SellTxCheques, sellTxCheques } from "./sellTxCheques";
+import { sellTxPayments, SellTxPaymentsExt } from "./sellTxPayments";
 
 export const sellTransactions = pgTable("sell_transactions", {
   id: text("id")
@@ -48,6 +49,7 @@ export const sellTransactionRelations = relations(
       references: [products.id],
     }),
     sellTxCheques: many(sellTxCheques),
+    sellTxPayments: many(sellTxPayments),
   })
 );
 
@@ -56,4 +58,5 @@ export type SellTransactionExt = InferSelectModel<typeof sellTransactions> & {
   customers: Customer;
   products: ProductExt;
   sellTxCheques: SellTxCheques[] | null;
+  sellTxPayments: SellTxPaymentsExt[] | null;
 };

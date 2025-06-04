@@ -78,8 +78,8 @@ const CustomerPicker = ({
                       className="text-lg"
                       key={item.id}
                       value={item.name}
-                      onSelect={(currentValue) => {
-                        setValue(currentValue === value ? "" : currentValue);
+                      onSelect={() => {
+                        setValue(item.id);
                         setCustomer(item);
                         setOpen(false);
                       }}

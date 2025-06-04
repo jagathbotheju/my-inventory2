@@ -237,6 +237,7 @@ const Invoice = ({ user }: Props) => {
               const txs = sellTxs?.filter(
                 (x) => x.invoiceNumber === item.invoiceNumber
               );
+              console.log("sellTxs", txs);
               return (
                 <div className="flex flex-col" key={index}>
                   {/* card heading */}
@@ -296,13 +297,20 @@ const Invoice = ({ user }: Props) => {
                         </p>
                       </div>
 
-                      <Button
-                        size="sm"
-                        variant="secondary"
-                        className="hover:bg-primary/50 hover:font-semibold tracking-widest"
-                      >
-                        PAYMENTS
-                      </Button>
+                      <div className="flex gap-1 items-center">
+                        <Button
+                          variant="secondary"
+                          className="hover:bg-primary/50 font-bold border-primary/50 border p-2"
+                        >
+                          REC.PAY
+                        </Button>
+                        <Button
+                          variant="secondary"
+                          className="hover:bg-primary/50 font-bold border-primary/50 border p-2"
+                        >
+                          PAY.HIS
+                        </Button>
+                      </div>
                     </div>
                   </div>
                   <Separator className="bg-primary/20 mb-2" />

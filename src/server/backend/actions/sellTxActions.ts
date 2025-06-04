@@ -1,6 +1,11 @@
 "use server";
 import { db } from "@/server/db";
-import { sellTxCheques, stocks } from "@/server/db/schema";
+import {
+  sellTxCheques,
+  sellTxPaymentCheques,
+  sellTxPayments,
+  stocks,
+} from "@/server/db/schema";
 import {
   SellMonthHistory,
   sellMonthHistory,
@@ -10,6 +15,7 @@ import {
   SellTransactionExt,
   sellTransactions,
 } from "@/server/db/schema/sellTransactions";
+import { SellTxPayments } from "@/server/db/schema/sellTxPayments";
 import {
   SellYearHistory,
   sellYearHistory,
@@ -217,6 +223,18 @@ export const addSellTransactions = async ({
       .values(sellTxData)
       .returning();
 
+    let newTxPayment = [] as SellTxPayments[];
+    if (newTransaction.length) {
+      newTxPayment = await db
+        .insert(sellTxPayments)
+        .values({
+          sellTransactionsId: newTransaction[0].id,
+          paymentMode: sellTxData.paymentMode,
+          cacheAmount: sellTxData.cacheAmount ?? 0,
+        })
+        .returning();
+    }
+
     if (
       (sellTxData.paymentMode === "cheque" ||
         sellTxData.paymentMode === "cash-cheque") &&
@@ -236,6 +254,21 @@ export const addSellTransactions = async ({
           })
           .returning();
       });
+
+      if (newTxPayment.length) {
+        chequeData.map(async (cheque) => {
+          await db
+            .insert(sellTxPaymentCheques)
+            .values({
+              sellTxPaymentId: newTxPayment[0].id,
+              chequeNumber: cheque.chequeNumber as string,
+              bankName: cheque.bankName as string,
+              amount: cheque.amount ?? 0,
+              chequeDate: cheque.chequeDate?.toDateString(),
+            })
+            .returning();
+        });
+      }
     }
 
     const existSellMonthHistory = await db
@@ -773,6 +806,11 @@ export const getSellTxByUserByPeriod = async ({
       },
       customers: true,
       sellTxCheques: true,
+      sellTxPayments: {
+        with: {
+          sellTxPaymentCheques: true,
+        },
+      },
     },
   });
 
