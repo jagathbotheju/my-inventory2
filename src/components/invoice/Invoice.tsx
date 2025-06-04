@@ -17,6 +17,7 @@ import {
   useSellTxTotalSales,
 } from "@/server/backend/queries/sellTxQueries";
 import { SellTransactionExt } from "@/server/db/schema/sellTransactions";
+import PaymentHistoryDialog from "../PaymentHistoryDialog";
 // import _ from "lodash";
 
 interface Props {
@@ -304,12 +305,20 @@ const Invoice = ({ user }: Props) => {
                         >
                           REC.PAY
                         </Button>
-                        <Button
-                          variant="secondary"
-                          className="hover:bg-primary/50 font-bold border-primary/50 border p-2"
+
+                        {/* payment history dialog */}
+                        <PaymentHistoryDialog
+                          userId={user.id}
+                          item={item}
+                          transaction={txs}
                         >
-                          PAY.HIS
-                        </Button>
+                          <Button
+                            variant="secondary"
+                            className="hover:bg-primary/50 font-bold border-primary/50 border p-2"
+                          >
+                            PAY.HIS
+                          </Button>
+                        </PaymentHistoryDialog>
                       </div>
                     </div>
                   </div>
