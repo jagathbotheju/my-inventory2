@@ -1,6 +1,6 @@
 "use server";
 import { db } from "@/server/db";
-import { sql } from "drizzle-orm";
+import { desc, sql } from "drizzle-orm";
 import { sellTxInvoices } from "@/server/db/schema";
 import { SellTxInvoiceExt } from "@/server/db/schema/sellTxInvoices";
 
@@ -26,6 +26,7 @@ export const getSellTxInvoicesForPeriod = async ({
       sellTransactions: {
         with: {
           customers: true,
+          products: true,
         },
       },
       sellTxPayments: {
@@ -34,6 +35,7 @@ export const getSellTxInvoicesForPeriod = async ({
         },
       },
     },
+    orderBy: [desc(sellTxInvoices.date), desc(sellTxInvoices.invoiceNumber)],
   });
 
   return transactions as SellTxInvoiceExt[];

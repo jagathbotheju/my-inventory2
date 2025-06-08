@@ -22,7 +22,6 @@ interface Props {
 const DeleteSellTxDialog = ({ children, tx, userId }: Props) => {
   const [open, setOpen] = useState(false);
   const { mutate: deleteSellTransaction } = useDeleteSellTransaction();
-  console.log("deleteSellTx", tx.id);
 
   return (
     <Dialog open={open} onOpenChange={setOpen}>

@@ -198,26 +198,6 @@ export const addSellTransactions = async ({
     | undefined;
 }) => {
   try {
-    //check if transaction exist
-    // const existTransaction = await db
-    //   .select()
-    //   .from(sellTransactions)
-    //   .where(
-    //     and(
-    //       eq(sellTransactions.productId, sellTxData.productId),
-    //       eq(sellTransactions.quantity, sellTxData.quantity),
-    //       eq(sellTransactions.unitPrice, sellTxData.unitPrice ?? 0),
-    //       eq(sellTransactions.purchasedPrice, sellTxData.purchasedPrice ?? 0),
-    //       eq(sellTransactions.userId, sellTxData.userId),
-    //       eq(sellTransactions.customerId, sellTxData.customerId),
-    //       eq(sellTransactions.supplierId, sellTxData.supplierId as string),
-    //       eq(sellTransactions.date, sellTxData.date),
-    //       eq(sellTransactions.invoiceNumber, sellTxData.invoiceNumber)
-    //     )
-    //   );
-    // if (existTransaction.length) {
-    //   return { error: "Transaction already exist" };
-    // }
     if (!sellTxData.length) return { error: "Could not add Sell Transactions" };
 
     let totalCash = 0;
@@ -394,7 +374,7 @@ export const addSellTransactions = async ({
     }
 
     //update stock
-    const updatedStock = [];
+    // const updatedStock = [] as Stock[];
     sellTxData.map(async (item) => {
       const existStock = await db
         .select()
@@ -407,9 +387,8 @@ export const addSellTransactions = async ({
             eq(stocks.unitPrice, item.purchasedPrice ?? 0)
           )
         );
-      if (!existStock.length) return;
 
-      const stock = await db
+      await db
         .update(stocks)
         .set({
           quantity: existStock[0].quantity - item.quantity,
@@ -423,14 +402,13 @@ export const addSellTransactions = async ({
           )
         )
         .returning();
-      updatedStock.push(stock[0]);
     });
 
     if (
       newTransaction.length &&
       monthHistory.length &&
-      yearHistory.length &&
-      updatedStock.length
+      yearHistory.length
+      // updatedStock.length
     ) {
       return { success: "Sell Transaction added successfully" };
     }

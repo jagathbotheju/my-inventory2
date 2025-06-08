@@ -35,6 +35,7 @@ const Invoice = ({ user }: Props) => {
     period,
     timeFrame,
   });
+  // console.log("sellTxInvoices", sellTxInvoices);
 
   const { data: totalPurchase } = useByTxTotalPurchase({
     userId: user.id,
