@@ -9,6 +9,7 @@ import {
   addSellTransactions,
   deleteSellTransaction,
 } from "../actions/sellTxActions";
+import { useRouter } from "next/navigation";
 
 export const useAddSellTransaction = () => {
   return useMutation({
@@ -23,12 +24,15 @@ export const useAddSellTransaction = () => {
 };
 
 export const useAddSellTransactions = () => {
+  const queryClient = useQueryClient();
+  const router = useRouter();
+
   return useMutation({
     mutationFn: ({
       sellTxData,
       chequeData,
     }: {
-      sellTxData: SellTransaction;
+      sellTxData: SellTransaction[];
       chequeData:
         | {
             chequeNumber?: string | undefined;
@@ -39,6 +43,21 @@ export const useAddSellTransactions = () => {
         | undefined;
     }) => {
       return addSellTransactions({ sellTxData, chequeData });
+    },
+    onSuccess: async (res) => {
+      if (res?.success) {
+        toast.success(res.success);
+        queryClient.invalidateQueries({ queryKey: ["sell-transactions"] });
+        router.push("/transactions/sell");
+      }
+      if (res?.error) {
+        toast.error(res.error);
+      }
+    },
+    onError: (res) => {
+      const err = res.message;
+      toast.error(err);
+      toast.success("Could not Add Transaction");
     },
   });
 };

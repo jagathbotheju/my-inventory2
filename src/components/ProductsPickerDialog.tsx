@@ -49,18 +49,20 @@ const ProductsPickerDialog = ({ children, userId }: Props) => {
     // supplierId: "c55b7f22-38cb-40d4-bad4-4cb1bf63c4ab",
   });
 
-  const tableData: TableData[] | undefined = stocks?.map((stock) => {
-    const data = {
-      productNumber: stock.productNumber as string,
-      quantity: stock.quantity,
-      purchasedPrice: stock.unitPrice,
-      productId: stock.productId,
-      supplierId: stock.supplierId,
-      unit: stock.products?.unitOfMeasurements?.unit,
-      supplier: stock.products?.suppliers?.name,
-    } as TableData;
-    return data;
-  });
+  const tableData: TableData[] | undefined = stocks
+    ?.filter((stock) => stock.quantity > 0)
+    .map((stock) => {
+      const data = {
+        productNumber: stock.productNumber as string,
+        quantity: stock.quantity,
+        purchasedPrice: stock.unitPrice,
+        productId: stock.productId,
+        supplierId: stock.supplierId,
+        unit: stock.products?.unitOfMeasurements?.unit,
+        supplier: stock.products?.suppliers?.name,
+      } as TableData;
+      return data;
+    });
 
   return (
     <Dialog open={open} onOpenChange={setOpen}>

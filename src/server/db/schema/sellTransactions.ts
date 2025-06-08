@@ -10,8 +10,7 @@ import { users } from "./users";
 import { ProductExt, products } from "./products";
 import { Customer, customers } from "./customers";
 import { suppliers } from "./suppliers";
-import { SellTxCheques, sellTxCheques } from "./sellTxCheques";
-import { sellTxPayments, SellTxPaymentsExt } from "./sellTxPayments";
+import { SellTxInvoiceExt, sellTxInvoices } from "./sellTxInvoices";
 
 export const sellTransactions = pgTable("sell_transactions", {
   id: text("id")
@@ -31,6 +30,11 @@ export const sellTransactions = pgTable("sell_transactions", {
   quantity: integer("quantity").notNull(),
   unitPrice: doublePrecision("unit_price").default(0),
   invoiceNumber: text("invoice_number").notNull(),
+  invoiceId: text("invoice_id")
+    .references(() => sellTxInvoices.id, {
+      onDelete: "cascade",
+    })
+    .notNull(),
   paymentMode: text("payment_mode"),
   cacheAmount: doublePrecision("cache_amount").default(0),
   date: timestamp("date", { mode: "string" }).notNull().defaultNow(),
@@ -39,17 +43,19 @@ export const sellTransactions = pgTable("sell_transactions", {
 
 export const sellTransactionRelations = relations(
   sellTransactions,
-  ({ one, many }) => ({
+  ({ one }) => ({
     customers: one(customers, {
       fields: [sellTransactions.customerId],
       references: [customers.id],
+    }),
+    sellTxInvoices: one(sellTxInvoices, {
+      fields: [sellTransactions.invoiceId],
+      references: [sellTxInvoices.id],
     }),
     products: one(products, {
       fields: [sellTransactions.productId],
       references: [products.id],
     }),
-    sellTxCheques: many(sellTxCheques),
-    sellTxPayments: many(sellTxPayments),
   })
 );
 
@@ -57,6 +63,5 @@ export type SellTransaction = InferSelectModel<typeof sellTransactions>;
 export type SellTransactionExt = InferSelectModel<typeof sellTransactions> & {
   customers: Customer;
   products: ProductExt;
-  sellTxCheques: SellTxCheques[] | null;
-  sellTxPayments: SellTxPaymentsExt[] | null;
+  sellTxInvoices: SellTxInvoiceExt;
 };

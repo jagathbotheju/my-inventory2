@@ -1,9 +1,17 @@
 import { useQuery } from "@tanstack/react-query";
-import { getUserBuyTxInvoices } from "../actions/invoiceActions";
+import { getSellTxInvoicesForPeriod } from "../actions/invoiceActions";
 
-export const useUserBuyTxInvoices = (userId: string) => {
+export const useSellTxInvoicesForPeriod = ({
+  userId,
+  period,
+  timeFrame,
+}: {
+  userId: string;
+  period: Period;
+  timeFrame: TimeFrame;
+}) => {
   return useQuery({
-    queryKey: ["user-buy-invoices", userId],
-    queryFn: () => getUserBuyTxInvoices(userId),
+    queryKey: ["tell-tx-invoices-for-period", userId, period, timeFrame],
+    queryFn: () => getSellTxInvoicesForPeriod({ userId, period, timeFrame }),
   });
 };

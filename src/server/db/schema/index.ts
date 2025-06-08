@@ -35,3 +35,7 @@ export {
   productSellTransactionRelations,
   productSellTransactions,
 } from "@/server/db/schema/productSellTransactions";
+export {
+  sellTxInvoices,
+  sellTxInvoiceRelations,
+} from "@/server/db/schema/sellTxInvoices";

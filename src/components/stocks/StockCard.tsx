@@ -74,16 +74,16 @@ const StockCard = ({
   return (
     <Dialog>
       <DialogTrigger>
-        <Card className="p-0 cursor-pointer w-full">
-          <CardTitle className="text-xl text-left font-bold uppercase bg-slate-200 p-2 rounded-tr-lg rounded-tl-lg">
+        <Card className="p-0 cursor-pointer w-full hover:shadow-xl">
+          <CardTitle className="text-xl text-left font-bold uppercase bg-primary/10 p-2 rounded-tr-lg rounded-tl-lg">
             {productNumber}
           </CardTitle>
           <CardContent className="p-2 flex font-semibold text-lg">
             <div className="flex gap-4">
-              <p className="col-span-2">stock balance</p>
+              <p className="col-span-2 text-muted-foreground">STOCK BAL</p>
               <div className="flex gap-1">
-                <p className="uppercase">{UOM}</p>
-                <p className="col-span-1">{quantity}</p>
+                <p className="uppercase text-muted-foreground">{UOM}</p>
+                <p className="col-span-1 text-muted-foreground">{quantity}</p>
               </div>
             </div>
           </CardContent>

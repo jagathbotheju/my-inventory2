@@ -12,13 +12,8 @@ import { format } from "date-fns";
 import { formatPrice } from "@/lib/utils";
 import { Button } from "../ui/button";
 import { useState } from "react";
-import {
-  useSellTxByUserByPeriod,
-  useSellTxTotalSales,
-} from "@/server/backend/queries/sellTxQueries";
-import { SellTransactionExt } from "@/server/db/schema/sellTransactions";
-import PaymentHistoryDialog from "../PaymentHistoryDialog";
-// import _ from "lodash";
+import { useSellTxTotalSales } from "@/server/backend/queries/sellTxQueries";
+import { useSellTxInvoicesForPeriod } from "@/server/backend/queries/invoiceQueries";
 
 interface Props {
   user: User;
@@ -28,12 +23,13 @@ const Invoice = ({ user }: Props) => {
   const [isBuyTx, setIsBuyTx] = useState(true);
   const { period, timeFrame } = useTimeFrameStore((state) => state);
   const { data: buyTxs } = useBuyTxByUserByPeriod({
-    // userId: user.id,
-    userId: "7e397cd1-19ad-4c68-aa50-a77c06450bc7",
+    userId: user.id,
+    // userId: "7e397cd1-19ad-4c68-aa50-a77c06450bc7",
     period,
     timeFrame,
   });
-  const { data: sellTxs } = useSellTxByUserByPeriod({
+
+  const { data: sellTxInvoices } = useSellTxInvoicesForPeriod({
     userId: user.id,
     // userId: "7e397cd1-19ad-4c68-aa50-a77c06450bc7",
     period,
@@ -41,20 +37,18 @@ const Invoice = ({ user }: Props) => {
   });
 
   const { data: totalPurchase } = useByTxTotalPurchase({
-    // userId: user.id,
-    userId: "7e397cd1-19ad-4c68-aa50-a77c06450bc7",
+    userId: user.id,
+    // userId: "7e397cd1-19ad-4c68-aa50-a77c06450bc7",
     period,
     timeFrame,
   });
 
   const { data: totalSales } = useSellTxTotalSales({
-    // userId: user.id,
-    userId: "7e397cd1-19ad-4c68-aa50-a77c06450bc7",
+    userId: user.id,
+    // userId: "7e397cd1-19ad-4c68-aa50-a77c06450bc7",
     period,
     timeFrame,
   });
-
-  // console.log("buyTxs", buyTxs);
 
   const filteredBuyTxs = buyTxs?.reduce(
     (acc, buyTx) => {
@@ -78,68 +72,18 @@ const Invoice = ({ user }: Props) => {
     }>()
   );
 
-  const getCashAmount = (sellTx: SellTransactionExt, exist: boolean) => {
-    let cash = 0;
-    if (sellTx.paymentMode === "cash" && sellTx.cacheAmount) {
-      cash += sellTx.cacheAmount;
-    }
-    if (sellTx.paymentMode === "cheque" && sellTx.sellTxCheques?.length) {
-      cash += sellTx.sellTxCheques?.reduce(
-        (acc, cheque) => acc + (cheque.amount ?? 0),
-        0
-      );
-    }
-    if (sellTx.paymentMode === "cash-cheque" && sellTx.cacheAmount) {
-      cash += exist
-        ? 0
-        : sellTx.cacheAmount +
-          (sellTx.sellTxCheques?.reduce(
-            (acc, cheque) => acc + (cheque.amount ?? 0),
-            0
-          ) ?? 0);
-    }
-    return cash;
-  };
-
-  const filteredSellTxs = sellTxs?.reduce(
-    (acc, sellTx) => {
-      const exist = acc.find(
-        (item) => item.invoiceNumber === sellTx.invoiceNumber
-      );
-
-      if (!exist) {
-        acc.push({
-          invoiceNumber: sellTx.invoiceNumber as string,
-          totalPrice: sellTx.quantity * (sellTx?.unitPrice ?? 0),
-          totalCash: getCashAmount(sellTx, false),
-          paymentMode: sellTx.paymentMode ?? "NONE",
-        });
-      } else {
-        exist.totalPrice += sellTx.quantity * (sellTx.unitPrice ?? 0);
-        exist.totalCash += getCashAmount(sellTx, true);
-      }
-      return acc;
-    },
-    Array<{
-      invoiceNumber: string;
-      totalPrice: number;
-      totalCash: number;
-      paymentMode: string;
-    }>()
-  );
-
-  // console.log("SellTxsTest", filteredSellTxs);
-
   return (
     <Card className="dark:bg-transparent dark:border-primary/40">
       <CardHeader>
         <CardTitle className="text-4xl font-bold">
           <div className="flex flex-col md:flex-row md:items-center justify-between">
             <div className="flex items-center gap-1">
-              <p>{isBuyTx ? "Buy Invoices," : "Sell Invoices,"}</p>
+              <p className="text-3xl">
+                {isBuyTx ? "Buy Invoices," : "Sell Invoices,"}
+              </p>
               {isBuyTx
                 ? totalPurchase?.value && (
-                    <p className="font-semibold text-muted-foreground">
+                    <p className="font-semibold text-muted-foreground text-3xl">
                       {formatPrice(
                         totalPurchase && totalPurchase.value
                           ? parseFloat(totalPurchase.value)
@@ -148,7 +92,7 @@ const Invoice = ({ user }: Props) => {
                     </p>
                   )
                 : totalSales?.value && (
-                    <p className="font-semibold text-muted-foreground">
+                    <p className="font-semibold text-muted-foreground text-3xl">
                       {formatPrice(
                         totalSales && totalSales.value
                           ? parseFloat(totalSales.value)
@@ -193,7 +137,7 @@ const Invoice = ({ user }: Props) => {
                 const txs = buyTxs?.filter(
                   (x) => x.invoiceNumber === item.invoiceNumber
                 );
-                console.log("transactions", txs);
+                // console.log("transactions", txs);
                 return (
                   <div className="flex flex-col" key={index}>
                     <div className="flex justify-between">
@@ -233,12 +177,12 @@ const Invoice = ({ user }: Props) => {
               </div>
             )
           ) : // sellTransactions
-          filteredSellTxs?.length ? (
-            filteredSellTxs?.map((item, index) => {
-              const txs = sellTxs?.filter(
-                (x) => x.invoiceNumber === item.invoiceNumber
+          sellTxInvoices?.length ? (
+            sellTxInvoices?.map((item, index) => {
+              const totalAmount = item.sellTransactions.reduce(
+                (acc, tx) => (acc += (tx.unitPrice ?? 0) * tx.quantity),
+                0
               );
-              console.log("sellTxs", txs);
               return (
                 <div className="flex flex-col" key={index}>
                   {/* card heading */}
@@ -248,54 +192,29 @@ const Invoice = ({ user }: Props) => {
                         {item.invoiceNumber}
                       </h2>
                       <p className="text-muted-foreground">
-                        {txs?.[0]?.customers?.name}
+                        {item.sellTransactions[0]?.customers?.name}
                       </p>
                     </div>
 
+                    {/* received Amount */}
                     <div className="flex items-center gap-4 justify-between">
-                      {item.paymentMode === "credit" && (
-                        <div className="w-fit h-full rounded-md p-1 bg-red-400">
-                          <p className="text-red-800 font-semibold">CREDIT</p>
+                      <div className="flex flex-col items-end">
+                        <div className="flex items-center gap-1">
+                          <p className="text-xl font-semibold text-muted-foreground">
+                            Received Amount
+                          </p>
+                          <p className="col-span-2 text-xl font-semibold text-muted-foreground">
+                            {formatPrice(item.totalCash ?? 0)}
+                          </p>
                         </div>
-                      )}
-                      {item.paymentMode === "cash" && (
-                        <div className="w-fit h-full rounded-md p-1 bg-green-400">
-                          <p className="text-green-800 font-semibold">CASH</p>
-                        </div>
-                      )}
-                      {item.paymentMode === "cheque" && (
-                        <div className="w-fit h-full rounded-md p-1 bg-amber-400">
-                          <p className="text-amber-800 font-semibold">CHEQUE</p>
-                        </div>
-                      )}
-                      {item.paymentMode === "cash-cheque" && (
-                        <div className="flex gap-2 items-center">
-                          <div className="w-fit h-full rounded-md p-1 bg-green-400">
-                            <p className="text-green-800 font-semibold">CASH</p>
-                          </div>
-                          <div className="w-fit h-full rounded-md p-1 bg-amber-400">
-                            <p className="text-amber-800 font-semibold">
-                              CHEQUE
-                            </p>
-                          </div>
-                        </div>
-                      )}
-                      <div className="flex items-center gap-1">
-                        <p className="text-2xl font-semibold text-muted-foreground">
-                          CASH
-                        </p>
-                        <p className="col-span-2 text-2xl font-semibold text-muted-foreground">
-                          {formatPrice(item.totalCash)}
-                        </p>
-                      </div>
 
-                      <div className="flex items-center gap-1">
-                        <p className="text-2xl font-semibold text-muted-foreground">
-                          AMT
-                        </p>
-                        <p className="col-span-2 text-2xl font-semibold text-muted-foreground">
-                          {formatPrice(item.totalPrice)}
-                        </p>
+                        {/* totalAmount */}
+                        <div className="flex items-center gap-1">
+                          <p className="text-muted-foreground">Total Amount</p>
+                          <p className="col-span-2 text-muted-foreground">
+                            {formatPrice(totalAmount)}
+                          </p>
+                        </div>
                       </div>
 
                       <div className="flex gap-1 items-center">
@@ -307,7 +226,7 @@ const Invoice = ({ user }: Props) => {
                         </Button>
 
                         {/* payment history dialog */}
-                        <PaymentHistoryDialog
+                        {/* <PaymentHistoryDialog
                           userId={user.id}
                           item={item}
                           transaction={txs}
@@ -318,12 +237,12 @@ const Invoice = ({ user }: Props) => {
                           >
                             PAY.HIS
                           </Button>
-                        </PaymentHistoryDialog>
+                        </PaymentHistoryDialog> */}
                       </div>
                     </div>
                   </div>
                   <Separator className="bg-primary/20 mb-2" />
-                  {txs?.map((tx, index) => (
+                  {item.sellTransactions.map((tx, index) => (
                     <div
                       key={index}
                       className="grid grid-cols-10 gap-5 hover:bg-primary/10 p-1"
