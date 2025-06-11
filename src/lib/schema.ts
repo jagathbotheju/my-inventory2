@@ -1,5 +1,11 @@
 import { z } from "zod";
 
+export const SearchSchema = z.object({
+  searchTerm: z.string().min(3, {
+    message: "must be at least 3 characters.",
+  }),
+});
+
 export const BuyProductSchema = z.object({
   unitPrice: z.coerce
     .number()

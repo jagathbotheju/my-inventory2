@@ -43,14 +43,17 @@ export const useSellTxTotalSales = ({
   userId,
   period,
   timeFrame,
+  searchTerm,
 }: {
   userId: string;
   period: Period;
   timeFrame: TimeFrame;
+  searchTerm?: string;
 }) => {
   return useQuery({
     queryKey: ["sell-transactions", userId, period, timeFrame],
     queryFn: () => getSellTxTotalSales({ userId, period, timeFrame }),
+    enabled: !!!searchTerm,
   });
 };
 

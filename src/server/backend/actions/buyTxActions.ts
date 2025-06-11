@@ -209,31 +209,51 @@ export const getBuyTransactionsPagination = async ({
   timeFrame,
   page,
   pageSize = 10,
+  searchTerm,
 }: {
   userId: string;
   period: Period;
   timeFrame: TimeFrame;
   page: number;
   pageSize?: number;
+  searchTerm?: string;
 }) => {
   const year = period.year;
   const month =
     period.month.toString().length > 1 ? period.month : `0${period.month}`;
+  const fSearch = `%${searchTerm}%`;
 
-  const transactions = await db.query.buyTransactions.findMany({
-    where:
-      timeFrame === "month"
-        ? sql`to_char(${buyTransactions.date},'MM') like ${month} and to_char(${buyTransactions.date},'YYYY') like ${year} and ${buyTransactions.userId} like ${userId}`
-        : sql`to_char(${buyTransactions.date},'YYYY') like ${year} and ${buyTransactions.userId} like ${userId}`,
-    with: {
-      products: true,
-      suppliers: true,
-    },
-    orderBy: desc(buyTransactions.date),
-    limit: pageSize,
-    offset: (page - 1) * pageSize,
-  });
-  return transactions as BuyTransactionExt[];
+  if (searchTerm?.length) {
+    const transactions = await db.query.buyTransactions.findMany({
+      where:
+        timeFrame === "month"
+          ? sql`to_char(${buyTransactions.date},'MM') like ${month} and to_char(${buyTransactions.date},'YYYY') like ${year} and ${buyTransactions.userId} like ${userId} and ${buyTransactions.invoiceNumber} ilike ${fSearch}`
+          : sql`to_char(${buyTransactions.date},'YYYY') like ${year} and ${buyTransactions.userId} like ${userId} and ${buyTransactions.invoiceNumber} ilike ${fSearch}`,
+      with: {
+        products: true,
+        suppliers: true,
+      },
+      orderBy: desc(buyTransactions.date),
+      limit: pageSize,
+      offset: (page - 1) * pageSize,
+    });
+    return transactions as BuyTransactionExt[];
+  } else {
+    const transactions = await db.query.buyTransactions.findMany({
+      where:
+        timeFrame === "month"
+          ? sql`to_char(${buyTransactions.date},'MM') like ${month} and to_char(${buyTransactions.date},'YYYY') like ${year} and ${buyTransactions.userId} like ${userId}`
+          : sql`to_char(${buyTransactions.date},'YYYY') like ${year} and ${buyTransactions.userId} like ${userId}`,
+      with: {
+        products: true,
+        suppliers: true,
+      },
+      orderBy: desc(buyTransactions.date),
+      limit: pageSize,
+      offset: (page - 1) * pageSize,
+    });
+    return transactions as BuyTransactionExt[];
+  }
 };
 
 export const deleteBuyTransaction = async ({
@@ -478,20 +498,23 @@ export const getBuyTxByUserByPeriod = async ({
   userId,
   period,
   timeFrame,
+  searchTerm,
 }: {
   userId: string;
   period: Period;
   timeFrame: TimeFrame;
+  searchTerm: string;
 }) => {
   const year = period.year;
   const month =
     period.month.toString().length > 1 ? period.month : `0${period.month}`;
+  const fSearch = `%${searchTerm}%`;
 
   const transactions = await db.query.buyTransactions.findMany({
     where:
       timeFrame === "month"
-        ? sql`to_char(${buyTransactions.date},'MM') like ${month} and to_char(${buyTransactions.date},'YYYY') like ${year} and ${buyTransactions.userId} like ${userId}`
-        : sql`to_char(${buyTransactions.date},'YYYY') like ${year} and ${buyTransactions.userId} like ${userId}`,
+        ? sql`to_char(${buyTransactions.date},'MM') like ${month} and to_char(${buyTransactions.date},'YYYY') like ${year} and ${buyTransactions.userId} like ${userId} and ${buyTransactions.invoiceNumber} ilike ${fSearch}`
+        : sql`to_char(${buyTransactions.date},'YYYY') like ${year} and ${buyTransactions.userId} like ${userId} and ${buyTransactions.invoiceNumber} ilike ${fSearch}`,
   });
 
   return transactions as BuyTransactionExt[];

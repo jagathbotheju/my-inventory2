@@ -28,16 +28,25 @@ export const useBuyTransactionsPagination = ({
   period,
   timeFrame,
   page,
+  searchTerm,
 }: {
   userId: string;
   period: Period;
   timeFrame: TimeFrame;
   page: number;
+  searchTerm: string;
 }) => {
   return useQuery({
-    queryKey: ["buy-transactions", userId, period, timeFrame, page],
+    queryKey: ["buy-transactions", userId, period, timeFrame, page, searchTerm],
     queryFn: () =>
-      getBuyTransactionsPagination({ userId, period, timeFrame, page }),
+      getBuyTransactionsPagination({
+        userId,
+        period,
+        timeFrame,
+        page,
+        searchTerm,
+      }),
+    // enabled: searchTerm?.length > 3,
   });
 };
 
@@ -45,14 +54,17 @@ export const useByTxTotalPurchase = ({
   userId,
   period,
   timeFrame,
+  searchTerm,
 }: {
   userId: string;
   period: Period;
   timeFrame: TimeFrame;
+  searchTerm?: string;
 }) => {
   return useQuery({
     queryKey: ["buy-transactions", userId, period, timeFrame],
     queryFn: () => getByTxTotalPurchase({ userId, period, timeFrame }),
+    enabled: !!!searchTerm,
   });
 };
 
@@ -67,14 +79,17 @@ export const useBuyTxCount = ({
   userId,
   period,
   timeFrame,
+  searchTerm,
 }: {
   userId: string;
   period: Period;
   timeFrame: TimeFrame;
+  searchTerm: string;
 }) => {
   return useQuery({
     queryKey: ["buy-tx-count", userId, period, timeFrame],
     queryFn: () => getBuyTxCount({ userId, period, timeFrame }),
+    enabled: !!!searchTerm,
   });
 };
 
@@ -89,14 +104,20 @@ export const useBuyTxByUserByPeriod = ({
   userId,
   period,
   timeFrame,
+  searchTerm,
+  isBuyTx,
 }: {
   userId: string;
   period: Period;
   timeFrame: TimeFrame;
+  searchTerm: string;
+  isBuyTx: boolean;
 }) => {
   return useQuery({
-    queryKey: ["buy-tx-user-period", userId, period, timeFrame],
-    queryFn: () => getBuyTxByUserByPeriod({ userId, period, timeFrame }),
+    queryKey: ["buy-tx-user-period", userId, period, timeFrame, searchTerm],
+    queryFn: () =>
+      getBuyTxByUserByPeriod({ userId, period, timeFrame, searchTerm }),
+    enabled: isBuyTx,
   });
 };
 

@@ -243,6 +243,7 @@ export const addSellTransactions = async ({
     if (!newTransaction.length)
       return { error: "Could not add Sell Transactions" };
 
+    //new payment
     const newTxPayment = await db
       .insert(sellTxPayments)
       .values({

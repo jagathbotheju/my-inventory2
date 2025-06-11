@@ -30,12 +30,17 @@ import TimeFramePicker from "../TimeFramePicker";
 import { useState } from "react";
 import Pagination from "rc-pagination";
 import "rc-pagination/assets/index.css";
+import { useDebounce } from "use-debounce";
+import { Input } from "../ui/input";
 
 interface Props {
   user: User;
 }
 
 const BuyTransactions = ({ user }: Props) => {
+  const [isError, setIsError] = useState(false);
+  const [searchTerm, setSearchTerm] = useState("");
+  const [bouncedSearchTerm] = useDebounce(searchTerm, 2000);
   const [page, setPage] = useState(1);
   const { period, timeFrame } = useTimeFrameStore((state) => state);
   const { data: buyTransactions, isLoading } = useBuyTransactionsPagination({
@@ -44,6 +49,8 @@ const BuyTransactions = ({ user }: Props) => {
     period,
     timeFrame,
     page,
+    searchTerm:
+      bouncedSearchTerm.length < 3 ? "" : bouncedSearchTerm.toUpperCase(),
   });
 
   const { data: buyTxCount } = useBuyTxCount({
@@ -51,6 +58,7 @@ const BuyTransactions = ({ user }: Props) => {
     // userId: "7e397cd1-19ad-4c68-aa50-a77c06450bc7",
     period,
     timeFrame,
+    searchTerm,
   });
 
   const { data: totalPurchase } = useByTxTotalPurchase({
@@ -58,6 +66,7 @@ const BuyTransactions = ({ user }: Props) => {
     // userId: "7e397cd1-19ad-4c68-aa50-a77c06450bc7",
     period,
     timeFrame,
+    searchTerm,
   });
 
   return (
@@ -69,17 +78,47 @@ const BuyTransactions = ({ user }: Props) => {
             <TimeFramePicker />
           </div>
 
-          <div className="mt-4 flex gap-4">
-            <p className="text-xl font-semibold text-muted-foreground">
-              Total Purchase
+          {!searchTerm.length && (
+            <div className="mt-4 flex gap-4">
+              <p className="text-xl font-semibold text-muted-foreground">
+                Total Purchase
+              </p>
+              <p className="text-xl font-semibold text-muted-foreground">
+                {formatPrice(
+                  totalPurchase && totalPurchase.value
+                    ? parseFloat(totalPurchase.value)
+                    : 0
+                )}
+              </p>
+            </div>
+          )}
+
+          {/* search */}
+          <div className="pt-6 flex flex-col relative">
+            <Input
+              placeholder="search by invoice..."
+              value={searchTerm}
+              onBlur={() => setIsError(false)}
+              onFocus={() => setIsError(true)}
+              onChange={(e) => setSearchTerm(e.target.value)}
+              onKeyDown={(e) => {
+                if (e.key === "Escape") {
+                  setSearchTerm("");
+                  console.log("key down");
+                }
+              }}
+            />
+            <p
+              className="text-xl text-muted-foreground font-semibold absolute right-3 top-[26px] p-1 cursor-pointer"
+              onClick={() => setSearchTerm("")}
+            >
+              X
             </p>
-            <p className="text-xl font-semibold text-muted-foreground">
-              {formatPrice(
-                totalPurchase && totalPurchase.value
-                  ? parseFloat(totalPurchase.value)
-                  : 0
-              )}
-            </p>
+            {isError && searchTerm.length < 3 && searchTerm.length !== 0 && (
+              <p className="text-sm text-red-500">
+                please type at least 3 characters
+              </p>
+            )}
           </div>
         </CardHeader>
         <CardContent>
@@ -98,8 +137,8 @@ const BuyTransactions = ({ user }: Props) => {
               <TableHeader>
                 <TableRow>
                   <TableHead>Date</TableHead>
-                  <TableHead>Supplier</TableHead>
                   <TableHead>Invoice Number</TableHead>
+                  <TableHead>Supplier</TableHead>
                   <TableHead>Product Number</TableHead>
                   <TableHead>Purchased Price</TableHead>
                   <TableHead>Quantity</TableHead>
@@ -110,10 +149,10 @@ const BuyTransactions = ({ user }: Props) => {
                 {buyTransactions?.map((tx) => (
                   <TableRow key={tx.id}>
                     <TableCell>{format(tx.date, "PPP")}</TableCell>
-                    <TableCell>{tx.suppliers.name}</TableCell>
                     <TableCell className="uppercase">
                       {tx.invoiceNumber}
                     </TableCell>
+                    <TableCell>{tx.suppliers.name}</TableCell>
                     <TableCell className="uppercase">
                       {tx.products.productNumber}
                     </TableCell>
@@ -146,7 +185,7 @@ const BuyTransactions = ({ user }: Props) => {
         </CardContent>
       </Card>
 
-      {buyTransactions?.length ? (
+      {buyTransactions?.length && !searchTerm.length ? (
         <div className="self-end mt-6">
           <Pagination
             pageSize={10}

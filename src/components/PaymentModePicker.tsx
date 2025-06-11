@@ -26,7 +26,7 @@ const PaymentModePicker = ({ value, setValue, clearFields }: Props) => {
   const [open, setOpen] = useState(false);
 
   return (
-    <Popover open={open} onOpenChange={setOpen}>
+    <Popover open={open} onOpenChange={setOpen} modal>
       <PopoverTrigger asChild className="dark:bg-slate-900">
         <Button
           variant="outline"
