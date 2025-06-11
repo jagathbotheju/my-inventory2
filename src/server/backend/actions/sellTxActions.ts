@@ -648,12 +648,14 @@ export const getSellTransactionsPagination = async ({
   timeFrame,
   page,
   pageSize = 10,
+  searchTerm,
 }: {
   userId: string;
   period: Period;
   timeFrame: TimeFrame;
   page: number;
   pageSize?: number;
+  searchTerm: string;
 }) => {
   // const transactions = await db.query.sellTransactions.findMany({
   //   where: eq(sellTransactions.userId, userId),
@@ -667,21 +669,39 @@ export const getSellTransactionsPagination = async ({
   const year = period.year;
   const month =
     period.month.toString().length > 1 ? period.month : `0${period.month}`;
+  const fSearch = `%${searchTerm}%`;
 
-  const transactions = await db.query.sellTransactions.findMany({
-    where:
-      timeFrame === "month"
-        ? sql`to_char(${sellTransactions.date},'MM') like ${month} and to_char(${sellTransactions.date},'YYYY') like ${year} and ${sellTransactions.userId} like ${userId}`
-        : sql`to_char(${sellTransactions.date},'YYYY') like ${year} and ${sellTransactions.userId} like ${userId}`,
-    with: {
-      products: true,
-      customers: true,
-    },
-    orderBy: desc(sellTransactions.date),
-    limit: pageSize,
-    offset: (page - 1) * pageSize,
-  });
-  return transactions as SellTransactionExt[];
+  if (searchTerm.length) {
+    const transactions = await db.query.sellTransactions.findMany({
+      where:
+        timeFrame === "month"
+          ? sql`to_char(${sellTransactions.date},'MM') like ${month} and to_char(${sellTransactions.date},'YYYY') like ${year} and ${sellTransactions.userId} like ${userId} and ${sellTransactions.invoiceNumber} ilike ${fSearch}`
+          : sql`to_char(${sellTransactions.date},'YYYY') like ${year} and ${sellTransactions.userId} like ${userId} and ${sellTransactions.invoiceNumber} ilike ${fSearch}`,
+      with: {
+        products: true,
+        customers: true,
+      },
+      orderBy: desc(sellTransactions.date),
+      limit: pageSize,
+      offset: (page - 1) * pageSize,
+    });
+    return transactions as SellTransactionExt[];
+  } else {
+    const transactions = await db.query.sellTransactions.findMany({
+      where:
+        timeFrame === "month"
+          ? sql`to_char(${sellTransactions.date},'MM') like ${month} and to_char(${sellTransactions.date},'YYYY') like ${year} and ${sellTransactions.userId} like ${userId}`
+          : sql`to_char(${sellTransactions.date},'YYYY') like ${year} and ${sellTransactions.userId} like ${userId}`,
+      with: {
+        products: true,
+        customers: true,
+      },
+      orderBy: desc(sellTransactions.date),
+      limit: pageSize,
+      offset: (page - 1) * pageSize,
+    });
+    return transactions as SellTransactionExt[];
+  }
 };
 
 export const getSellTxCount = async ({

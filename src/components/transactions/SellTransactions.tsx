@@ -30,6 +30,8 @@ import { useState } from "react";
 import TimeFramePicker from "../TimeFramePicker";
 import Pagination from "rc-pagination";
 import "rc-pagination/assets/index.css";
+import { useDebounce } from "use-debounce";
+import { Input } from "../ui/input";
 
 interface Props {
   user: User;
@@ -37,7 +39,12 @@ interface Props {
 
 const SellTransactions = ({ user }: Props) => {
   const [page, setPage] = useState(1);
+  const [searchTerm, setSearchTerm] = useState("");
+  const [isError, setIsError] = useState(false);
+
+  const [bouncedSearchTerm] = useDebounce(searchTerm, 2000);
   const { period, timeFrame } = useTimeFrameStore((state) => state);
+
   const { data: sellTransactions, isLoading: sellTxPaginationLoading } =
     useSellTransactionsPagination({
       userId: user.id,
@@ -45,6 +52,8 @@ const SellTransactions = ({ user }: Props) => {
       period,
       timeFrame,
       page,
+      searchTerm:
+        bouncedSearchTerm.length < 3 ? "" : bouncedSearchTerm.toUpperCase(),
     });
   const { data: sellTxCount } = useSellTxCount({
     userId: user.id,
@@ -73,21 +82,51 @@ const SellTransactions = ({ user }: Props) => {
             <TimeFramePicker />
           </div>
 
-          <div className="mt-4 flex gap-4">
-            <p className="text-xl font-semibold text-muted-foreground">
-              Total Sales
+          {!searchTerm.length && (
+            <div className="mt-4 flex gap-4">
+              <p className="text-xl font-semibold text-muted-foreground">
+                Total Sales
+              </p>
+              <p className="text-xl font-semibold text-muted-foreground">
+                {sellTxTotalSalesLoading ? (
+                  <Loader2Icon className="w-6 h-6 animate-spin" />
+                ) : (
+                  formatPrice(
+                    totalPurchase && totalPurchase.value
+                      ? parseInt(totalPurchase.value)
+                      : 0
+                  )
+                )}
+              </p>
+            </div>
+          )}
+
+          {/* search */}
+          <div className="pt-6 flex flex-col relative">
+            <Input
+              placeholder="search by invoice number..."
+              value={searchTerm}
+              onBlur={() => setIsError(false)}
+              onFocus={() => setIsError(true)}
+              onChange={(e) => setSearchTerm(e.target.value)}
+              onKeyDown={(e) => {
+                if (e.key === "Escape") {
+                  setSearchTerm("");
+                  console.log("key down");
+                }
+              }}
+            />
+            <p
+              className="text-xl text-muted-foreground font-semibold absolute right-3 top-[26px] p-1 cursor-pointer"
+              onClick={() => setSearchTerm("")}
+            >
+              X
             </p>
-            <p className="text-xl font-semibold text-muted-foreground">
-              {sellTxTotalSalesLoading ? (
-                <Loader2Icon className="w-6 h-6 animate-spin" />
-              ) : (
-                formatPrice(
-                  totalPurchase && totalPurchase.value
-                    ? parseInt(totalPurchase.value)
-                    : 0
-                )
-              )}
-            </p>
+            {isError && searchTerm.length < 3 && searchTerm.length !== 0 && (
+              <p className="text-sm text-red-500">
+                please type at least 3 characters
+              </p>
+            )}
           </div>
         </CardHeader>
         <CardContent>
@@ -152,7 +191,7 @@ const SellTransactions = ({ user }: Props) => {
         </CardContent>
       </Card>
 
-      {sellTransactions?.length ? (
+      {sellTransactions?.length && !searchTerm.length ? (
         <div className="self-end mt-6">
           <Pagination
             pageSize={10}

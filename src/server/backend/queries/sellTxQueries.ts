@@ -26,16 +26,32 @@ export const useSellTransactionsPagination = ({
   period,
   timeFrame,
   page,
+  searchTerm,
 }: {
   userId: string;
   period: Period;
   timeFrame: TimeFrame;
   page: number;
+  searchTerm: string;
 }) => {
   return useQuery({
-    queryKey: ["sell-transactions", userId, period, timeFrame, page],
+    queryKey: [
+      "sell-transactions",
+      userId,
+      period,
+      timeFrame,
+      page,
+      searchTerm,
+    ],
     queryFn: () =>
-      getSellTransactionsPagination({ userId, period, timeFrame, page }),
+      getSellTransactionsPagination({
+        userId,
+        period,
+        timeFrame,
+        page,
+        searchTerm,
+      }),
+    // enabled: !!searchTerm?.length,
   });
 };
 

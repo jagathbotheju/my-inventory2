@@ -23,7 +23,7 @@ export const addPayment = async ({
         chequeDate?: Date | undefined;
         bankName?: string | undefined;
         amount?: number | undefined;
-      }[]
+      }
     | undefined;
 }) => {
   // new payment
@@ -38,32 +38,29 @@ export const addPayment = async ({
 
   if (!newTxPayment.length) return { error: "Could not add Payment" };
 
-  let chequeAmount = 0;
+  // let chequeAmount = 0;
   if (
     (paymentMode === "cheque" || paymentMode === "cash-cheque") &&
-    chequeData &&
-    chequeData.length
+    chequeData
   ) {
-    chequeData.map(async (cheque) => {
-      await db
-        .insert(sellTxPaymentCheques)
-        .values({
-          sellTxPaymentId: newTxPayment[0].id,
-          chequeNumber: cheque.chequeNumber as string,
-          bankName: cheque.bankName as string,
-          amount: cheque.amount ?? 0,
-          chequeDate: cheque.chequeDate?.toDateString(),
-        })
-        .returning();
-      chequeAmount += cheque.amount ?? 0;
-    });
+    await db
+      .insert(sellTxPaymentCheques)
+      .values({
+        sellTxPaymentId: newTxPayment[0].id,
+        chequeNumber: chequeData.chequeNumber as string,
+        bankName: chequeData.bankName as string,
+        amount: chequeData.amount ?? 0,
+        chequeDate: chequeData.chequeDate?.toDateString(),
+      })
+      .returning();
+    // chequeAmount += chequeData.amount ?? 0;
   }
 
   //update invoice totalCash
   const updatedInvoice = await db
     .update(sellTxInvoices)
     .set({
-      totalCash: sql`${sellTxInvoices.totalCash}+${cashAmount} + ${chequeAmount}`,
+      totalCash: sql`${sellTxInvoices.totalCash}+${cashAmount} + ${chequeData?.amount}`,
     })
     .returning();
   if (!updatedInvoice.length) return { error: "Could not add Payment" };

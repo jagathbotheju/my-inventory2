@@ -1,80 +1,44 @@
 "use client";
 import { User } from "@/server/db/schema/users";
 import { Card, CardContent, CardHeader, CardTitle } from "../ui/card";
-import { useAllStocks } from "@/server/backend/queries/stockQueries";
-import StockCard from "./StockCard";
-import { useBuyTxByUser } from "@/server/backend/queries/buyTxQueries";
+import { useAllUserStocks } from "@/server/backend/queries/stockQueries";
 import { format } from "date-fns";
-import { Stock } from "@/server/db/schema/stocks";
-import { useMemo } from "react";
+import _ from "lodash";
 
 interface Props {
   user: User;
 }
 
 const Stocks = ({ user }: Props) => {
-  const { data: allStocks } = useAllStocks(user?.id as string);
-  // const { data: allStocks } = useAllStocks(
+  const { data: allUserStocks } = useAllUserStocks(user?.id as string);
+  // const { data: allUserStocks } = useAllUserStocks(
   //   "7e397cd1-19ad-4c68-aa50-a77c06450bc7"
   // );
-  const { data: userByTx } = useBuyTxByUser(user.id);
-
-  const filteredStocks = useMemo(
-    () =>
-      allStocks?.reduce(
-        (acc, stock: Stock) => {
-          const existingStock = acc.find(
-            (item) => item.productId === stock.productId
-          );
-
-          if (!existingStock) {
-            acc.push({
-              productId: stock.productId,
-              productNumber: stock.productNumber as string,
-              quantity: stock.quantity,
-            });
-          } else {
-            existingStock.quantity += stock.quantity;
-          }
-          return acc;
-        },
-        Array<{
-          productId: string;
-          productNumber: string;
-          quantity: number;
-        }>()
-      ),
-    [allStocks]
-  );
-
-  // console.log("Filtered Stocks:", filteredStocks);
 
   return (
     <Card className="flex flex-col w-full h-fit bg-transparent dark:border-primary/40">
       <CardHeader>
         <div className="flex justify-between items-center">
           <CardTitle className="text-4xl font-bold">
-            Stocks, {format(new Date(), "yyyy-MM-dd")}
+            Stock Balance, {format(new Date(), "yyyy-MM-dd")}
           </CardTitle>
         </div>
       </CardHeader>
-      <CardContent className="gap-5 grid grid-cols-2">
-        {filteredStocks?.map((stock, index) => {
-          const productBuyTx = userByTx?.filter(
-            (buyTx) =>
-              buyTx.productId === stock.productId && buyTx.userId === user.id
-          );
-          return (
-            <StockCard
-              key={index}
-              userId={user.id}
-              productId={stock.productId}
-              productNumber={stock.productNumber as string}
-              quantity={stock.quantity}
-              buyTx={productBuyTx}
-            />
-          );
-        })}
+      <CardContent className="gap-5 grid grid-cols-3">
+        {_.sortBy(allUserStocks, "productNumber")?.map((stock, index) => (
+          <div
+            key={index}
+            className="flex flex-col items-center col-span-1 rounded-md border-primary border"
+          >
+            <div className="bg-primary/30 p-2 text-xl w-full font-semibold uppercase">
+              {stock.productNumber}
+            </div>
+            {/* <div>{stock.productId}</div> */}
+            <div className="p-2 text-xl font-semibold w-full text-center">
+              {stock.quantity}
+            </div>
+          </div>
+        ))}
       </CardContent>
     </Card>
   );

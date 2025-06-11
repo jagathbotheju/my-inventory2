@@ -1,6 +1,7 @@
 import { useQuery } from "@tanstack/react-query";
 import {
   getAllStocks,
+  getAllUserStocks,
   getStocks,
   getStocksBySupplier,
 } from "../actions/stockActions";
@@ -24,6 +25,13 @@ export const useAllStocks = (userId: string) => {
   return useQuery({
     queryKey: ["stocks", userId],
     queryFn: () => getAllStocks(userId),
+  });
+};
+
+export const useAllUserStocks = (userId: string) => {
+  return useQuery({
+    queryKey: ["user-stocks", userId],
+    queryFn: () => getAllUserStocks(userId),
   });
 };
 

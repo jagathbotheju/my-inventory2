@@ -30,6 +30,7 @@ const StockCard = ({
   buyTx,
 }: Props) => {
   const { data: sellTx } = useSellTxByUserProduct({ userId, productId });
+  // console.log("sellTx", sellTx);
   const UOM =
     buyTx && buyTx[0]?.products
       ? buyTx[0].products.unitOfMeasurements.unit
@@ -65,6 +66,7 @@ const StockCard = ({
       txType,
       quantity: txQuantity,
       unitPrice: tx.unitPrice ?? 0,
+      invoiceNumber: tx.invoiceNumber,
     });
   });
   txSummary.sort(
@@ -75,8 +77,8 @@ const StockCard = ({
     <Dialog>
       <DialogTrigger>
         <Card className="p-0 cursor-pointer w-full hover:shadow-xl">
-          <CardTitle className="text-xl text-left font-bold uppercase bg-primary/10 p-2 rounded-tr-lg rounded-tl-lg">
-            {productNumber}
+          <CardTitle className="text-xl text-left font-bold uppercase bg-primary/10 p-2 rounded-tr-lg rounded-tl-lg flex-col gap-2">
+            <p className="">{productNumber}</p>
           </CardTitle>
           <CardContent className="p-2 flex font-semibold text-lg">
             <div className="flex gap-4">
@@ -102,6 +104,7 @@ const StockCard = ({
         </DialogHeader>
 
         <div className="flex flex-col gap-2 w-full">
+          <p className="text-sm">{productId}</p>
           <div className="grid gap-1 grid-cols-10 font-semibold text-lg border-b">
             <p className="col-span-2 font-bold">Date</p>
             <p className="col-span-2 font-bold">Invoice Number</p>

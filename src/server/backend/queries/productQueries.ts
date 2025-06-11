@@ -56,15 +56,23 @@ export const useProductsBySupplierPagination = ({
   supplierId,
   userId,
   page,
+  searchTerm,
 }: {
   supplierId: string;
   userId: string;
   page: number;
+  searchTerm: string;
 }) => {
   return useQuery({
-    queryKey: ["products-by-supplier-pagination", supplierId, page, userId],
+    queryKey: [
+      "products-by-supplier-pagination",
+      supplierId,
+      page,
+      userId,
+      searchTerm,
+    ],
     queryFn: () =>
-      getProductsBySupplierPagination({ supplierId, page, userId }),
+      getProductsBySupplierPagination({ supplierId, page, userId, searchTerm }),
   });
 };
 

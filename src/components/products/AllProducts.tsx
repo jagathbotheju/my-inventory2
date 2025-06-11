@@ -26,7 +26,7 @@ import SupplierPicker from "../SupplierPicker";
 import { useEffect, useState } from "react";
 import { Supplier } from "@/server/db/schema/suppliers";
 import ViewProductDialog from "./ViewProductDialog";
-import { TbShoppingCartDown, TbShoppingCartUp } from "react-icons/tb";
+import { TbShoppingCartDown } from "react-icons/tb";
 import {
   Tooltip,
   TooltipContent,
@@ -38,6 +38,8 @@ import "rc-pagination/assets/index.css";
 import { User } from "@/server/db/schema/users";
 import { format } from "date-fns";
 import { useProductStore } from "@/store/productStore";
+import { Input } from "../ui/input";
+import { useDebounce } from "use-debounce";
 
 interface Props {
   user: User;
@@ -50,6 +52,9 @@ const AllProducts = ({ user }: Props) => {
   const [productId, setProductId] = useState("");
   const [page, setPage] = useState(1);
   const { currentSupplier } = useProductStore();
+  const [isError, setIsError] = useState(false);
+  const [searchTerm, setSearchTerm] = useState("");
+  const [bouncedSearchTerm] = useDebounce(searchTerm, 2000);
 
   const { data: product } = useProductById({ productId, userId: user?.id });
   const { data: productsBySupplierPagination, isLoading } =
@@ -59,6 +64,8 @@ const AllProducts = ({ user }: Props) => {
       userId: user?.id,
       // userId: "7e397cd1-19ad-4c68-aa50-a77c06450bc7",
       page,
+      searchTerm:
+        bouncedSearchTerm.length < 3 ? "" : bouncedSearchTerm.toUpperCase(),
     });
 
   const { data: productsCount } = useProductsCount({
@@ -67,12 +74,6 @@ const AllProducts = ({ user }: Props) => {
     userId: user?.id,
     // userId: "7e397cd1-19ad-4c68-aa50-a77c06450bc7",
   });
-
-  // useEffect(() => {
-  //   if (supplier) {
-  //     setCurrentSupplier(supplier);
-  //   }
-  // }, [setCurrentSupplier, supplier]);
 
   useEffect(() => {
     if (searchParams && searchParams.get("productId")) {
@@ -86,7 +87,7 @@ const AllProducts = ({ user }: Props) => {
   return (
     <div className="flex w-full flex-col">
       <Card className="dark:bg-transparent dark:border-primary/40">
-        <CardHeader>
+        <CardHeader className="flex flex-col gap-4">
           <div className="flex items-center justify-between">
             <CardTitle className="text-4xl font-bold">All Products</CardTitle>
             <div className="flex items-center gap-4">
@@ -109,6 +110,34 @@ const AllProducts = ({ user }: Props) => {
                 New Product
               </Button>
             </div>
+          </div>
+
+          {/* search */}
+          <div className="pt-6 flex flex-col relative">
+            <Input
+              placeholder="search by product number..."
+              value={searchTerm}
+              onBlur={() => setIsError(false)}
+              onFocus={() => setIsError(true)}
+              onChange={(e) => setSearchTerm(e.target.value)}
+              onKeyDown={(e) => {
+                if (e.key === "Escape") {
+                  setSearchTerm("");
+                  console.log("key down");
+                }
+              }}
+            />
+            <p
+              className="text-xl text-muted-foreground font-semibold absolute right-3 top-[26px] p-1 cursor-pointer"
+              onClick={() => setSearchTerm("")}
+            >
+              X
+            </p>
+            {isError && searchTerm.length < 3 && searchTerm.length !== 0 && (
+              <p className="text-sm text-red-500">
+                please type at least 3 characters
+              </p>
+            )}
           </div>
         </CardHeader>
         <CardContent>
@@ -249,7 +278,7 @@ const AllProducts = ({ user }: Props) => {
                       </TableCell>
 
                       {/* sell */}
-                      <TableCell>
+                      {/* <TableCell>
                         <ViewProductDialog product={product}>
                           <TooltipProvider>
                             <Tooltip>
@@ -269,7 +298,7 @@ const AllProducts = ({ user }: Props) => {
                             </Tooltip>
                           </TooltipProvider>
                         </ViewProductDialog>
-                      </TableCell>
+                      </TableCell> */}
                     </TableRow>
                   ))}
                 </TableBody>
@@ -278,7 +307,7 @@ const AllProducts = ({ user }: Props) => {
           )}
         </CardContent>
       </Card>
-      {productsBySupplierPagination?.length ? (
+      {productsBySupplierPagination?.length && !searchTerm.length ? (
         <div className="self-end mt-6">
           <Pagination
             pageSize={10}

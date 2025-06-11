@@ -96,7 +96,7 @@ const BuyTransactions = ({ user }: Props) => {
           {/* search */}
           <div className="pt-6 flex flex-col relative">
             <Input
-              placeholder="search by invoice..."
+              placeholder="search by invoice number..."
               value={searchTerm}
               onBlur={() => setIsError(false)}
               onFocus={() => setIsError(true)}

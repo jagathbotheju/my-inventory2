@@ -2,7 +2,7 @@
 import { db } from "@/server/db";
 import { NewProductSchema } from "@/lib/schema";
 import { z } from "zod";
-import { and, asc, count, desc, eq, ilike, or } from "drizzle-orm";
+import { and, asc, count, desc, eq, ilike, or, sql } from "drizzle-orm";
 import { ProductExt, products } from "@/server/db/schema/products";
 
 export const searchProducts = async (searchTerm: string) => {
@@ -57,27 +57,45 @@ export const getProductsBySupplierPagination = async ({
   page,
   pageSize = 10,
   userId,
+  searchTerm,
 }: {
   supplierId: string;
   page: number;
   userId: string;
   pageSize?: number;
+  searchTerm: string;
 }) => {
-  const allProducts = await db.query.products.findMany({
-    where: and(
-      eq(products.supplierId, supplierId),
-      eq(products.userId, userId)
-    ),
-    with: {
-      suppliers: true,
-      unitOfMeasurements: true,
-    },
-    orderBy: asc(products.productNumber),
-    limit: pageSize,
-    offset: (page - 1) * pageSize,
-  });
+  const fSearch = `%${searchTerm}%`;
 
-  return allProducts as ProductExt[];
+  if (searchTerm?.length) {
+    const allProducts = await db.query.products.findMany({
+      where: sql`${products.userId} like ${userId} and ${products.supplierId} like ${supplierId} and ${products.productNumber} ilike ${fSearch}`,
+      with: {
+        suppliers: true,
+        unitOfMeasurements: true,
+      },
+      orderBy: asc(products.productNumber),
+      limit: pageSize,
+      offset: (page - 1) * pageSize,
+    });
+    return allProducts as ProductExt[];
+  } else {
+    const allProducts = await db.query.products.findMany({
+      where: and(
+        eq(products.supplierId, supplierId),
+        eq(products.userId, userId)
+      ),
+      with: {
+        suppliers: true,
+        unitOfMeasurements: true,
+      },
+      orderBy: asc(products.productNumber),
+      limit: pageSize,
+      offset: (page - 1) * pageSize,
+    });
+
+    return allProducts as ProductExt[];
+  }
 };
 
 export const getProductsCount = async ({

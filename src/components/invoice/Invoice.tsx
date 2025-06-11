@@ -42,8 +42,6 @@ const Invoice = ({ user }: Props) => {
     isBuyTx,
   });
 
-  console.log("debounced Search", searchTerm.length);
-
   const { data: sellTxInvoices, isLoading } = useSellTxInvoicesForPeriod({
     userId: user.id,
     // userId: "7e397cd1-19ad-4c68-aa50-a77c06450bc7",
@@ -53,7 +51,6 @@ const Invoice = ({ user }: Props) => {
     searchTerm:
       bouncedSearchTerm.length < 3 ? "" : bouncedSearchTerm.toUpperCase(),
   });
-  // console.log("sellTxInvoices", sellTxInvoices);
 
   const { data: totalPurchase } = useByTxTotalPurchase({
     userId: user.id,

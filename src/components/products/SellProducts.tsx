@@ -291,7 +291,7 @@ const SellProducts = ({ userId }: Props) => {
                         </div>
 
                         {/* 1-cols - quantity */}
-                        <div className="col-span-1 flex gap-2 w-full items-center">
+                        <div className="col-span-1 flex gap-2 w-full items-center relative">
                           <FormField
                             key={index + 1}
                             control={form.control}
@@ -305,9 +305,11 @@ const SellProducts = ({ userId }: Props) => {
                               </FormItem>
                             )}
                           />
-                          {/* <p className="uppercase font-semibold">
-                              {product.unit}
-                            </p> */}
+                          {product.quantity < sellQuantity && (
+                            <span className="text-sm text-red-500 absolute font-semibold -bottom-5 left-2">
+                              no stocks
+                            </span>
+                          )}
                         </div>
 
                         {/* 2-cols - total */}

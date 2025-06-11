@@ -65,7 +65,7 @@ const PaymentHistoryDialog = ({
             {sellTxInvoice && sellTxInvoice.sellTxPayments.length > 0 ? (
               <div className="flex flex-col -mt-4 gap-2">
                 {sellTxInvoice.sellTxPayments.map((item) => (
-                  <div key={item.id}>
+                  <div key={item.id} className="">
                     {/* credit */}
                     {item.paymentMode === "credit" && (
                       <div className="flex justify-between items-center px-8">

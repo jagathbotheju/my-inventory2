@@ -13,7 +13,14 @@ import {
 import { Button } from "./ui/button";
 import PaymentModePicker from "./PaymentModePicker";
 import { Input } from "./ui/input";
-import { useAddPayment } from "@/server/backend/mutations/invoiceMutations";
+// import { useAddPayment } from "@/server/backend/mutations/invoiceMutations";
+
+// type ChequeData = {
+//   chequeNumber: string;
+//   chequeDate: Date;
+//   bankName: string;
+//   amount: number;
+// };
 
 interface Props {
   children: React.ReactNode;
@@ -24,9 +31,15 @@ interface Props {
 const PaymentAddDialog = ({ children, invoiceNumber, invoiceId }: Props) => {
   const [value, setValue] = useState<string>("");
   const [amount, setAmount] = useState(0);
+  // const [chequeData, setChequeData] = useState<ChequeData>({
+  //   chequeNumber: "",
+  //   chequeDate: new Date(),
+  //   bankName: "",
+  //   amount: 0,
+  // });
   const [open, setOpen] = useState(false);
 
-  const { mutate: addPayment } = useAddPayment();
+  // const { mutate: addPayment } = useAddPayment();
 
   const addInvoicePayment = () => {
     const payment = {
@@ -35,7 +48,7 @@ const PaymentAddDialog = ({ children, invoiceNumber, invoiceId }: Props) => {
       cashAmount: amount,
     };
     console.log("payment", payment);
-    addPayment({ ...payment });
+    // addPayment({ ...payment });
     setOpen(false);
   };
 
@@ -86,6 +99,22 @@ const PaymentAddDialog = ({ children, invoiceNumber, invoiceId }: Props) => {
           {/* cash */}
           {value === "cash" && (
             <div className="grid grid-cols-6">
+              <p className="font-semibold text-muted-foreground col-span-2">
+                Amount
+              </p>
+              <Input
+                value={amount}
+                onChange={(e) => setAmount(+e.target.value)}
+                type="number"
+                placeholder="Enter cash amount"
+                className="text-2xl font-semibold col-span-4"
+              />
+            </div>
+          )}
+
+          {/* cheque */}
+          {value === "cheque" && (
+            <div className="flex gap-4">
               <p className="font-semibold text-muted-foreground col-span-2">
                 Amount
               </p>

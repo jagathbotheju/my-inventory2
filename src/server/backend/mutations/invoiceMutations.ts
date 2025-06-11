@@ -21,7 +21,7 @@ export const useAddPayment = () => {
             chequeDate?: Date | undefined;
             bankName?: string | undefined;
             amount?: number | undefined;
-          }[]
+          }
         | undefined;
     }) =>
       addPayment({

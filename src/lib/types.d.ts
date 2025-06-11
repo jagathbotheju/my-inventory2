@@ -55,3 +55,9 @@ type TxPayments = {
     }
   ];
 };
+
+type StockBal = {
+  productNumber: string;
+  productId: string;
+  quantity: number;
+};
