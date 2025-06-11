@@ -216,22 +216,39 @@ export const addSellTransactions = async ({
       totalCash += sellTxData[0].cacheAmount ?? 0;
     }
 
-    //new invoice
-    const newInvoice = await db
-      .insert(sellTxInvoices)
-      .values({
-        userId: sellTxData[0].userId,
-        invoiceNumber: sellTxData[0].invoiceNumber,
-        date: sellTxData[0].date,
-        totalCash,
-      })
-      .returning({ id: sellTxInvoices.id });
+    // sql`${sellTransactions.quantity} * ${sellTransactions.unitPrice}`;
+    const existInvoice = await db.query.sellTxInvoices.findFirst({
+      where: eq(sellTxInvoices.invoiceNumber, sellTxData[0].invoiceNumber),
+    });
 
-    if (!newInvoice.length) return { error: "Could not add Sell Transactions" };
+    let invoice = [];
+    if (existInvoice) {
+      console.log("****updating invoice");
+      invoice = await db
+        .update(sellTxInvoices)
+        .set({
+          totalCash: sql`${sellTxInvoices.totalCash} + ${totalCash}`,
+        })
+        .where(eq(sellTxInvoices.invoiceNumber, sellTxData[0].invoiceNumber))
+        .returning();
+    } else {
+      console.log("****creating invoice");
+      invoice = await db
+        .insert(sellTxInvoices)
+        .values({
+          userId: sellTxData[0].userId,
+          invoiceNumber: sellTxData[0].invoiceNumber,
+          date: sellTxData[0].date,
+          totalCash,
+        })
+        .returning();
+    }
+
+    if (!invoice.length) return { error: "Could not add Sell Transactions" };
 
     const sellTxDataWithInvoiceIds = sellTxData.map((item) => ({
       ...item,
-      invoiceId: newInvoice[0].id,
+      invoiceId: invoice[0].id,
     })) as SellTransaction[];
 
     //new transactions
@@ -242,12 +259,13 @@ export const addSellTransactions = async ({
 
     if (!newTransaction.length)
       return { error: "Could not add Sell Transactions" };
+    console.log("new Transaction", newTransaction);
 
     //new payment
     const newTxPayment = await db
       .insert(sellTxPayments)
       .values({
-        invoiceId: newInvoice[0].id,
+        invoiceId: invoice[0].id,
         paymentMode: sellTxData[0].paymentMode,
         cacheAmount: sellTxData[0].cacheAmount ?? 0,
       })
