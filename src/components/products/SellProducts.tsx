@@ -66,6 +66,7 @@ const SellProducts = ({ userId }: Props) => {
       invoiceNumber: "",
       paymentMode: "",
       cacheAmount: 0,
+      creditAmount: 0,
       products: [
         {
           unitPrice: 0,
@@ -128,6 +129,7 @@ const SellProducts = ({ userId }: Props) => {
       invoiceNumber: formData.invoiceNumber,
       paymentMode: formData.paymentMode,
       cacheAmount: formData.cacheAmount,
+      creditAmount: formData.creditAmount,
     })) as SellTransaction[];
     addSellTransactions({ sellTxData, chequeData: formData.cheques });
   };
@@ -159,6 +161,15 @@ const SellProducts = ({ userId }: Props) => {
     setSelectedProducts([]);
     setSelectedProductIds({});
   }, [setSelectedProducts, setSelectedProductIds]);
+
+  // useEffect(() => {
+  //   if (total.length) {
+  //     form.setValue(
+  //       "creditAmount",
+  //       total.reduce((acc, item) => acc + item)
+  //     );
+  //   }
+  // }, [total, form]);
 
   if (!fields.length) return null;
 
@@ -252,6 +263,12 @@ const SellProducts = ({ userId }: Props) => {
                     const totalPrice = sellQuantity * sellUnitPrice;
 
                     if (totalPrice) total.push(totalPrice);
+                    if (total.length) {
+                      form.setValue(
+                        "creditAmount",
+                        total?.reduce((acc, item) => acc + item)
+                      );
+                    }
 
                     return (
                       <div
@@ -365,6 +382,35 @@ const SellProducts = ({ userId }: Props) => {
               />
             </div>
 
+            {paymentMode === "credit" && (
+              <>
+                {/* <div className="col-span-1" /> */}
+                <div className="col-span-12 flex items-center gap-4 border border-1 rounded-md p-4">
+                  <p className="whitespace-nowrap font-semibold text-muted-foreground ml-12">
+                    Amount
+                  </p>
+
+                  {/* credit amount */}
+                  <FormField
+                    control={form.control}
+                    name="creditAmount"
+                    render={({ field }) => (
+                      <FormItem className="whitespace-nowrap text-2xl relative">
+                        <FormControl>
+                          <Input
+                            {...field}
+                            placeholder="Enter cash amount"
+                            className="text-2xl font-semibold"
+                          />
+                        </FormControl>
+                        <FormMessage className="dark:text-white absolute -bottom-7" />
+                      </FormItem>
+                    )}
+                  />
+                </div>
+              </>
+            )}
+
             {paymentMode === "cash" && (
               <>
                 {/* <div className="col-span-1" /> */}
@@ -396,7 +442,6 @@ const SellProducts = ({ userId }: Props) => {
 
             {paymentMode === "cheque" && (
               <>
-                {/* <div className="col-span-3" /> */}
                 <div className="col-span-12 border border-1 rounded-md p-6">
                   <div className="flex flex-col gap-6 ml-12 justify-center w-full">
                     {checkFields.map((field, index) => (
@@ -518,6 +563,7 @@ const SellProducts = ({ userId }: Props) => {
                               chequeNumber: "",
                               bankName: "",
                               amount: 0,
+                              chequeDate: new Date(),
                             })
                           }
                         >
@@ -674,6 +720,7 @@ const SellProducts = ({ userId }: Props) => {
                             chequeNumber: "",
                             bankName: "",
                             amount: 0,
+                            chequeDate: new Date(),
                           })
                         }
                       >

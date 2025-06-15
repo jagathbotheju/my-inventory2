@@ -2,7 +2,7 @@
 import { db } from "@/server/db";
 import { buyTransactions, sellTransactions, stocks } from "@/server/db/schema";
 import { Stock, StockExt } from "@/server/db/schema/stocks";
-import { and, asc, eq, ne, sum } from "drizzle-orm";
+import { and, asc, eq, ne } from "drizzle-orm";
 
 export const getStocks = async ({
   userId,
@@ -54,36 +54,78 @@ export const getAllStocks = async (userId: string) => {
 };
 
 export const getAllUserStocks = async (userId: string) => {
-  const buyTxStocks = await db
-    .select({
-      productNumber: buyTransactions.productNumber,
-      productId: buyTransactions.productId,
-      quantity: sum(buyTransactions.quantity),
-    })
-    .from(buyTransactions)
-    .groupBy(buyTransactions.productId, buyTransactions.productNumber)
-    .where(eq(buyTransactions.userId, userId));
-
   const sellTxStocks = await db
     .select({
       productId: sellTransactions.productId,
-      quantity: sum(sellTransactions.quantity),
+      quantity: sellTransactions.quantity,
     })
     .from(sellTransactions)
-    .groupBy(sellTransactions.productId)
     .where(eq(sellTransactions.userId, userId));
 
+  const sellTxs = sellTxStocks.reduce(
+    (acc, sellTx) => {
+      const exist = acc.find((item) => item.productId === sellTx.productId);
+
+      if (!exist) {
+        acc.push({
+          productId: sellTx.productId,
+          quantity: sellTx.quantity,
+        });
+      } else {
+        exist.quantity += sellTx.quantity;
+      }
+      return acc;
+    },
+    [
+      {
+        productId: "",
+        quantity: 0,
+      },
+    ]
+  );
+
+  const buyTxStocks = await db
+    .select({
+      productId: buyTransactions.productId,
+      productNumber: buyTransactions.productNumber,
+      quantity: buyTransactions.quantity,
+    })
+    .from(buyTransactions)
+    .where(eq(buyTransactions.userId, userId));
+
+  const buyTxs = buyTxStocks.reduce(
+    (acc, buyTx) => {
+      const exist = acc.find((item) => item.productId === buyTx.productId);
+
+      if (!exist) {
+        acc.push({
+          productId: buyTx.productId,
+          productNumber: buyTx.productNumber as string,
+          quantity: buyTx.quantity,
+        });
+      } else {
+        exist.quantity += buyTx.quantity;
+      }
+      return acc;
+    },
+    [
+      {
+        productId: "",
+        productNumber: "",
+        quantity: 0,
+      },
+    ]
+  );
+
   const stockBal = [] as StockBal[];
-  buyTxStocks.map((buyTx) => {
-    const exist = sellTxStocks.find(
-      (item) => item.productId === buyTx.productId
-    );
-    const buyBal = buyTx.quantity ? +buyTx.quantity : 0;
+  buyTxs.map((buyTx) => {
+    const exist = sellTxs.find((item) => item.productId === buyTx.productId);
+    const buyBal = +buyTx.quantity;
     const sellBal = exist?.quantity ? +exist.quantity : 0;
     const bal = buyBal - sellBal;
     if (bal !== 0) {
       stockBal.push({
-        productNumber: buyTx.productNumber!,
+        productNumber: buyTx.productNumber,
         productId: buyTx.productId,
         quantity: buyBal - sellBal,
       });

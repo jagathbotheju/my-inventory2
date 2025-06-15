@@ -42,11 +42,68 @@ export const SellProductSchema = z.object({
   invoiceNumber: z.string().min(1, "invoice number is required"),
 });
 
+export const AddTxPaymentSchema = z.object({
+  paymentMode: z.string(),
+  cashAmount: z.coerce.number().optional(),
+  creditAmount: z.coerce.number().optional(),
+  cheques: z
+    .array(
+      z.object({
+        chequeNumber: z.string().optional(),
+        chequeDate: z.date().optional(),
+        bankName: z.string().optional(),
+        amount: z.coerce.number().optional(),
+      })
+    )
+    .optional(),
+});
+// .superRefine((values, ctx) => {
+//   if (values.paymentMode === "cash" && !values.cashAmount) {
+//     ctx.addIssue({
+//       message: "cash amount required",
+//       code: z.ZodIssueCode.custom,
+//       path: ["cashAmount"],
+//     });
+//   }
+
+//   if (values.paymentMode === "credit" && !values.creditAmount) {
+//     ctx.addIssue({
+//       message: "credit amount required",
+//       code: z.ZodIssueCode.custom,
+//       path: ["creditAmount"],
+//     });
+//   }
+
+//   if (
+//     values.paymentMode === "cheque" &&
+//     values.cheques &&
+//     values.cheques.length
+//   ) {
+//     values.cheques.map((item, index) => {
+//       if (!item.amount) {
+//         ctx.addIssue({
+//           message: "cheque amount required",
+//           code: z.ZodIssueCode.custom,
+//           path: ["values", "cheques", index, "amount"],
+//         });
+//       }
+//       if (!item.bankName) {
+//         ctx.addIssue({
+//           message: "bank required",
+//           code: z.ZodIssueCode.custom,
+//           path: ["values", "cheques", index, "bankName"],
+//         });
+//       }
+//     });
+//   }
+// });
+
 export const SellProductsSchema = z.object({
   date: z.date({ required_error: "purchase date is required" }),
   invoiceNumber: z.string().min(1, "invoice number is required"),
   paymentMode: z.string().min(1, "payment mode is required"),
   cacheAmount: z.coerce.number().optional(),
+  creditAmount: z.coerce.number().optional(),
   cheques: z
     .array(
       z.object({

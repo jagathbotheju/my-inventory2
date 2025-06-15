@@ -61,3 +61,10 @@ type StockBal = {
   productId: string;
   quantity: number;
 };
+
+type ChequeData = {
+  chequeNumber?: string | undefined;
+  chequeDate?: Date | undefined;
+  bankName?: string | undefined;
+  amount?: number | undefined;
+};

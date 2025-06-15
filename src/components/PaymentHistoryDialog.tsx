@@ -34,7 +34,7 @@ const PaymentHistoryDialog = ({
   return (
     <Dialog open={open} onOpenChange={setOpen} modal={true}>
       <DialogTrigger asChild>{children}</DialogTrigger>
-      <DialogContent className="sm:max-w-[50%] h-[450px]">
+      <DialogContent className="sm:max-w-[50%] h-[450px] flex flex-col">
         <DialogHeader>
           <DialogTitle>
             <div className="flex flex-col p-1">
@@ -60,131 +60,139 @@ const PaymentHistoryDialog = ({
           </DialogDescription>
         </DialogHeader>
         {/* Payment details */}
-        <ScrollArea className="">
+        <ScrollArea>
           <div className="mt-4">
             {sellTxInvoice && sellTxInvoice.sellTxPayments.length > 0 ? (
               <div className="flex flex-col -mt-4 gap-2">
-                {sellTxInvoice.sellTxPayments.map((item) => (
-                  <div key={item.id} className="">
-                    {/* credit */}
-                    {item.paymentMode === "credit" && (
-                      <div className="flex justify-between items-center px-8">
-                        <p className="text-md text-muted-foreground">
-                          {format(item.createdAt, "yyyy-MMM-dd")}
-                        </p>
-                        <div className="flex gap-4 items-center">
-                          <div className="w-fit h-full rounded-md p-1 bg-red-400">
-                            <p className="text-red-800 font-semibold text-center">
-                              CREDIT
-                            </p>
-                          </div>
-                        </div>
-                      </div>
-                    )}
-
-                    {/* cash */}
-                    {item.paymentMode === "cash" && (
-                      <div className="flex justify-between items-center px-8">
-                        <p className="text-md text-muted-foreground">
-                          {format(item.createdAt, "yyyy-MMM-dd")}
-                        </p>
-                        <div className="flex gap-4 items-center">
-                          <p className="text-lg font-semibold">
-                            {formatPrice(item.cacheAmount ?? 0)}
-                          </p>
-                          <div className="w-20 h-full rounded-md p-1 bg-green-400">
-                            <p className="text-green-800 font-semibold text-center">
-                              CASH
-                            </p>
-                          </div>
-                        </div>
-                      </div>
-                    )}
-
-                    {/* cheque */}
-                    {item.paymentMode === "cheque" &&
-                      item.sellTxPaymentCheques.length &&
-                      item.sellTxPaymentCheques.map((cheque, index) => (
-                        <div
-                          key={index}
-                          className="flex justify-between items-center px-8 py-1"
-                        >
+                {sellTxInvoice.sellTxPayments.map((item) => {
+                  return (
+                    <div
+                      key={item.id}
+                      className="flex-col justify-start items-start"
+                    >
+                      {/* credit */}
+                      {item.paymentMode === "credit" && (
+                        <div className="flex justify-between items-center px-8">
                           <p className="text-md text-muted-foreground">
-                            {format(cheque.createdAt, "yyyy-MMM-dd")}
+                            {format(item.createdAt, "yyyy-MMM-dd")}
                           </p>
                           <div className="flex gap-4 items-center">
-                            <p className="uppercase">{cheque.chequeNumber}</p>
-                            <p className="uppercase">{cheque.bankName}</p>
-                            <p>
-                              {format(
-                                cheque.chequeDate as string,
-                                "yyyy-MM-dd"
-                              )}
-                            </p>
                             <p className="text-lg font-semibold">
-                              {formatPrice(cheque.amount ?? 0)}
+                              {formatPrice(item.creditAmount ?? 0)}
                             </p>
-                            <div className="w-20 h-full rounded-md p-1 bg-amber-400">
-                              <p className="text-amber-800 font-semibold text-center">
-                                CHEQUE
+                            <div className="w-fit h-full rounded-md p-1 bg-red-400">
+                              <p className="text-red-800 font-semibold text-center">
+                                CREDIT
                               </p>
                             </div>
                           </div>
                         </div>
-                      ))}
+                      )}
 
-                    {/* cash & cheque */}
-                    <div className="flex flex-col">
-                      {item.paymentMode === "cash-cheque" &&
+                      {/* cash */}
+                      {item.paymentMode === "cash" && (
+                        <div className="flex justify-between items-center px-8">
+                          <p className="text-md text-muted-foreground">
+                            {format(item.createdAt, "yyyy-MMM-dd")}
+                          </p>
+                          <div className="flex gap-4 items-center">
+                            <p className="text-lg font-semibold">
+                              {formatPrice(item.cacheAmount ?? 0)}
+                            </p>
+                            <div className="w-20 h-full rounded-md p-1 bg-green-400">
+                              <p className="text-green-800 font-semibold text-center">
+                                CASH
+                              </p>
+                            </div>
+                          </div>
+                        </div>
+                      )}
+
+                      {/* cheque */}
+                      {item.paymentMode === "cheque" &&
                         item.sellTxPaymentCheques.length &&
                         item.sellTxPaymentCheques.map((cheque, index) => (
-                          <div key={index} className="">
-                            <div className="flex justify-between items-center px-8 py-2">
-                              <p className="text-md text-muted-foreground">
-                                {format(item.createdAt, "yyyy-MMM-dd")}
+                          <div
+                            key={index}
+                            className="flex justify-between items-center px-8 py-1"
+                          >
+                            <p className="text-md text-muted-foreground">
+                              {format(cheque.createdAt, "yyyy-MMM-dd")}
+                            </p>
+                            <div className="flex gap-4 items-center">
+                              <p className="uppercase">{cheque.chequeNumber}</p>
+                              <p className="uppercase">{cheque.bankName}</p>
+                              <p>
+                                {format(
+                                  cheque.chequeDate as string,
+                                  "yyyy-MM-dd"
+                                )}
                               </p>
-                              <div className="flex gap-4 items-center">
-                                <p className="text-lg font-semibold">
-                                  {formatPrice(item.cacheAmount ?? 0)}
-                                </p>
-                                <div className="w-20 h-full rounded-md p-1 bg-green-400">
-                                  <p className="text-green-800 font-semibold text-center">
-                                    CASH
-                                  </p>
-                                </div>
-                              </div>
-                            </div>
-
-                            <div className="flex justify-between items-center px-8">
-                              <p className="text-md text-muted-foreground">
-                                {format(cheque.createdAt, "yyyy-MMM-dd")}
+                              <p className="text-lg font-semibold">
+                                {formatPrice(cheque.amount ?? 0)}
                               </p>
-                              <div className="flex gap-4 items-center">
-                                <p className="uppercase">
-                                  {cheque.chequeNumber}
+                              <div className="w-20 h-full rounded-md p-1 bg-amber-400">
+                                <p className="text-amber-800 font-semibold text-center">
+                                  CHEQUE
                                 </p>
-                                <p className="uppercase">{cheque.bankName}</p>
-                                <p>
-                                  {format(
-                                    cheque.chequeDate as string,
-                                    "yyyy-MM-dd"
-                                  )}
-                                </p>
-                                <p className="text-lg font-semibold">
-                                  {formatPrice(cheque.amount ?? 0)}
-                                </p>
-                                <div className="w-20 h-full rounded-md p-1 bg-amber-400">
-                                  <p className="text-amber-800 font-semibold text-center">
-                                    CHEQUE
-                                  </p>
-                                </div>
                               </div>
                             </div>
                           </div>
                         ))}
+
+                      {/* cash & cheque */}
+                      <div className="flex flex-col">
+                        {item.paymentMode === "cash-cheque" &&
+                          item.sellTxPaymentCheques.length &&
+                          item.sellTxPaymentCheques.map((cheque, index) => (
+                            <div key={index} className="">
+                              <div className="flex justify-between items-center px-8 py-2">
+                                <p className="text-md text-muted-foreground">
+                                  {format(item.createdAt, "yyyy-MMM-dd")}
+                                </p>
+                                <div className="flex gap-4 items-center">
+                                  <p className="text-lg font-semibold">
+                                    {formatPrice(item.cacheAmount ?? 0)}
+                                  </p>
+                                  <div className="w-20 h-full rounded-md p-1 bg-green-400">
+                                    <p className="text-green-800 font-semibold text-center">
+                                      CASH
+                                    </p>
+                                  </div>
+                                </div>
+                              </div>
+
+                              <div className="flex justify-between items-center px-8">
+                                <p className="text-md text-muted-foreground">
+                                  {format(cheque.createdAt, "yyyy-MMM-dd")}
+                                </p>
+                                <div className="flex gap-4 items-center">
+                                  <p className="uppercase">
+                                    {cheque.chequeNumber}
+                                  </p>
+                                  <p className="uppercase">{cheque.bankName}</p>
+                                  <p>
+                                    {format(
+                                      cheque.chequeDate as string,
+                                      "yyyy-MM-dd"
+                                    )}
+                                  </p>
+                                  <p className="text-lg font-semibold">
+                                    {formatPrice(cheque.amount ?? 0)}
+                                  </p>
+                                  <div className="w-20 h-full rounded-md p-1 bg-amber-400">
+                                    <p className="text-amber-800 font-semibold text-center">
+                                      CHEQUE
+                                    </p>
+                                  </div>
+                                </div>
+                              </div>
+                            </div>
+                          ))}
+                      </div>
                     </div>
-                  </div>
-                ))}
+                  );
+                })}
               </div>
             ) : (
               <p className="text-xl font-bold text-muted-foreground">
@@ -193,7 +201,7 @@ const PaymentHistoryDialog = ({
             )}
           </div>
         </ScrollArea>
-        <DialogFooter className="mt-6">
+        <DialogFooter className="mt-auto">
           <DialogClose asChild>
             <Button>Close</Button>
           </DialogClose>

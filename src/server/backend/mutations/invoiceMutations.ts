@@ -10,24 +10,27 @@ export const useAddPayment = () => {
       invoiceId,
       paymentMode,
       cashAmount,
+      creditAmount,
       chequeData,
     }: {
       invoiceId: string;
       paymentMode: string;
       cashAmount: number;
+      creditAmount: number;
       chequeData?:
         | {
             chequeNumber?: string | undefined;
             chequeDate?: Date | undefined;
             bankName?: string | undefined;
             amount?: number | undefined;
-          }
+          }[]
         | undefined;
     }) =>
       addPayment({
         invoiceId,
         paymentMode,
         cashAmount,
+        creditAmount,
         chequeData,
       }),
     onSuccess: async (res) => {

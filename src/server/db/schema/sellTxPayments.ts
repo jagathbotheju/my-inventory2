@@ -15,6 +15,7 @@ export const sellTxPayments = pgTable("sell_tx_payments", {
     .notNull(),
   paymentMode: text("payment_mode"),
   cacheAmount: doublePrecision("cache_amount").default(0),
+  creditAmount: doublePrecision("credit_amount").default(0),
   createdAt: timestamp("created_at", { mode: "string" }).notNull().defaultNow(),
 });
 

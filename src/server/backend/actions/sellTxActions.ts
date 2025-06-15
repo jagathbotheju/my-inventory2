@@ -223,7 +223,6 @@ export const addSellTransactions = async ({
 
     let invoice = [];
     if (existInvoice) {
-      console.log("****updating invoice");
       invoice = await db
         .update(sellTxInvoices)
         .set({
@@ -232,7 +231,6 @@ export const addSellTransactions = async ({
         .where(eq(sellTxInvoices.invoiceNumber, sellTxData[0].invoiceNumber))
         .returning();
     } else {
-      console.log("****creating invoice");
       invoice = await db
         .insert(sellTxInvoices)
         .values({
@@ -268,6 +266,7 @@ export const addSellTransactions = async ({
         invoiceId: invoice[0].id,
         paymentMode: sellTxData[0].paymentMode,
         cacheAmount: sellTxData[0].cacheAmount ?? 0,
+        creditAmount: sellTxData[0].creditAmount ?? 0,
       })
       .returning();
 
@@ -459,22 +458,33 @@ export const deleteSellTransaction = async ({
       .returning();
 
     if (!deletedTx.length) return { error: "Could not Delete Transaction" };
-    console.log("deleteTxId", sellTx.id);
-    console.log("deletedTx", deletedTx);
 
-    // const deletedInvoice = await db
-    //   .delete(sellTxInvoices)
-    //   .where(
-    //     and(
-    //       eq(sellTxInvoices.userId, userId),
-    //       eq(sellTxInvoices.id, deletedTx[0].invoiceId as string)
-    //     )
-    //   )
-    //   .returning();
+    //remove invoice if no txs
+    const existSellTxs = await db
+      .select()
+      .from(sellTransactions)
+      .where(
+        and(
+          eq(sellTransactions.userId, userId),
+          eq(sellTransactions.invoiceId, deletedTx[0].invoiceId as string)
+        )
+      );
 
-    // if (!deletedInvoice.length)
-    //   return { error: "Could not Delete Transaction" };
+    if (!existSellTxs.length) {
+      const deletedInvoice = await db
+        .delete(sellTxInvoices)
+        .where(
+          and(
+            and(
+              eq(sellTxInvoices.userId, userId),
+              eq(sellTxInvoices.id, deletedTx[0].invoiceId as string)
+            )
+          )
+        );
+      console.log("deletedInvoice", deletedInvoice);
+    }
 
+    //updating history data
     const existSellMonthHistory = await db
       .select()
       .from(sellMonthHistory)

@@ -1,29 +1,32 @@
 "use server";
 import { db } from "@/server/db";
-import { desc, sql } from "drizzle-orm";
+import { desc, eq, sql } from "drizzle-orm";
 import {
   sellTxInvoices,
   sellTxPaymentCheques,
   sellTxPayments,
 } from "@/server/db/schema";
 import { SellTxInvoiceExt } from "@/server/db/schema/sellTxInvoices";
+import { SellTxPaymentCheques } from "@/server/db/schema/sellTxPaymentCheques";
 
 export const addPayment = async ({
   invoiceId,
   paymentMode,
   cashAmount,
+  creditAmount,
   chequeData,
 }: {
   invoiceId: string;
   paymentMode: string;
   cashAmount: number;
+  creditAmount: number;
   chequeData:
     | {
         chequeNumber?: string | undefined;
         chequeDate?: Date | undefined;
         bankName?: string | undefined;
         amount?: number | undefined;
-      }
+      }[]
     | undefined;
 }) => {
   // new payment
@@ -33,35 +36,41 @@ export const addPayment = async ({
       invoiceId,
       paymentMode,
       cacheAmount: cashAmount,
+      creditAmount,
     })
     .returning();
 
   if (!newTxPayment.length) return { error: "Could not add Payment" };
 
-  // let chequeAmount = 0;
+  let chequesAmount = 0;
   if (
-    (paymentMode === "cheque" || paymentMode === "cash-cheque") &&
-    chequeData
+    chequeData &&
+    chequeData.length &&
+    (paymentMode === "cheque" || paymentMode === "cash-cheque")
   ) {
-    await db
+    const chequeDataWithPaymentId = chequeData.map((item) => ({
+      sellTxPaymentId: newTxPayment[0].id,
+      chequeNumber: item.chequeNumber,
+      chequeDate: item.chequeDate?.toDateString(),
+      bankName: item.bankName,
+      amount: item.amount,
+    })) as SellTxPaymentCheques[];
+    const newCheques = await db
       .insert(sellTxPaymentCheques)
-      .values({
-        sellTxPaymentId: newTxPayment[0].id,
-        chequeNumber: chequeData.chequeNumber as string,
-        bankName: chequeData.bankName as string,
-        amount: chequeData.amount ?? 0,
-        chequeDate: chequeData.chequeDate?.toDateString(),
-      })
+      .values(chequeDataWithPaymentId)
       .returning();
-    // chequeAmount += chequeData.amount ?? 0;
+    chequesAmount = newCheques.reduce(
+      (acc, item) => (acc += item.amount ? item.amount : 0),
+      0
+    );
   }
 
-  //update invoice totalCash
   const updatedInvoice = await db
     .update(sellTxInvoices)
     .set({
-      totalCash: sql`${sellTxInvoices.totalCash}+${cashAmount} + ${chequeData?.amount}`,
+      totalCash: sql`${sellTxInvoices.totalCash} + ${cashAmount} + ${chequesAmount}`,
     })
+    .where(eq(sellTxInvoices.id, invoiceId))
     .returning();
   if (!updatedInvoice.length) return { error: "Could not add Payment" };
 
