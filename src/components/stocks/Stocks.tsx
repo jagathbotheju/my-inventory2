@@ -4,6 +4,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "../ui/card";
 import { useAllUserStocks } from "@/server/backend/queries/stockQueries";
 import { format } from "date-fns";
 import _ from "lodash";
+import Link from "next/link";
 
 interface Props {
   user: User;
@@ -26,7 +27,8 @@ const Stocks = ({ user }: Props) => {
       </CardHeader>
       <CardContent className="gap-5 grid grid-cols-3">
         {_.sortBy(allUserStocks, "productNumber")?.map((stock, index) => (
-          <div
+          <Link
+            href={`/stocks/${stock.productId}?stockBal=${stock.quantity}`}
             key={index}
             className="flex flex-col items-center col-span-1 rounded-md border-primary border"
           >
@@ -37,7 +39,7 @@ const Stocks = ({ user }: Props) => {
             <div className="p-2 text-xl font-semibold w-full text-center">
               {stock.quantity}
             </div>
-          </div>
+          </Link>
         ))}
       </CardContent>
     </Card>

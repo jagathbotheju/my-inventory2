@@ -527,16 +527,20 @@ export const getBuyTxByUserProduct = async ({
   userId: string;
   productId: string;
 }) => {
-  const transactions = await db.query.buyTransactions.findFirst({
+  const transactions = await db.query.buyTransactions.findMany({
     where: and(
       eq(buyTransactions.userId, userId),
       eq(buyTransactions.productId, productId)
     ),
     with: {
-      products: true,
+      products: {
+        with: {
+          unitOfMeasurements: true,
+        },
+      },
       suppliers: true,
     },
     orderBy: desc(buyTransactions.date),
   });
-  return transactions as BuyTransactionExt;
+  return transactions as BuyTransactionExt[];
 };

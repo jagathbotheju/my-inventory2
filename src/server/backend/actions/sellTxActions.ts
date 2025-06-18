@@ -19,7 +19,7 @@ import {
   SellYearHistory,
   sellYearHistory,
 } from "@/server/db/schema/sellYearHistory";
-import { and, asc, count, desc, eq, sql, sum } from "drizzle-orm";
+import { and, count, desc, eq, sql, sum } from "drizzle-orm";
 
 //addSellTransaction
 export const addSellTransaction = async ({
@@ -807,7 +807,7 @@ export const getSellTxByUserProduct = async ({
         },
       },
     },
-    orderBy: asc(sellTransactions.date),
+    orderBy: desc(sellTransactions.date),
   });
   return transactions as SellTransactionExt[];
 };

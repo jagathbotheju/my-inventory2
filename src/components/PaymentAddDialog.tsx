@@ -167,7 +167,7 @@ const PaymentAddDialog = ({ children, invoiceNumber, invoiceId }: Props) => {
   return (
     <Dialog open={open} onOpenChange={setOpen} modal>
       <DialogTrigger asChild>{children}</DialogTrigger>
-      <DialogContent className="sm:max-w-[70%]">
+      <DialogContent className="sm:max-w-[50%]">
         <DialogHeader>
           <DialogTitle>
             <div className="flex justify-between items-center border border-b-primary border-t-transparent border-l-transparent border-r-transparent p-2">
