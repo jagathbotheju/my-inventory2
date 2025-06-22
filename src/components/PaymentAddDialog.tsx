@@ -105,14 +105,12 @@ const PaymentAddDialog = ({ children, invoiceNumber, invoiceId }: Props) => {
       let chequeErrors = false;
       formData.cheques.map((item, index) => {
         if (!item.chequeNumber) {
-          console.log("error set checkNumber");
           form.setError(`cheques.${index}.chequeNumber`, {
             message: "cheque number required",
           });
           chequeErrors = true;
         }
         if (!item.bankName) {
-          console.log("error set bankName");
           form.setError(`cheques.${index}.bankName`, {
             message: "bank name required",
           });
@@ -139,7 +137,6 @@ const PaymentAddDialog = ({ children, invoiceNumber, invoiceId }: Props) => {
         creditAmount: formData.creditAmount ?? 0,
         chequeData: formData.cheques,
       };
-      console.log("formData", formData);
       addPayment(data);
       setOpen(false);
     }
@@ -161,8 +158,6 @@ const PaymentAddDialog = ({ children, invoiceNumber, invoiceId }: Props) => {
       ]);
     }
   }, [form, open]);
-
-  // console.log("errors", _.isEmpty(form.formState.errors));
 
   return (
     <Dialog open={open} onOpenChange={setOpen} modal>

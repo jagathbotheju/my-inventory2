@@ -123,7 +123,6 @@ const AllProducts = ({ user }: Props) => {
               onKeyDown={(e) => {
                 if (e.key === "Escape") {
                   setSearchTerm("");
-                  console.log("key down");
                 }
               }}
             />

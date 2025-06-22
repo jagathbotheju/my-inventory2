@@ -163,7 +163,12 @@ export const addProduct = async ({
       const exist = await db
         .select()
         .from(products)
-        .where(ilike(products.productNumber, data.productNumber));
+        .where(
+          and(
+            ilike(products.productNumber, data.productNumber),
+            eq(products.userId, userId)
+          )
+        );
       if (exist.length) return { error: "This product already Exist" };
 
       const newProduct = await db

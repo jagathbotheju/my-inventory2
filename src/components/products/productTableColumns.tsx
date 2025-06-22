@@ -26,10 +26,6 @@ export const productTableColumns: ColumnDef<TableData>[] = [
     enableSorting: false,
     enableHiding: false,
   },
-  // {
-  //   accessorKey: "supplier",
-  //   header: "Supplier",
-  // },
   {
     accessorKey: "productNumber",
     header: "Product Number",
@@ -42,7 +38,6 @@ export const productTableColumns: ColumnDef<TableData>[] = [
     accessorKey: "purchasedPrice",
     header: "Purchased Price",
     cell: ({ row }) => {
-      // console.log("row", row.original);
       const amount = parseFloat(row.getValue("purchasedPrice"));
       return <div>{formatPrice(amount)}</div>;
     },

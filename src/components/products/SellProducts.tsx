@@ -119,6 +119,7 @@ const SellProducts = ({ userId }: Props) => {
 
     const sellTxData = products.map((item) => ({
       productId: item.productId as string,
+      productNumber: item.productNumber,
       quantity: item.quantity,
       unitPrice: item.unitPrice,
       purchasedPrice: item.purchasedPrice ?? 0,

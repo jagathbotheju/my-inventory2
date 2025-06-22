@@ -257,7 +257,6 @@ export const addSellTransactions = async ({
 
     if (!newTransaction.length)
       return { error: "Could not add Sell Transactions" };
-    console.log("new Transaction", newTransaction);
 
     //new payment
     const newTxPayment = await db
@@ -471,7 +470,7 @@ export const deleteSellTransaction = async ({
       );
 
     if (!existSellTxs.length) {
-      const deletedInvoice = await db
+      await db
         .delete(sellTxInvoices)
         .where(
           and(
@@ -481,7 +480,6 @@ export const deleteSellTransaction = async ({
             )
           )
         );
-      console.log("deletedInvoice", deletedInvoice);
     }
 
     //updating history data

@@ -10,7 +10,7 @@ export const products = pgTable("products", {
     .primaryKey()
     .$defaultFn(() => crypto.randomUUID()),
   userId: text("user_id").references(() => users.id, { onDelete: "cascade" }),
-  productNumber: text("product_number").notNull().unique(),
+  productNumber: text("product_number").notNull(),
   description: text("description"),
   supplierId: text("supplier_id")
     .references(() => suppliers.id, { onDelete: "cascade" })

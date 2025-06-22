@@ -39,9 +39,11 @@ const StockDetails = ({ user, productId, stockBal }: Props) => {
           <div className="flex flex-col gap-1">
             <div className="flex items-center">
               <p>Stock History,</p>
-              <p>{buyTxs?.length && buyTxs[0]?.productNumber}</p>
+              <p className="uppercase text-primary">
+                {buyTxs?.length && buyTxs[0]?.products.productNumber}
+              </p>
             </div>
-            <p className="text-sm">{productId}</p>
+            {/* <p className="text-sm">{productId}</p> */}
           </div>
           <div className="flex items-center gap-2">
             <p>BAL</p>

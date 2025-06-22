@@ -34,8 +34,6 @@ const AuthButton = ({ user }: Props) => {
   const router = useRouter();
   const { setTheme, theme } = useTheme();
 
-  // console.log("user", user);
-
   return (
     <div className="flex items-center gap-2">
       {user ? (
