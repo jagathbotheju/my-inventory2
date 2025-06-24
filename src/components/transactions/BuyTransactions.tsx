@@ -124,7 +124,7 @@ const BuyTransactions = ({ user }: Props) => {
         <CardContent>
           {isLoading ? (
             <div className="flex justify-center items-center">
-              <Loader2Icon className="w-8 h-8 animate-spin" />
+              <Loader2Icon className="w-8 h-8 animate-spin text-primary" />
             </div>
           ) : _.isEmpty(buyTransactions) ? (
             <div className="mt-8 flex justify-center items-center">

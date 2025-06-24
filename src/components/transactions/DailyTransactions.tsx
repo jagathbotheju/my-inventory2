@@ -65,7 +65,7 @@ const DailyTransactions = ({ userId }: Props) => {
             {/* buy history */}
             {dailyBuyTransactionsLoading ? (
               <div className="flex w-full items-center justify-center">
-                <Loader2Icon />
+                <Loader2Icon className="w-8 h-8 animate-spin text-primary" />
               </div>
             ) : (
               <div className="flex flex-col flex-1">
@@ -104,7 +104,7 @@ const DailyTransactions = ({ userId }: Props) => {
             {/* sell history */}
             {dailySellTransactionsLoading ? (
               <div className="w-full flex items-center justify-center">
-                <Loader2Icon className="w-6 h-6 animate-spin" />
+                <Loader2Icon className="w-8 h-8 animate-spin text-primary" />
               </div>
             ) : (
               <div className="flex flex-col flex-1">

@@ -68,7 +68,7 @@ const TransactionsSummary = ({ user }: Props) => {
           <p className="text-2xl font-semibold col-span-3">Total Purchase</p>
           <p className="text-2xl font-semibold col-span-3">
             {buyTxTotalPurchaseLoading ? (
-              <Loader2Icon className="animate-spin" />
+              <Loader2Icon className="animate-spin w-8 h-8 text-primary" />
             ) : (
               formatPrice(totalPurchase)
             )}
@@ -78,7 +78,7 @@ const TransactionsSummary = ({ user }: Props) => {
           <p className="text-2xl font-semibold col-span-3">Total Sales</p>
           <p className="text-2xl font-semibold col-span-3">
             {sellTxTotalSalesLoading ? (
-              <Loader2Icon className="animate-spin" />
+              <Loader2Icon className="animate-spin w-8 h-8 text-primary" />
             ) : (
               formatPrice(totalSales)
             )}
@@ -90,7 +90,7 @@ const TransactionsSummary = ({ user }: Props) => {
           <p className="text-2xl font-semibold col-span-3">Diff</p>
           <p className="text-2xl font-semibold col-span-3">
             {sellTxTotalSalesLoading ? (
-              <Loader2Icon className="animate-spin" />
+              <Loader2Icon className="animate-spin w-8 h-8 text-primary" />
             ) : (
               formatPrice(totalSales - totalPurchase)
             )}

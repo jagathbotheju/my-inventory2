@@ -41,7 +41,7 @@ const SupplierPicker = ({ setSupplier, supplierId, userId }: Props) => {
   return (
     <div className="flex">
       {isLoading ? (
-        <Loader2Icon className="w-4 h-4 animate-spin" />
+        <Loader2Icon className="w-4 h-4 animate-spin text-primary" />
       ) : (
         <Popover open={open} onOpenChange={setOpen} modal={true}>
           <PopoverTrigger asChild className="dark:bg-slate-900">

@@ -22,7 +22,7 @@ const ProductDetails = ({ productId, userId }: Props) => {
       </CardHeader>
       <CardContent className="flex flex-col gap-6">
         {isLoading ? (
-          <Loader2Icon className="w-6 h-6 animate-spin" />
+          <Loader2Icon className="w-8 h-8 animate-spin text-primary" />
         ) : (
           <div className="grid grid-cols-12 gap-4">
             {/* product number */}

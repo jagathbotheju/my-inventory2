@@ -36,7 +36,7 @@ const Customers = ({ user }: Props) => {
       <CardContent>
         {isLoading ? (
           <div className="flex items-center justify-center">
-            <Loader2Icon className="w-10 h-10 animate-spin" />
+            <Loader2Icon className="w-8 h-8 animate-spin text-primary" />
           </div>
         ) : !customers?.length ? (
           <div className="flex flex-col gap-2 w-full mt-8 justify-center items-center dark:text-slate-400 text-slate-500">

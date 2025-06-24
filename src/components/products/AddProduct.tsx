@@ -60,7 +60,7 @@ const AddProduct = ({ user }: Props) => {
   if (isLoading) {
     return (
       <div className="flex items-center justify-center">
-        <Loader2Icon className="w-10 h-10 animate-spin" />
+        <Loader2Icon className="w-8 h-8 animate-spin text-primary" />
       </div>
     );
   } else if (!suppliers?.length) {

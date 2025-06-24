@@ -119,7 +119,7 @@ const TransactionsCharts = ({ user }: Props) => {
       <CardContent>
         {buyMonthHistoryDataLoading || sellMonthHistoryDataLoading ? (
           <div className="flex w-full items-center justify-center">
-            <Loader2Icon className="w-6 h-6 animate-spin" />
+            <Loader2Icon className="w-8 h-8 animate-spin text-primary" />
           </div>
         ) : _.isEmpty(buyMonthHistoryData) ? (
           <Card className="flex h-[300px] flex-col items-center justify-center bg-background dark:bg-transparent">

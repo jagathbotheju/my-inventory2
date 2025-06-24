@@ -13,13 +13,14 @@ import { formatPrice } from "@/lib/utils";
 import { Button } from "../ui/button";
 import { useState } from "react";
 import { useSellTxTotalSales } from "@/server/backend/queries/sellTxQueries";
-import { useSellTxInvoicesForPeriod } from "@/server/backend/queries/invoiceQueries";
-import PaymentHistoryDialog from "../PaymentHistoryDialog";
-import PaymentAddDialog from "../PaymentAddDialog";
-// import { useDebounce } from "@/hooks/useDebounce";
+import {
+  useSearchSellTxInvoices,
+  useSellTxInvoicesForPeriod,
+} from "@/server/backend/queries/invoiceQueries";
 import { useDebounce } from "use-debounce";
 import { Input } from "../ui/input";
 import { Loader2 } from "lucide-react";
+import InvoiceCard from "./InvoiceCard";
 
 interface Props {
   user: User;
@@ -28,11 +29,12 @@ interface Props {
 const Invoice = ({ user }: Props) => {
   const [isError, setIsError] = useState(false);
   const [searchTerm, setSearchTerm] = useState("");
-  const [bouncedSearchTerm] = useDebounce(searchTerm, 2000);
-  const [isBuyTx, setIsBuyTx] = useState(true);
+  const [bouncedSearchTerm] = useDebounce(searchTerm, 1000);
+  const [isBuyTx, setIsBuyTx] = useState(false);
   const { period, timeFrame } = useTimeFrameStore((state) => state);
 
-  const { data: buyTxs } = useBuyTxByUserByPeriod({
+  //buy txs
+  const { data: buyTxs, isLoading: isLoadingBuyTx } = useBuyTxByUserByPeriod({
     userId: user.id,
     // userId: "7e397cd1-19ad-4c68-aa50-a77c06450bc7",
     period,
@@ -42,14 +44,31 @@ const Invoice = ({ user }: Props) => {
     isBuyTx,
   });
 
-  const { data: sellTxInvoices, isLoading } = useSellTxInvoicesForPeriod({
-    userId: user.id,
-    // userId: "7e397cd1-19ad-4c68-aa50-a77c06450bc7",
-    period,
-    timeFrame,
+  //search buy txs
+  // const { data: searchBuyTxInvoices } = useSearchBuyTxInvoices({
+  //   // userId: user?.id as string,
+  //   userId: "7e397cd1-19ad-4c68-aa50-a77c06450bc7", // For testing purposes
+  //   searchTerm: bouncedSearchTerm,
+  //   isSellTx: !isBuyTx,
+  // });
+
+  //sell tx invoices
+  const { data: sellTxInvoices, isLoading: isLoadingSellTx } =
+    useSellTxInvoicesForPeriod({
+      userId: user.id,
+      // userId: "7e397cd1-19ad-4c68-aa50-a77c06450bc7",
+      period,
+      timeFrame,
+      isSellTx: !isBuyTx,
+      searchTerm: bouncedSearchTerm,
+    });
+
+  //search sell tx invoices
+  const { data: searchSellTxInvoices } = useSearchSellTxInvoices({
+    userId: user?.id as string,
+    // userId: "7e397cd1-19ad-4c68-aa50-a77c06450bc7", // For testing purposes
+    searchTerm: bouncedSearchTerm,
     isSellTx: !isBuyTx,
-    searchTerm:
-      bouncedSearchTerm.length < 3 ? "" : bouncedSearchTerm.toUpperCase(),
   });
 
   const { data: totalPurchase } = useByTxTotalPurchase({
@@ -97,7 +116,11 @@ const Invoice = ({ user }: Props) => {
           <div className="flex flex-col md:flex-row md:items-center justify-between">
             <div className="flex items-center gap-1">
               <p className="text-3xl">
-                {isBuyTx ? "Buy Invoices " : "Sell Invoices "}
+                {isBuyTx
+                  ? "Buy Invoices "
+                  : searchTerm.length
+                  ? "Searching Sell Invoices..."
+                  : " Sell Invoices "}
               </p>
               {isBuyTx && !searchTerm.length
                 ? totalPurchase?.value && (
@@ -121,27 +144,29 @@ const Invoice = ({ user }: Props) => {
                   )}
             </div>
 
-            <div className="flex flex-col md:flex-row gap-5 items-center">
-              <TimeFramePicker />
-              <div className="flex gap-2 items-center">
-                <Button
-                  size="sm"
-                  className={`tracking-widest border-primary hover:bg-primary/80`}
-                  variant={isBuyTx ? "default" : "outline"}
-                  onClick={() => setIsBuyTx(true)}
-                >
-                  BUY
-                </Button>
-                <Button
-                  size="sm"
-                  className={`tracking-widest border-primary hover:bg-primary/80`}
-                  variant={!isBuyTx ? "default" : "outline"}
-                  onClick={() => setIsBuyTx(false)}
-                >
-                  SELL
-                </Button>
+            {searchTerm.length === 0 && (
+              <div className="flex flex-col md:flex-row gap-5 items-center">
+                <TimeFramePicker />
+                <div className="flex gap-2 items-center">
+                  <Button
+                    size="sm"
+                    className={`tracking-widest border-primary hover:bg-primary/80`}
+                    variant={isBuyTx ? "default" : "outline"}
+                    onClick={() => setIsBuyTx(true)}
+                  >
+                    BUY
+                  </Button>
+                  <Button
+                    size="sm"
+                    className={`tracking-widest border-primary hover:bg-primary/80`}
+                    variant={!isBuyTx ? "default" : "outline"}
+                    onClick={() => setIsBuyTx(false)}
+                  >
+                    SELL
+                  </Button>
+                </div>
               </div>
-            </div>
+            )}
           </div>
         </CardTitle>
 
@@ -160,12 +185,14 @@ const Invoice = ({ user }: Props) => {
               }
             }}
           />
-          <p
-            className="text-xl text-muted-foreground font-semibold absolute right-3 top-[26px] p-1 cursor-pointer"
-            onClick={() => setSearchTerm("")}
-          >
-            X
-          </p>
+          {searchTerm.length ? (
+            <p
+              className="text-xl text-muted-foreground font-semibold absolute right-3 top-[26px] p-1 cursor-pointer"
+              onClick={() => setSearchTerm("")}
+            >
+              X
+            </p>
+          ) : null}
           {isError && searchTerm.length < 3 && searchTerm.length !== 0 && (
             <p className="text-sm text-red-500">
               please type at least 3 characters
@@ -177,9 +204,9 @@ const Invoice = ({ user }: Props) => {
         <div className="flex flex-col w-full gap-y-10 mt-8">
           {/* buyTransactions */}
           {isBuyTx ? (
-            isLoading ? (
+            isLoadingBuyTx ? (
               <div className="flex items-center justify-center">
-                <Loader2 className="w-6 h-6 animate-spin" />
+                <Loader2 className="w-8 h-8 animate-spin text-primary" />
               </div>
             ) : filteredBuyTxs?.length ? (
               filteredBuyTxs?.map((item, index) => {
@@ -224,109 +251,26 @@ const Invoice = ({ user }: Props) => {
                 </h2>
               </div>
             ) // sellTransactions
-          ) : isLoading ? (
+          ) : isLoadingSellTx ? (
             <div className="flex items-center justify-center">
-              <Loader2 className="w-6 h-6 animate-spin" />
+              <Loader2 className="w-8 h-8 animate-spin text-primary" />
             </div>
-          ) : sellTxInvoices?.length ? (
-            sellTxInvoices?.map((item, index) => {
-              const totalAmount = item.sellTransactions.reduce(
-                (acc, tx) => (acc += (tx.unitPrice ?? 0) * tx.quantity),
-                0
-              );
-              return (
-                <div className="flex flex-col py-4" key={index}>
-                  {/* card heading */}
-                  <div className="flex justify-between items-center text-slate-700 dark:text-slate-300">
-                    <div className="flex flex-col">
-                      <h2 className="text-3xl font-semibold uppercase">
-                        {item.invoiceNumber}
-                      </h2>
-                      <p className="">
-                        {item.sellTransactions[0]?.customers?.name}
-                      </p>
-                    </div>
-
-                    {/* received Amount */}
-                    <div className="flex items-center gap-4 justify-between">
-                      <div className="flex flex-col items-end">
-                        <div className="flex items-center gap-1">
-                          <p className="text-xl font-semibold">
-                            Received Amount
-                          </p>
-                          <p className="col-span-2 text-xl font-semibold">
-                            {formatPrice(item.totalCash ?? 0)}
-                          </p>
-                        </div>
-
-                        {/* totalAmount */}
-                        <div className="flex items-center gap-1">
-                          <p className="">Total Amount</p>
-                          <p className="col-span-2">
-                            {formatPrice(totalAmount)}
-                          </p>
-                        </div>
-                      </div>
-
-                      <div className="flex gap-1 items-center">
-                        {/* add payment dialog */}
-                        <PaymentAddDialog
-                          invoiceNumber={item.invoiceNumber}
-                          invoiceId={item.id}
-                        >
-                          <Button
-                            variant="secondary"
-                            className="hover:bg-primary/50 font-bold border-primary/50 border p-2"
-                          >
-                            ADD.PAY
-                          </Button>
-                        </PaymentAddDialog>
-
-                        {/* payment history dialog */}
-                        <PaymentHistoryDialog
-                          userId={user.id}
-                          sellTxInvoice={item}
-                          totalAmount={totalAmount}
-                        >
-                          <Button
-                            variant="secondary"
-                            className="hover:bg-primary/50 font-bold border-primary/50 border p-2"
-                          >
-                            PAY.HIS
-                          </Button>
-                        </PaymentHistoryDialog>
-                      </div>
-                    </div>
-                  </div>
-                  <Separator className="bg-primary/20 mb-2" />
-                  {item.sellTransactions.map((tx, index) => (
-                    <div
-                      key={index}
-                      className="grid grid-cols-10 gap-5 hover:bg-primary/10 p-1 text-muted-foreground"
-                    >
-                      <p className="col-span-2 justify-self-end">
-                        {format(tx.date, "yyyy-MM-dd")}
-                      </p>
-                      <p className="col-span-4 uppercase">
-                        {tx.products?.productNumber}
-                      </p>
-                      <p className="col-span-2">
-                        ({tx.quantity} X {formatPrice(tx.unitPrice ?? 0)})
-                      </p>
-                      <p className="col-span-2">
-                        {formatPrice(tx.quantity * (tx.unitPrice ?? 0))}
-                      </p>
-                    </div>
-                  ))}
-                </div>
-              );
-            })
+          ) : searchSellTxInvoices?.length ? (
+            searchSellTxInvoices?.map((item, index) => (
+              <InvoiceCard key={index} user={user} item={item} />
+            ))
+          ) : searchTerm.length === 0 && sellTxInvoices?.length ? (
+            sellTxInvoices?.map((item, index) => (
+              <InvoiceCard key={index} user={user} item={item} />
+            ))
           ) : (
-            <div className="mt-10 flex justify-center">
-              <h2 className="text-4xl font-semibold text-muted-foreground">
-                No Sales Invoices Found!
-              </h2>
-            </div>
+            !isLoadingSellTx && (
+              <div className="mt-10 flex justify-center">
+                <h2 className="text-4xl font-semibold text-muted-foreground">
+                  No Sales Invoices Found!
+                </h2>
+              </div>
+            )
           )}
         </div>
       </CardContent>

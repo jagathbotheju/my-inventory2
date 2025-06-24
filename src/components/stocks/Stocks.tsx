@@ -14,6 +14,8 @@ import { Button } from "../ui/button";
 import { useState } from "react";
 import { useDebounce } from "use-debounce";
 import { Input } from "../ui/input";
+import { Loader2Icon } from "lucide-react";
+import StockCard from "./StockCard";
 
 interface Props {
   user: User;
@@ -27,22 +29,22 @@ const Stocks = ({ user }: Props) => {
   const [bouncedSearchTerm] = useDebounce(searchTerm, 1000);
 
   // const { data: allUserStocks } = useAllUserStocks(user?.id as string);
-  const { data: allUserStocks } = useAllUserStocksByPeriod({
-    userId: user?.id as string,
-    // userId: "7e397cd1-19ad-4c68-aa50-a77c06450bc7", // For testing purposes
-    period: period,
-    timeFrame: allStocks ? "all" : timeFrame,
-    searchTerm: bouncedSearchTerm.length < 3 ? "" : bouncedSearchTerm,
-  });
+  const { data: allUserStocks, isLoading: allStockLoading } =
+    useAllUserStocksByPeriod({
+      userId: user?.id as string,
+      // userId: "7e397cd1-19ad-4c68-aa50-a77c06450bc7", // For testing purposes
+      period: period,
+      timeFrame: allStocks ? "all" : timeFrame,
+      searchTerm: bouncedSearchTerm.length < 3 ? "" : bouncedSearchTerm,
+    });
 
-  const { data: searchStocks } = useSearchStocks({
-    userId: user?.id as string,
-    // userId: "7e397cd1-19ad-4c68-aa50-a77c06450bc7", // For testing purposes
-    searchTerm: bouncedSearchTerm,
-  });
-
-  // console.log("allStocks", allUserStocks);
-  // console.log("searchStocks", searchStocks);
+  const { data: searchStocks, isLoading: searchStockLoading } = useSearchStocks(
+    {
+      userId: user?.id as string,
+      // userId: "7e397cd1-19ad-4c68-aa50-a77c06450bc7", // For testing purposes
+      searchTerm: bouncedSearchTerm,
+    }
+  );
 
   return (
     <Card className="flex flex-col w-full h-fit bg-transparent dark:border-primary/40">
@@ -87,12 +89,14 @@ const Stocks = ({ user }: Props) => {
               }
             }}
           />
-          <p
-            className="text-xl text-muted-foreground font-semibold absolute right-3 top-[26px] p-1 cursor-pointer"
-            onClick={() => setSearchTerm("")}
-          >
-            X
-          </p>
+          {searchTerm.length ? (
+            <p
+              className="text-xl text-muted-foreground font-semibold absolute right-3 top-[26px] p-1 cursor-pointer"
+              onClick={() => setSearchTerm("")}
+            >
+              X
+            </p>
+          ) : null}
           {isError && searchTerm.length < 3 && searchTerm.length !== 0 && (
             <p className="text-sm text-red-500">
               please type at least 3 characters
@@ -101,48 +105,44 @@ const Stocks = ({ user }: Props) => {
         </div>
       </CardHeader>
       <CardContent className="gap-5 grid grid-cols-3">
-        {searchTerm.length && searchStocks && searchStocks?.length > 0
-          ? _.sortBy(searchStocks, "productNumber")?.map((stock, index) => (
-              <Link
-                href={`/stocks/${stock.productId}?stockBal=${stock.quantity}`}
-                key={index}
-                className="flex flex-col items-center col-span-1 rounded-md border-primary border"
-              >
-                <div className="bg-primary/30 p-2 text-xl w-full font-semibold uppercase">
-                  {stock.productNumber}
-                </div>
-                {/* <div>{stock.productId}</div> */}
-                <div className="p-2 text-xl font-semibold w-full text-center">
-                  {stock.quantity}
-                </div>
-              </Link>
-            ))
-          : searchTerm.length === 0 &&
-            allUserStocks &&
-            allUserStocks?.length > 0
-          ? _.sortBy(allUserStocks, "productNumber")?.map((stock, index) => (
-              <Link
-                href={`/stocks/${stock.productId}?stockBal=${stock.quantity}`}
-                key={index}
-                className="flex flex-col items-center col-span-1 rounded-md border-primary border"
-              >
-                <div className="bg-primary/30 p-2 text-xl w-full font-semibold uppercase">
-                  {stock.productNumber}
-                </div>
-                {/* <div>{stock.productId}</div> */}
-                <div className="p-2 text-xl font-semibold w-full text-center">
-                  {stock.quantity}
-                </div>
-              </Link>
-            ))
-          : allUserStocks?.length === 0 ||
-            (searchStocks?.length === 0 && (
-              <div className="flex w-full items-center justify-center col-span-3 mt-10">
-                <p className="text-3xl text-muted-foreground col-span-3 font-semibold">
-                  No stocks found for this period.
-                </p>
+        {allStockLoading || searchStockLoading ? (
+          <div className="flex w-full p-8 items-center justify-center col-span-3">
+            <Loader2Icon className="w-8 h-8 animate-spin text-primary" />
+          </div>
+        ) : // SEARCH RESULT
+        searchTerm.length && searchStocks && searchStocks?.length > 0 ? (
+          _.sortBy(searchStocks, "productNumber")?.map((stock, index) => (
+            <Link
+              href={`/stocks/${stock.productId}?stockBal=${stock.quantity}`}
+              key={index}
+              className="flex flex-col items-center col-span-1 rounded-md border-primary border"
+            >
+              <div className="bg-primary/30 p-2 text-xl w-full font-semibold uppercase">
+                {stock.productNumber}
               </div>
-            ))}
+              {/* <div>{stock.productId}</div> */}
+              <div className="p-2 text-xl font-semibold w-full text-center">
+                {stock.quantity}
+              </div>
+            </Link>
+          ))
+        ) : //ALL STOCKS
+        searchTerm.length === 0 &&
+          allUserStocks &&
+          allUserStocks?.length > 0 ? (
+          _.sortBy(allUserStocks, "productNumber")?.map((stock, index) => (
+            <StockCard stock={stock} key={index} />
+          ))
+        ) : (
+          allUserStocks?.length === 0 ||
+          (searchStocks?.length === 0 && (
+            <div className="flex w-full items-center justify-center col-span-3 mt-10">
+              <p className="text-3xl text-muted-foreground col-span-3 font-semibold">
+                No stocks found for this period.
+              </p>
+            </div>
+          ))
+        )}
       </CardContent>
     </Card>
   );

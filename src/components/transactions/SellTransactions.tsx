@@ -89,7 +89,7 @@ const SellTransactions = ({ user }: Props) => {
               </p>
               <p className="text-xl font-semibold text-muted-foreground">
                 {sellTxTotalSalesLoading ? (
-                  <Loader2Icon className="w-6 h-6 animate-spin" />
+                  <Loader2Icon className="w-8 h-8 animate-spin text-primary" />
                 ) : (
                   formatPrice(
                     totalPurchase && totalPurchase.value
@@ -132,7 +132,7 @@ const SellTransactions = ({ user }: Props) => {
         <CardContent>
           {sellTxPaginationLoading ? (
             <div className="flex justify-center items-center">
-              <Loader2Icon className="w-8 h-8 animate-spin" />
+              <Loader2Icon className="w-8 h-8 animate-spin text-primary" />
             </div>
           ) : _.isEmpty(sellTransactions) ? (
             <div className="mt-8 flex justify-center items-center">

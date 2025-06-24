@@ -35,7 +35,7 @@ const UomPicker = ({ setUom, unitId }: Props) => {
   return (
     <div className="w-full">
       {isLoading ? (
-        <Loader2Icon className="w-4 h-4 animate-spin" />
+        <Loader2Icon className="w-4 h-4 animate-spin text-primary" />
       ) : (
         <Popover open={open} onOpenChange={setOpen}>
           <PopoverTrigger asChild className="dark:bg-slate-900 w-full">

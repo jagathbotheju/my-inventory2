@@ -54,7 +54,7 @@ const AllProducts = ({ user }: Props) => {
   const { currentSupplier } = useProductStore();
   const [isError, setIsError] = useState(false);
   const [searchTerm, setSearchTerm] = useState("");
-  const [bouncedSearchTerm] = useDebounce(searchTerm, 2000);
+  const [bouncedSearchTerm] = useDebounce(searchTerm, 1000);
 
   const { data: product } = useProductById({ productId, userId: user?.id });
   const { data: productsBySupplierPagination, isLoading } =
@@ -126,12 +126,14 @@ const AllProducts = ({ user }: Props) => {
                 }
               }}
             />
-            <p
-              className="text-xl text-muted-foreground font-semibold absolute right-3 top-[26px] p-1 cursor-pointer"
-              onClick={() => setSearchTerm("")}
-            >
-              X
-            </p>
+            {searchTerm.length ? (
+              <p
+                className="text-xl text-muted-foreground font-semibold absolute right-3 top-[26px] p-1 cursor-pointer"
+                onClick={() => setSearchTerm("")}
+              >
+                X
+              </p>
+            ) : null}
             {isError && searchTerm.length < 3 && searchTerm.length !== 0 && (
               <p className="text-sm text-red-500">
                 please type at least 3 characters
@@ -142,7 +144,7 @@ const AllProducts = ({ user }: Props) => {
         <CardContent>
           {isLoading ? (
             <div className="flex items-center justify-center">
-              <Loader2Icon className="w-10 h-10 animate-spin" />
+              <Loader2Icon className="w-8 h-8 animate-spin text-primary" />
             </div>
           ) : !(supplier.id || currentSupplier.id) ? (
             <div className="flex flex-col gap-2 w-full mt-8 justify-center items-center dark:text-slate-400 text-slate-500">

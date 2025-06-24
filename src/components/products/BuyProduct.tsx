@@ -67,7 +67,7 @@ const BuyProduct = ({ productId, userId }: Props) => {
       <CardContent>
         {isLoading ? (
           <div className="flex w-full justify-center items-center">
-            <Loader2Icon className="w-6 h-6 animate-spin" />
+            <Loader2Icon className="w-8 h-8 animate-spin text-primary" />
           </div>
         ) : (
           <Form {...form}>

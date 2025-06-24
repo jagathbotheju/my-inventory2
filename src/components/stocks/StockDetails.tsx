@@ -9,6 +9,8 @@ import { Button } from "../ui/button";
 import { useRouter } from "next/navigation";
 import { ScrollArea } from "../ui/scroll-area";
 import { Loader2Icon } from "lucide-react";
+import { formatPrice } from "@/lib/utils";
+import _ from "lodash";
 
 interface Props {
   user: User;
@@ -19,7 +21,9 @@ interface Props {
 const StockDetails = ({ user, productId, stockBal }: Props) => {
   const router = useRouter();
   let totalBuyStock = 0;
+  let totalBuyAmount = 0;
   let totalSellStock = 0;
+  let totalSellAmount = 0;
   const { data: buyTxs, isLoading: buyTxsLoading } = useBuyTxByUserProduct({
     userId: user.id,
     // userId: "7e397cd1-19ad-4c68-aa50-a77c06450bc7",
@@ -53,10 +57,10 @@ const StockDetails = ({ user, productId, stockBal }: Props) => {
       </CardHeader>
       <CardContent className="flex flex-col gap-2">
         <div className="flex justify-between w-full gap-6">
-          {/* left */}
+          {/* LEFT */}
           {buyTxsLoading ? (
             <div className="flex w-full p-8 items-center justify-center">
-              <Loader2Icon className="w-6 h-6 animate-spin" />
+              <Loader2Icon className="w-8 h-8 animate-spin text-primary" />
             </div>
           ) : (
             <div className="flex flex-col w-full">
@@ -66,33 +70,51 @@ const StockDetails = ({ user, productId, stockBal }: Props) => {
                 </h3>
               </div>
 
-              <ScrollArea className="h-[30rem] w-full rounded-md border border-transparent">
-                {buyTxs?.map((item, index) => {
+              <ScrollArea className="h-[30rem] w-full rounded-md border border-transparent px-2">
+                {_.sortBy(buyTxs, ["date", "unitPrice"])?.map((item, index) => {
                   totalBuyStock += item.quantity;
+                  totalBuyAmount += item.unitPrice * item.quantity;
                   return (
-                    <div
-                      key={index}
-                      className="flex items-center justify-between px-4 mb-1"
-                    >
-                      <p>{format(item.date, "yyyy-MM-dd")}</p>
-                      <div className="flex items-center gap-2">
-                        <p>{item.quantity}</p>
-                        <p className="uppercase">
-                          {item.products?.unitOfMeasurements?.unit}
-                        </p>
+                    <div key={index} className="grid grid-cols-12 gap-2">
+                      <p className="col-span-3">
+                        {format(item.date, "yyyy-MM-dd")}
+                      </p>
+
+                      <div className="col-span-9">
+                        <div className="grid grid-cols-12 gap-1">
+                          <p className="col-span-4 px-2">
+                            {formatPrice(item.unitPrice)}
+                          </p>
+                          <p>X</p>
+                          <div className="flex items-center gap-1 col-span-2">
+                            <p>{item.quantity}</p>
+                            <p className="uppercase">
+                              {item.products?.unitOfMeasurements?.unit}
+                            </p>
+                          </div>
+                          <p>=</p>
+
+                          <p className="font-semibold col-span-4 justify-self-end">
+                            {formatPrice(item.unitPrice * item.quantity)}
+                          </p>
+                        </div>
                       </div>
                     </div>
                   );
                 })}
               </ScrollArea>
 
+              {/* TOTAL */}
               {buyTxs && buyTxs.length && totalBuyStock && totalBuyStock ? (
-                <div className="self-end px-4 flex gap-1 border-t-[1px] border-t-primary border-b-primary border-b-2 mt-1 font-semibold text-lg">
-                  <p>{Intl.NumberFormat("en-IN").format(totalBuyStock)}</p>
-                  <p className="uppercase">
-                    {buyTxs?.length &&
-                      buyTxs[0]?.products?.unitOfMeasurements?.unit}
-                  </p>
+                <div className="items-center self-end px-4 mt-6 flex gap-4 border-t-[1px] border-t-primary border-b-primary border-b-2 font-semibold text-lg">
+                  <div className="flex items-center gap-1">
+                    <p>{Intl.NumberFormat("en-IN").format(totalBuyStock)}</p>
+                    <p className="uppercase">
+                      {buyTxs?.length &&
+                        buyTxs[0]?.products?.unitOfMeasurements?.unit}
+                    </p>
+                  </div>
+                  <p className="text-primary">{formatPrice(totalBuyAmount)}</p>
                 </div>
               ) : null}
             </div>
@@ -101,7 +123,7 @@ const StockDetails = ({ user, productId, stockBal }: Props) => {
           {/* right */}
           {sellTxsLoading ? (
             <div className="flex w-full p-8 items-center justify-center">
-              <Loader2Icon className="w-6 h-6 animate-spin" />
+              <Loader2Icon className="w-8 h-8 animate-spin text-primary" />
             </div>
           ) : (
             <div className="flex flex-col w-full">
@@ -111,25 +133,43 @@ const StockDetails = ({ user, productId, stockBal }: Props) => {
                 </h3>
               </div>
 
-              <ScrollArea className="h-[30rem] w-full rounded-md border border-transparent">
+              <ScrollArea className="h-[30rem] w-full rounded-md border border-transparent px-2">
                 {sellTxs && sellTxs.length ? (
-                  sellTxs?.map((item, index) => {
-                    totalSellStock += item.quantity;
-                    return (
-                      <div
-                        key={index}
-                        className="flex items-center justify-between px-4 mb-1"
-                      >
-                        <p>{format(item.date, "yyyy-MM-dd")}</p>
-                        <div className="flex items-center gap-2">
-                          <p>{item.quantity}</p>
-                          <p className="uppercase">
-                            {item.products?.unitOfMeasurements?.unit}
+                  _.sortBy(sellTxs, ["date", "unitPrice"])?.map(
+                    (item, index) => {
+                      totalSellStock += item.quantity;
+                      totalSellAmount += (item.unitPrice ?? 0) * item.quantity;
+                      return (
+                        <div key={index} className="grid grid-cols-12 gap-2">
+                          <p className="col-span-3">
+                            {format(item.date, "yyyy-MM-dd")}
                           </p>
+
+                          <div className="col-span-9">
+                            <div className="grid grid-cols-12 gap-1">
+                              <p className="col-span-4">
+                                {formatPrice(item.unitPrice ?? 0)}
+                              </p>
+                              <p>X</p>
+                              <div className="flex items-center gap-1 col-span-2">
+                                <p>{item.quantity}</p>
+                                <p className="uppercase">
+                                  {item.products?.unitOfMeasurements?.unit}
+                                </p>
+                              </div>
+                              <p>=</p>
+
+                              <p className="font-semibold col-span-4 justify-self-end">
+                                {formatPrice(
+                                  (item.unitPrice ?? 0) * item.quantity
+                                )}
+                              </p>
+                            </div>
+                          </div>
                         </div>
-                      </div>
-                    );
-                  })
+                      );
+                    }
+                  )
                 ) : (
                   <p className="text-muted-foreground text-center font-semibold">
                     No Sell Transactions Found!
@@ -137,13 +177,18 @@ const StockDetails = ({ user, productId, stockBal }: Props) => {
                 )}
               </ScrollArea>
 
+              {/* TOTAL */}
               {sellTxs && sellTxs.length && totalSellStock ? (
-                <div className="self-end px-4 flex gap-1 border-t-[1px] border-t-primary border-b-primary border-b-2 mt-1 font-semibold text-lg">
-                  <p>{Intl.NumberFormat("en-IN").format(totalSellStock)}</p>
-                  <p className="uppercase">
-                    {buyTxs?.length &&
-                      buyTxs[0]?.products?.unitOfMeasurements?.unit}
-                  </p>
+                <div className="self-end px-4 flex gap-4 border-t-[1px] border-t-primary border-b-primary border-b-2 mt-6 font-semibold text-lg">
+                  <div className="flex items-center gap-1">
+                    <p>{Intl.NumberFormat("en-IN").format(totalSellStock)}</p>
+
+                    <p className="uppercase">
+                      {buyTxs?.length &&
+                        buyTxs[0]?.products?.unitOfMeasurements?.unit}
+                    </p>
+                  </div>
+                  <p className="text-primary">{formatPrice(totalSellAmount)}</p>
                 </div>
               ) : null}
             </div>

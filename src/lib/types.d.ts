@@ -60,6 +60,11 @@ type StockBal = {
   productNumber: string;
   productId: string;
   quantity: number;
+  buyTxTotalQuantity: number;
+  buyTxTotalAmount: number;
+  sellTxTotalQuantity: number;
+  sellTxTotalAmount: number;
+  uom: string;
 };
 
 type ChequeData = {
