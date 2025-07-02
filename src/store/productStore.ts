@@ -1,18 +1,18 @@
-import { TableData } from "@/components/ProductsPickerDialog";
 import { Supplier } from "@/server/db/schema/suppliers";
 import { create } from "zustand";
 import { persist } from "zustand/middleware";
 import { RowSelectionState } from "@tanstack/react-table";
+import { TableDataProductsPicker } from "@/components/ProductsPickerDialog";
 
 export type ProductStore = {
   currentSupplier: Supplier;
-  selectedProducts: TableData[];
-  updateSelectedProduct: (product: TableData) => void;
+  selectedProducts: TableDataProductsPicker[];
+  updateSelectedProduct: (product: TableDataProductsPicker) => void;
   selectedProductIds: RowSelectionState;
   setCurrentSupplier: (supplier: Supplier) => void;
-  setSelectedProducts: (products: TableData[]) => void;
+  setSelectedProducts: (products: TableDataProductsPicker[]) => void;
   setSelectedProductIds: (ids: RowSelectionState) => void;
-  removeSelectedProduct: (productId: string) => void;
+  removeSelectedProduct: (product: TableDataProductsPicker) => void;
   removeSelectedProductId: (id: string) => void;
 };
 
@@ -21,7 +21,7 @@ export const useProductStore = create<ProductStore>()(
     (set) => ({
       selectedProductIds: {} as RowSelectionState,
       currentSupplier: {} as Supplier,
-      selectedProducts: [] as TableData[],
+      selectedProducts: [] as TableDataProductsPicker[],
       setCurrentSupplier: (currentSupplier) => {
         set(() => ({
           currentSupplier,
@@ -51,10 +51,12 @@ export const useProductStore = create<ProductStore>()(
           };
         });
       },
-      removeSelectedProduct: (productId: string) => {
+      removeSelectedProduct: (product: TableDataProductsPicker) => {
         set((state) => ({
           selectedProducts: state.selectedProducts.filter(
-            (product) => product.productId !== productId
+            (item) =>
+              item.productId === product.productId &&
+              item.purchasedPrice !== product.purchasedPrice
           ),
         }));
       },

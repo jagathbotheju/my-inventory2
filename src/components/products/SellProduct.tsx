@@ -46,6 +46,7 @@ interface Props {
 
 const SellProduct = ({ productId, userId }: Props) => {
   const router = useRouter();
+  const [openCalendar, setOpenCalendar] = useState(false);
   const [customer, setCustomer] = useState<Customer>({} as Customer);
   const [stockProduct, setStockProduct] = useState<Stock>({} as Stock);
   const { data: product, isLoading } = useProductById({ productId, userId });
@@ -225,7 +226,10 @@ const SellProduct = ({ productId, userId }: Props) => {
                   name="date"
                   render={({ field }) => (
                     <FormItem className="flex flex-col">
-                      <Popover>
+                      <Popover
+                        open={openCalendar}
+                        onOpenChange={setOpenCalendar}
+                      >
                         <PopoverTrigger asChild>
                           <FormControl>
                             <Button
@@ -246,12 +250,13 @@ const SellProduct = ({ productId, userId }: Props) => {
                         </PopoverTrigger>
                         <PopoverContent className="w-auto p-0" align="start">
                           <Calendar
+                            className="pointer-events-auto"
                             mode="single"
                             selected={field.value}
-                            onSelect={field.onChange}
-                            // disabled={(date) =>
-                            //   date > new Date() || date < new Date("1900-01-01")
-                            // }
+                            onSelect={(val) => {
+                              field.onChange(val);
+                              setOpenCalendar(false);
+                            }}
                             initialFocus
                           />
                         </PopoverContent>

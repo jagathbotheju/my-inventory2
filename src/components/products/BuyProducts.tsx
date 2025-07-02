@@ -4,7 +4,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "../ui/card";
 import { CalendarIcon, Trash2Icon } from "lucide-react";
 import { useForm, useFieldArray } from "react-hook-form";
 import { z } from "zod";
-import { SellProductsSchema } from "@/lib/schema";
+import { BuyProductsSchema } from "@/lib/schema";
 import { zodResolver } from "@hookform/resolvers/zod";
 import {
   Form,
@@ -20,45 +20,29 @@ import { Popover, PopoverContent, PopoverTrigger } from "../ui/popover";
 import { cn, formatPrice } from "@/lib/utils";
 import { format } from "date-fns";
 import { Calendar } from "../ui/calendar";
-import { useAddSellTransactions } from "@/server/backend/mutations/sellTxMutations";
-import { SellTransaction } from "@/server/db/schema/sellTransactions";
-import { Customer } from "@/server/db/schema/customers";
 import { useCallback, useEffect, useState } from "react";
-import CustomerPicker from "../CustomerPicker";
-import { toast } from "sonner";
-import { useProductStore } from "@/store/productStore";
-import PaymentModePicker from "../PaymentModePicker";
-import { useRouter } from "next/navigation";
-import {
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableRow,
-} from "../ui/table";
 import ProductsPickerDialog, {
   TableDataProductsPicker,
 } from "../ProductsPickerDialog";
+import { useProductStore } from "@/store/productStore";
+import PaymentModePicker from "../PaymentModePicker";
+import { useRouter } from "next/navigation";
+import { BuyTransaction } from "@/server/db/schema/buyTransactions";
+import SupplierPicker from "../SupplierPicker";
+import { Supplier } from "@/server/db/schema/suppliers";
+import { useAddBuyTransactions } from "@/server/backend/mutations/buyTxMutations";
 
 interface Props {
   userId: string;
 }
 
-export type SellProductsData = z.infer<typeof SellProductsSchema> & {
-  userId: string;
-  customerId: string;
-  supplierId: string;
-};
-
-const SellProducts = ({ userId }: Props) => {
+const BuyProducts = ({ userId }: Props) => {
   const router = useRouter();
   const total: number[] = [];
   const [openCalendar, setOpenCalendar] = useState(false);
   const [paymentMode, setPaymentMode] = useState<string>("");
-  const [customer, setCustomer] = useState<Customer>({} as Customer);
-  // const [isLoading, setIsLoading] = useState<boolean>(false);
-  const { mutate: addSellTransactions } = useAddSellTransactions();
+  const [supplier, setSupplier] = useState<Supplier>({} as Supplier);
+  const { mutate: addBuyTransactions } = useAddBuyTransactions();
   const {
     selectedProducts,
     currentSupplier,
@@ -68,21 +52,20 @@ const SellProducts = ({ userId }: Props) => {
     setSelectedProductIds,
   } = useProductStore();
 
-  const form = useForm<z.infer<typeof SellProductsSchema>>({
-    resolver: zodResolver(SellProductsSchema),
+  const form = useForm<z.infer<typeof BuyProductsSchema>>({
+    resolver: zodResolver(BuyProductsSchema),
     defaultValues: {
-      date: new Date(),
-      invoiceNumber: "",
+      date: new Date(), //ok
+      invoiceNumber: "", //ok
       paymentMode: "",
       cacheAmount: 0,
       creditAmount: 0,
       products: [
         {
-          unitPrice: 0,
-          quantity: 0,
-          purchasedPrice: 0,
-          productNumber: "",
-          productId: "",
+          unitPrice: 0, //ok
+          quantity: 0, //ok
+          productNumber: "", //ok
+          productId: "", //ok
         },
       ],
       cheques: [
@@ -121,27 +104,24 @@ const SellProducts = ({ userId }: Props) => {
     });
   }, [append, selectedProducts, remove]);
 
-  const onSubmit = async (formData: z.infer<typeof SellProductsSchema>) => {
-    if (!customer.id) return toast.error("Please select customer");
+  const onSubmit = async (formData: z.infer<typeof BuyProductsSchema>) => {
     const products = formData.products;
     if (!products.length) return;
+    const buyTxData = products.map((item) => ({
+      productId: item.productId as string, //ok
+      productNumber: item.productNumber, //ok
+      quantity: item.quantity, //ok
+      unitPrice: item.unitPrice, //ok
+      userId, //ok
+      supplierId: supplier.id ? supplier.id : currentSupplier.id, //ok
+      date: formData.date.toDateString(), //ok
+      invoiceNumber: formData.invoiceNumber, //ok
+      paymentMode: formData.paymentMode, //ok
+      cacheAmount: formData.cacheAmount, //ok
+      creditAmount: formData.creditAmount, //ok
+    })) as BuyTransaction[];
 
-    const sellTxData = products.map((item) => ({
-      productId: item.productId as string,
-      productNumber: item.productNumber,
-      quantity: item.quantity,
-      unitPrice: item.unitPrice,
-      purchasedPrice: item.purchasedPrice ?? 0,
-      userId,
-      customerId: customer.id,
-      supplierId: currentSupplier.id,
-      date: formData.date.toDateString(),
-      invoiceNumber: formData.invoiceNumber,
-      paymentMode: formData.paymentMode,
-      cacheAmount: formData.cacheAmount,
-      creditAmount: formData.creditAmount,
-    })) as SellTransaction[];
-    addSellTransactions({ sellTxData, chequeData: formData.cheques });
+    addBuyTransactions({ buyTxData, chequeData: formData.cheques });
   };
 
   const removeSelected = (product: TableDataProductsPicker) => {
@@ -150,6 +130,7 @@ const SellProducts = ({ userId }: Props) => {
   };
 
   const clearFields = () => {
+    form.setValue("creditAmount", 0);
     form.setValue("cacheAmount", 0);
     form.setValue("cheques", [
       {
@@ -172,23 +153,14 @@ const SellProducts = ({ userId }: Props) => {
     setSelectedProductIds({});
   }, [setSelectedProducts, setSelectedProductIds]);
 
-  // useEffect(() => {
-  //   if (total.length) {
-  //     form.setValue(
-  //       "creditAmount",
-  //       total.reduce((acc, item) => acc + item)
-  //     );
-  //   }
-  // }, [total, form]);
-
   if (!fields.length) return null;
 
   return (
     <Card className="dark:bg-transparent dark:border-primary/40 relative">
       <CardHeader>
         <div className="flex items-center justify-between">
-          <CardTitle className="text-4xl font-bold">Sell Products</CardTitle>
-          <ProductsPickerDialog userId={userId} sellMode>
+          <CardTitle className="text-4xl font-bold">Buying Products</CardTitle>
+          <ProductsPickerDialog userId={userId}>
             <Button className="font-semibold">Select Products</Button>
           </ProductsPickerDialog>
         </div>
@@ -201,21 +173,13 @@ const SellProducts = ({ userId }: Props) => {
           >
             {/* supplier */}
             <p className="whitespace-nowrap text-2xl col-span-3 font-semibold text-muted-foreground">
-              Supplier
+              Select Supplier
             </p>
-            <div className="whitespace-nowrap text-2xl col-span-8 font-semibold">
-              {currentSupplier?.name}
-            </div>
-
-            {/* customers */}
-            <p className="whitespace-nowrap text-2xl col-span-3 font-semibold text-muted-foreground">
-              Select Customer
-            </p>
-            <div className="whitespace-nowrap text-2xl col-span-8">
-              <CustomerPicker
-                setCustomer={setCustomer}
+            <div className="whitespace-nowrap text-2xl col-span-8 w-fit">
+              <SupplierPicker
+                setSupplier={setSupplier}
                 userId={userId}
-                supplierId={currentSupplier.id}
+                supplierId={supplier.id ? supplier.id : currentSupplier.id}
               />
             </div>
 
@@ -238,108 +202,114 @@ const SellProducts = ({ userId }: Props) => {
 
             {/* selected products */}
             <div className="flex flex-col col-span-12 p-2">
-              <Table>
-                <TableHeader className="bg-secondary text-secondary-foreground">
-                  <TableRow>
-                    <TableHead>Product No.</TableHead>
-                    <TableHead>Stock Bal.</TableHead>
-                    <TableHead>Purchased Price</TableHead>
-                    <TableHead>Sales Price</TableHead>
-                    <TableHead>Quantity</TableHead>
-                    <TableHead>Total</TableHead>
-                    <TableHead></TableHead>
-                  </TableRow>
-                </TableHeader>
+              <div className="grid grid-cols-12 gap-4 bg-secondary p-2 rounded-md font-semibold text-secondary-foreground">
+                <p className="col-span-3">Product No.</p>
+                <p className="col-span-2">Stock Bal.</p>
+                <p className="col-span-2">Purchase Price</p>
+                <p className="col-span-2">Quantity</p>
+                <p className="col-span-2">Total</p>
+                <p className="col-span-1"></p>
+              </div>
 
-                <TableBody>
-                  {selectedProducts?.length
-                    ? selectedProducts.map((product, index) => {
-                        const fieldDynamic = fields[index];
-                        form.setValue(
-                          `products.${index}.productNumber`,
-                          product.productNumber
-                        );
-                        form.setValue(
-                          `products.${index}.purchasedPrice`,
-                          product.purchasedPrice
-                        );
-                        form.setValue(
-                          `products.${index}.productId`,
-                          product.productId
-                        );
-                        const sellQuantity = form.watch(
-                          `products.${index}.quantity`
-                        );
-                        const sellUnitPrice = form.watch(
-                          `products.${index}.unitPrice`
-                        );
-                        const totalPrice = sellQuantity * sellUnitPrice;
+              <div className="mt-2 col-span-12">
+                {selectedProducts?.length ? (
+                  selectedProducts.map((product, index) => {
+                    const fieldDynamic = fields[index];
+                    form.setValue(
+                      `products.${index}.productNumber`,
+                      product.productNumber
+                    );
 
-                        if (totalPrice) total.push(totalPrice);
-                        if (total.length) {
-                          form.setValue(
-                            "creditAmount",
-                            total?.reduce((acc, item) => acc + item)
-                          );
-                        }
+                    form.setValue(
+                      `products.${index}.productId`,
+                      product.productId
+                    );
+                    const buyQuantity = form.watch(
+                      `products.${index}.quantity`
+                    );
+                    const buyUnitPrice = form.watch(
+                      `products.${index}.unitPrice`
+                    );
+                    const totalPrice = buyQuantity * buyUnitPrice;
 
-                        return (
-                          <TableRow key={fieldDynamic?.id ?? index}>
-                            <TableCell>{product.productNumber}</TableCell>
-                            <TableCell>{product.quantity}</TableCell>
-                            <TableCell>
-                              {formatPrice(product.purchasedPrice ?? 0)}
-                            </TableCell>
-                            <TableCell>
-                              <FormField
-                                key={index}
-                                control={form.control}
-                                name={`products.${index}.unitPrice` as const}
-                                render={(field) => {
-                                  return (
-                                    <FormItem className="whitespace-nowrap text-xl relative">
-                                      <FormControl>
-                                        <Input {...field.field} type="number" />
-                                      </FormControl>
-                                      <FormMessage className="dark:text-white absolute -bottom-6 font-semibold" />
-                                    </FormItem>
-                                  );
-                                }}
-                              />
-                            </TableCell>
-                            <TableCell className="flex gap-2 w-full items-center relative my-4">
-                              <FormField
-                                key={index + 1}
-                                control={form.control}
-                                name={`products.${index}.quantity` as const}
-                                render={(field) => (
-                                  <FormItem className="whitespace-nowrap text-xl w-fit relative">
-                                    <FormControl>
-                                      <Input {...field.field} type="number" />
-                                    </FormControl>
-                                    <FormMessage className="dark:text-white absolute -bottom-6" />
-                                  </FormItem>
-                                )}
-                              />
-                              {product.quantity < sellQuantity && (
-                                <span className="text-sm text-red-500 absolute font-semibold -bottom-3 left-3">
-                                  no stocks
-                                </span>
-                              )}
-                            </TableCell>
-                            <TableCell>{formatPrice(totalPrice)}</TableCell>
-                            <TableCell>
-                              <Trash2Icon
-                                className="text-red-500 w-5 h-5 cursor-pointer"
-                                onClick={() => removeSelected(product)}
-                              />
-                            </TableCell>
-                          </TableRow>
-                        );
-                      })
-                    : null}
-                </TableBody>
-              </Table>
+                    if (totalPrice) total.push(totalPrice);
+                    if (total.length && paymentMode === "credit") {
+                      form.setValue(
+                        "creditAmount",
+                        total?.reduce((acc, item) => acc + item)
+                      );
+                    }
+
+                    return (
+                      <div
+                        key={fieldDynamic?.id ?? index}
+                        className="grid grid-cols-12 gap-4 p-2 hover:bg-secondary/60"
+                      >
+                        {/* 3-cols - productNumber */}
+                        <p className="col-span-3 uppercase self-center">
+                          {product.productNumber}
+                        </p>
+
+                        {/* 2-cols - stockBal */}
+                        <p className="col-span-2 self-center">
+                          {product.quantity}
+                        </p>
+
+                        {/* 2-cols - purchasePrice */}
+                        <div className="col-span-2">
+                          <FormField
+                            key={index}
+                            control={form.control}
+                            name={`products.${index}.unitPrice` as const}
+                            render={(field) => {
+                              return (
+                                <FormItem className="whitespace-nowrap text-xl relative">
+                                  <FormControl>
+                                    <Input {...field.field} type="number" />
+                                  </FormControl>
+                                  <FormMessage className="dark:text-white absolute -bottom-6" />
+                                </FormItem>
+                              );
+                            }}
+                          />
+                        </div>
+
+                        {/* 2-cols - quantity */}
+                        <div className="col-span-2 flex gap-2 w-full items-center relative">
+                          <FormField
+                            key={index + 1}
+                            control={form.control}
+                            name={`products.${index}.quantity` as const}
+                            render={(field) => (
+                              <FormItem className="whitespace-nowrap text-xl w-fit relative">
+                                <FormControl>
+                                  <Input {...field.field} type="number" />
+                                </FormControl>
+                                <FormMessage className="dark:text-white absolute -bottom-6" />
+                              </FormItem>
+                            )}
+                          />
+                        </div>
+
+                        {/* 2-cols - total */}
+                        <p className="col-span-2 self-center">
+                          {formatPrice(totalPrice)}
+                        </p>
+
+                        {/* 1-cols - delete */}
+                        <Trash2Icon
+                          className="text-red-500 w-5 h-5 cursor-pointer col-span-1 self-center"
+                          onClick={() => removeSelected(product)}
+                        />
+                      </div>
+                    );
+                  })
+                ) : (
+                  <div className="text-center text-muted-foreground mt-4 font-semibold">
+                    No products selected
+                  </div>
+                )}
+              </div>
             </div>
 
             {/* total price */}
@@ -365,6 +335,7 @@ const SellProducts = ({ userId }: Props) => {
                     <PaymentModePicker
                       value={field.value}
                       setValue={(value) => {
+                        clearFields();
                         field.onChange(value);
                         setPaymentMode(value);
                       }}
@@ -393,7 +364,7 @@ const SellProducts = ({ userId }: Props) => {
                         <FormControl>
                           <Input
                             {...field}
-                            placeholder="Enter cash amount"
+                            placeholder="Enter credit amount"
                             className="text-2xl font-semibold"
                           />
                         </FormControl>
@@ -437,7 +408,7 @@ const SellProducts = ({ userId }: Props) => {
             {paymentMode === "cheque" && (
               <>
                 <div className="col-span-12 border border-1 rounded-md p-6">
-                  <div className="flex flex-col gap-6 ml-12 justify-center w-full">
+                  <div className="flex flex-col gap-6 justify-center w-full">
                     {checkFields.map((field, index) => (
                       <div key={field.id} className="flex items-center gap-5">
                         {/* cheque number */}
@@ -813,4 +784,4 @@ const SellProducts = ({ userId }: Props) => {
     </Card>
   );
 };
-export default SellProducts;
+export default BuyProducts;

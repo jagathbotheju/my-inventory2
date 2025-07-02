@@ -6,94 +6,178 @@ import PaymentHistoryDialog from "../PaymentHistoryDialog";
 import { User } from "@/server/db/schema/users";
 import { Separator } from "../ui/separator";
 import { format } from "date-fns";
+import { BuyTxInvoiceExt } from "@/server/db/schema/buyTxInvoices";
 
 interface Props {
-  item: SellTxInvoiceExt;
+  // item: SellTxInvoiceExt | BuyTxInvoiceExt;
   user: User;
+  isBuyTx?: boolean;
+  buyTxInvoice?: BuyTxInvoiceExt;
+  sellTxInvoice?: SellTxInvoiceExt;
 }
 
-const InvoiceCard = ({ item, user }: Props) => {
-  const totalAmount = item.sellTransactions.reduce(
-    (acc, tx) => (acc += (tx.unitPrice ?? 0) * tx.quantity),
-    0
-  );
+const InvoiceCard = ({ user, isBuyTx, buyTxInvoice, sellTxInvoice }: Props) => {
+  let totalAmount;
+  if (!isBuyTx && sellTxInvoice) {
+    totalAmount = sellTxInvoice.sellTransactions.reduce(
+      (acc, tx) => (acc += (tx.unitPrice ?? 0) * tx.quantity),
+      0
+    );
+  }
+  if (isBuyTx && buyTxInvoice) {
+    totalAmount = buyTxInvoice.buyTransactions.reduce(
+      (acc, tx) => (acc += (tx.unitPrice ?? 0) * tx.quantity),
+      0
+    );
+  }
 
   return (
-    <div className="flex flex-col py-4">
+    <div className="flex flex-col">
       {/* card heading */}
       <div className="flex justify-between items-center text-slate-700 dark:text-slate-300">
         <div className="flex flex-col">
           <h2 className="text-3xl font-semibold uppercase">
-            {item.invoiceNumber}
+            {isBuyTx
+              ? buyTxInvoice?.invoiceNumber
+              : sellTxInvoice?.invoiceNumber}
           </h2>
-          <p className="">{item.sellTransactions[0]?.customers?.name}</p>
+          <p className="">
+            {isBuyTx
+              ? buyTxInvoice?.buyTransactions[0]?.suppliers?.name
+              : sellTxInvoice?.sellTransactions[0]?.customers?.name}
+          </p>
         </div>
 
-        {/* received Amount */}
         <div className="flex items-center gap-4 justify-between">
           <div className="flex flex-col items-end">
+            {/* received Amount */}
             <div className="flex items-center gap-1">
-              <p className="text-xl font-semibold">Received Amount</p>
+              <p className="text-xl font-semibold">
+                {isBuyTx ? "Paid Amount" : "Received Amount"}
+              </p>
               <p className="col-span-2 text-xl font-semibold">
-                {formatPrice(item.totalCash ?? 0)}
+                {isBuyTx
+                  ? formatPrice(buyTxInvoice?.totalCash ?? 0)
+                  : formatPrice(sellTxInvoice?.totalCash ?? 0)}
               </p>
             </div>
 
             {/* totalAmount */}
             <div className="flex items-center gap-1">
               <p className="">Total Amount</p>
-              <p className="col-span-2">{formatPrice(totalAmount)}</p>
+              <p className="col-span-2">{formatPrice(totalAmount ?? 0)}</p>
             </div>
           </div>
 
           <div className="flex gap-1 items-center">
-            {/* add payment dialog */}
-            <PaymentAddDialog
-              invoiceNumber={item.invoiceNumber}
-              invoiceId={item.id}
-            >
-              <Button
-                variant="secondary"
-                className="hover:bg-primary/50 font-bold border-primary/50 border p-2"
+            {/* SellTx Add Payment */}
+            {!isBuyTx && sellTxInvoice && (
+              <PaymentAddDialog
+                invoiceNumber={sellTxInvoice.invoiceNumber}
+                invoiceId={sellTxInvoice.id}
               >
-                ADD.PAY
-              </Button>
-            </PaymentAddDialog>
+                <Button
+                  variant="secondary"
+                  className="hover:bg-primary/50 font-bold border-primary/50 border p-2"
+                >
+                  ADD.PAY
+                </Button>
+              </PaymentAddDialog>
+            )}
 
-            {/* payment history dialog */}
-            <PaymentHistoryDialog
-              userId={user.id}
-              sellTxInvoice={item}
-              totalAmount={totalAmount}
-            >
-              <Button
-                variant="secondary"
-                className="hover:bg-primary/50 font-bold border-primary/50 border p-2"
+            {/* BuyTx Add Payment */}
+            {isBuyTx && buyTxInvoice && (
+              <PaymentAddDialog
+                invoiceNumber={buyTxInvoice.invoiceNumber}
+                invoiceId={buyTxInvoice.id}
+                isBuyTx
               >
-                PAY.HIS
-              </Button>
-            </PaymentHistoryDialog>
+                <Button
+                  variant="secondary"
+                  className="hover:bg-primary/50 font-bold border-primary/50 border p-2"
+                >
+                  ADD.PAY
+                </Button>
+              </PaymentAddDialog>
+            )}
+
+            {/* SellTx Payment History */}
+            {isBuyTx && buyTxInvoice && (
+              <PaymentHistoryDialog
+                userId={user.id}
+                buyTxInvoice={buyTxInvoice}
+                totalAmount={totalAmount ?? 0}
+                isBuyTx
+              >
+                <Button
+                  variant="secondary"
+                  className="hover:bg-primary/50 font-bold border-primary/50 border p-2"
+                >
+                  PAY.HIS
+                </Button>
+              </PaymentHistoryDialog>
+            )}
+
+            {/* BuyTx Payment History */}
+            {!isBuyTx && sellTxInvoice && (
+              <PaymentHistoryDialog
+                userId={user.id}
+                sellTxInvoice={sellTxInvoice}
+                totalAmount={totalAmount ?? 0}
+              >
+                <Button
+                  variant="secondary"
+                  className="hover:bg-primary/50 font-bold border-primary/50 border p-2"
+                >
+                  PAY.HIS
+                </Button>
+              </PaymentHistoryDialog>
+            )}
           </div>
         </div>
       </div>
       <Separator className="bg-primary/20 mb-2" />
-      {item.sellTransactions.map((tx, index) => (
-        <div
-          key={index}
-          className="grid grid-cols-10 gap-5 hover:bg-primary/10 p-1 text-muted-foreground"
-        >
-          <p className="col-span-2 justify-self-end">
-            {format(tx.date, "yyyy-MM-dd")}
-          </p>
-          <p className="col-span-4 uppercase">{tx.products?.productNumber}</p>
-          <p className="col-span-2">
-            ({tx.quantity} X {formatPrice(tx.unitPrice ?? 0)})
-          </p>
-          <p className="col-span-2">
-            {formatPrice(tx.quantity * (tx.unitPrice ?? 0))}
-          </p>
-        </div>
-      ))}
+
+      {isBuyTx && buyTxInvoice
+        ? buyTxInvoice.buyTransactions.map((tx, index) => (
+            <div
+              key={index}
+              className="grid grid-cols-10 gap-5 hover:bg-primary/10 p-1 text-muted-foreground"
+            >
+              <p className="col-span-2 justify-self-end">
+                {format(tx.date, "yyyy-MM-dd")}
+              </p>
+              <p className="col-span-4 uppercase">
+                {tx.products?.productNumber}
+              </p>
+              <p className="col-span-2">
+                ({tx.quantity} X {formatPrice(tx.unitPrice ?? 0)})
+              </p>
+              <p className="col-span-2">
+                {formatPrice(tx.quantity * (tx.unitPrice ?? 0))}
+              </p>
+            </div>
+          ))
+        : sellTxInvoice &&
+          sellTxInvoice.sellTransactions.map((tx, index) => (
+            <div
+              key={index}
+              className="grid grid-cols-10 gap-5 hover:bg-primary/10 p-1 text-muted-foreground"
+            >
+              <p className="col-span-2 justify-self-end">
+                {format(tx.date, "yyyy-MM-dd")}
+              </p>
+              <p className="col-span-4 uppercase">
+                {tx.products?.productNumber}
+              </p>
+              <p className="col-span-2">
+                ({tx.quantity} X {formatPrice(tx.unitPrice ?? 0)})
+              </p>
+              <p className="col-span-2">
+                {formatPrice(tx.quantity * (tx.unitPrice ?? 0))}
+              </p>
+            </div>
+          ))}
     </div>
   );
 };

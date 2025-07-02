@@ -40,7 +40,7 @@ interface Props {
 const BuyTransactions = ({ user }: Props) => {
   const [isError, setIsError] = useState(false);
   const [searchTerm, setSearchTerm] = useState("");
-  const [bouncedSearchTerm] = useDebounce(searchTerm, 2000);
+  const [bouncedSearchTerm] = useDebounce(searchTerm, 1000);
   const [page, setPage] = useState(1);
   const { period, timeFrame } = useTimeFrameStore((state) => state);
   const { data: buyTransactions, isLoading } = useBuyTransactionsPagination({
@@ -74,8 +74,10 @@ const BuyTransactions = ({ user }: Props) => {
       <Card className="flex flex-col w-full h-fit bg-transparent dark:border-primary/40">
         <CardHeader className="flex flex-col gap-4">
           <div className="flex items-center justify-between">
-            <CardTitle className="text-4xl font-bold">Buying History</CardTitle>
-            <TimeFramePicker />
+            <CardTitle className="text-4xl font-bold">
+              {searchTerm.length ? "Searching Buy History..." : "Buy History"}
+            </CardTitle>
+            {!searchTerm.length && <TimeFramePicker />}
           </div>
 
           {!searchTerm.length && (
@@ -104,16 +106,17 @@ const BuyTransactions = ({ user }: Props) => {
               onKeyDown={(e) => {
                 if (e.key === "Escape") {
                   setSearchTerm("");
-                  console.log("key down");
                 }
               }}
             />
-            <p
-              className="text-xl text-muted-foreground font-semibold absolute right-3 top-[26px] p-1 cursor-pointer"
-              onClick={() => setSearchTerm("")}
-            >
-              X
-            </p>
+            {searchTerm.length ? (
+              <p
+                className="text-xl text-muted-foreground font-semibold absolute right-3 top-[26px] p-1 cursor-pointer"
+                onClick={() => setSearchTerm("")}
+              >
+                X
+              </p>
+            ) : null}
             {isError && searchTerm.length < 3 && searchTerm.length !== 0 && (
               <p className="text-sm text-red-500">
                 please type at least 3 characters

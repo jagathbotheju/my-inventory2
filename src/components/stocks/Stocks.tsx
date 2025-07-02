@@ -7,15 +7,15 @@ import {
 } from "@/server/backend/queries/stockQueries";
 import { format } from "date-fns";
 import _ from "lodash";
-import Link from "next/link";
 import TimeFramePicker from "../TimeFramePicker";
 import { useTimeFrameStore } from "@/store/timeFrameStore";
 import { Button } from "../ui/button";
-import { useState } from "react";
+import { useMemo, useState } from "react";
 import { useDebounce } from "use-debounce";
 import { Input } from "../ui/input";
 import { Loader2Icon } from "lucide-react";
 import StockCard from "./StockCard";
+import { formatPrice, getFullMonth } from "@/lib/utils";
 
 interface Props {
   user: User;
@@ -28,7 +28,6 @@ const Stocks = ({ user }: Props) => {
   const [searchTerm, setSearchTerm] = useState("");
   const [bouncedSearchTerm] = useDebounce(searchTerm, 1000);
 
-  // const { data: allUserStocks } = useAllUserStocks(user?.id as string);
   const { data: allUserStocks, isLoading: allStockLoading } =
     useAllUserStocksByPeriod({
       userId: user?.id as string,
@@ -37,6 +36,21 @@ const Stocks = ({ user }: Props) => {
       timeFrame: allStocks ? "all" : timeFrame,
       searchTerm: bouncedSearchTerm.length < 3 ? "" : bouncedSearchTerm,
     });
+
+  const allStockAmount = useMemo(() => {
+    return allUserStocks?.reduce((acc, item) => {
+      if (item.sellTxTotalQuantity < item.buyTxTotalQuantity) {
+        return (acc += item.buyTxTotalAmount - item.sellTxActTotalAmount);
+      }
+      return acc;
+    }, 0);
+  }, [allUserStocks]);
+  let allStock = 0;
+  allUserStocks?.map((item) => {
+    if (item.sellTxTotalQuantity < item.buyTxTotalQuantity) {
+      allStock = allStock + (item.buyTxTotalAmount - item.sellTxActTotalAmount);
+    }
+  });
 
   const { data: searchStocks, isLoading: searchStockLoading } = useSearchStocks(
     {
@@ -50,15 +64,24 @@ const Stocks = ({ user }: Props) => {
     <Card className="flex flex-col w-full h-fit bg-transparent dark:border-primary/40">
       <CardHeader>
         <div className="flex justify-between items-center">
-          <CardTitle className="text-4xl font-bold flex gap-1">
-            {searchTerm.length ? (
-              <p>Searching Stocks...</p>
-            ) : (
-              <p>Stock Balance</p>
-            )}
-            {allStocks && !searchTerm.length && (
-              <p>,{format(new Date(), "yyyy-MM-dd")}</p>
-            )}
+          <CardTitle className="text-4xl font-bold flex gap-1 flex-col">
+            <div className="flex">
+              {searchTerm.length ? (
+                <p>Searching Stocks...</p>
+              ) : (
+                <p>
+                  {allStocks
+                    ? "All Stock Balance"
+                    : `Stock Balance for ${getFullMonth(period.month)}`}
+                </p>
+              )}
+              {allStocks && !searchTerm.length && (
+                <p className="ml-2">{format(new Date(), "yyyy-MM-dd")}</p>
+              )}
+            </div>
+            <p className="text-2xl font-semibold text-muted-foreground">
+              Stock Value {formatPrice(allStockAmount ?? 0)}
+            </p>
           </CardTitle>
 
           {!searchTerm.length && (
@@ -112,19 +135,7 @@ const Stocks = ({ user }: Props) => {
         ) : // SEARCH RESULT
         searchTerm.length && searchStocks && searchStocks?.length > 0 ? (
           _.sortBy(searchStocks, "productNumber")?.map((stock, index) => (
-            <Link
-              href={`/stocks/${stock.productId}?stockBal=${stock.quantity}`}
-              key={index}
-              className="flex flex-col items-center col-span-1 rounded-md border-primary border"
-            >
-              <div className="bg-primary/30 p-2 text-xl w-full font-semibold uppercase">
-                {stock.productNumber}
-              </div>
-              {/* <div>{stock.productId}</div> */}
-              <div className="p-2 text-xl font-semibold w-full text-center">
-                {stock.quantity}
-              </div>
-            </Link>
+            <StockCard stock={stock} key={index} />
           ))
         ) : //ALL STOCKS
         searchTerm.length === 0 &&

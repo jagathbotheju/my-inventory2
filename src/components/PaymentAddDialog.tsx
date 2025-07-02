@@ -38,9 +38,16 @@ interface Props {
   children: React.ReactNode;
   invoiceNumber: string;
   invoiceId: string;
+  isBuyTx?: boolean;
 }
 
-const PaymentAddDialog = ({ children, invoiceNumber, invoiceId }: Props) => {
+const PaymentAddDialog = ({
+  children,
+  invoiceNumber,
+  invoiceId,
+  isBuyTx,
+}: Props) => {
+  const [openCalendar, setOpenCalendar] = useState(false);
   const [paymentMode, setPaymentMode] = useState<string>("");
   // const [cashAmount, setCashAmount] = useState(0);
 
@@ -136,6 +143,7 @@ const PaymentAddDialog = ({ children, invoiceNumber, invoiceId }: Props) => {
         cashAmount: formData.cashAmount ?? 0,
         creditAmount: formData.creditAmount ?? 0,
         chequeData: formData.cheques,
+        isBuyTx: isBuyTx as boolean,
       };
       addPayment(data);
       setOpen(false);
@@ -162,7 +170,7 @@ const PaymentAddDialog = ({ children, invoiceNumber, invoiceId }: Props) => {
   return (
     <Dialog open={open} onOpenChange={setOpen} modal>
       <DialogTrigger asChild>{children}</DialogTrigger>
-      <DialogContent className="sm:max-w-[50%]">
+      <DialogContent className="sm:max-w-[70%] flex flex-col">
         <DialogHeader>
           <DialogTitle>
             <div className="flex justify-between items-center border border-b-primary border-t-transparent border-l-transparent border-r-transparent p-2">
@@ -323,7 +331,10 @@ const PaymentAddDialog = ({ children, invoiceNumber, invoiceId }: Props) => {
                               <FormLabel className="absolute -top-3">
                                 date
                               </FormLabel>
-                              <Popover>
+                              <Popover
+                                open={openCalendar}
+                                onOpenChange={setOpenCalendar}
+                              >
                                 <PopoverTrigger asChild>
                                   <FormControl>
                                     <Button
@@ -347,9 +358,13 @@ const PaymentAddDialog = ({ children, invoiceNumber, invoiceId }: Props) => {
                                   align="start"
                                 >
                                   <Calendar
+                                    className="pointer-events-auto"
                                     mode="single"
                                     selected={field.value}
-                                    onSelect={field.onChange}
+                                    onSelect={(val) => {
+                                      field.onChange(val);
+                                      setOpenCalendar(false);
+                                    }}
                                     initialFocus
                                   />
                                 </PopoverContent>
@@ -479,7 +494,10 @@ const PaymentAddDialog = ({ children, invoiceNumber, invoiceId }: Props) => {
                               <FormLabel className="absolute -top-3">
                                 date
                               </FormLabel>
-                              <Popover>
+                              <Popover
+                                open={openCalendar}
+                                onOpenChange={setOpenCalendar}
+                              >
                                 <PopoverTrigger asChild>
                                   <FormControl>
                                     <Button
@@ -503,9 +521,13 @@ const PaymentAddDialog = ({ children, invoiceNumber, invoiceId }: Props) => {
                                   align="start"
                                 >
                                   <Calendar
+                                    className="pointer-events-auto"
                                     mode="single"
                                     selected={field.value}
-                                    onSelect={field.onChange}
+                                    onSelect={(val) => {
+                                      field.onChange(val);
+                                      setOpenCalendar(false);
+                                    }}
                                     initialFocus
                                   />
                                 </PopoverContent>

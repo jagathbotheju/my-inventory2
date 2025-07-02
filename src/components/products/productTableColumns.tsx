@@ -1,9 +1,9 @@
 import { formatPrice } from "@/lib/utils";
 import { ColumnDef } from "@tanstack/react-table";
 import { Checkbox } from "../ui/checkbox";
-import { TableData } from "../ProductsPickerDialog";
+import { TableDataProductsPicker } from "../ProductsPickerDialog";
 
-export const productTableColumns: ColumnDef<TableData>[] = [
+export const productTableColumns: ColumnDef<TableDataProductsPicker>[] = [
   {
     id: "select",
     header: ({ table }) => (
@@ -29,17 +29,30 @@ export const productTableColumns: ColumnDef<TableData>[] = [
   {
     accessorKey: "productNumber",
     header: "Product Number",
+    cell: ({ row }) => {
+      const productNumber = row.getValue("productNumber") as string;
+      return <div>{productNumber.toUpperCase()}</div>;
+    },
   },
   {
     accessorKey: "quantity",
     header: "Stock Balance",
+    cell: ({ row }) => {
+      const quantity = parseFloat(row.getValue("quantity"));
+      return <div className="ml-6">{quantity}</div>;
+    },
   },
   {
     accessorKey: "purchasedPrice",
     header: "Purchased Price",
     cell: ({ row }) => {
       const amount = parseFloat(row.getValue("purchasedPrice"));
-      return <div>{formatPrice(amount)}</div>;
+      const sellMode = row.original.sellMode;
+      if (sellMode) {
+        return <div>{formatPrice(amount)}</div>;
+      } else {
+        return <div></div>;
+      }
     },
   },
   {

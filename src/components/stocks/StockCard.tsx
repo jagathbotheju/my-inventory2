@@ -1,5 +1,5 @@
 "use client";
-import { formatPrice } from "@/lib/utils";
+import { cn, formatPrice } from "@/lib/utils";
 import Link from "next/link";
 
 interface Props {
@@ -12,11 +12,27 @@ const StockCard = ({ stock }: Props) => {
       href={`/stocks/${stock.productId}?stockBal=${stock.quantity}`}
       className="flex flex-col col-span-1 rounded-md border-primary border shadow hover:shadow-lg"
     >
-      <div className="bg-primary/30 p-2 text-xl w-full font-semibold uppercase flex items-center justify-between">
+      <div className="bg-primary/30 p-2 text-xl w-full font-semibold uppercase flex flex-col">
         <p className="text-ellipsis">{stock.productNumber}</p>
-        <div className="flex items-center gap-1">
-          <p>{stock.quantity}</p>
-          <p className="uppercase">{stock.uom}</p>
+        <div className="flex items-center gap-2">
+          <div
+            className={cn(
+              "flex items-center gap-1 text-base p-[2px] px-1 rounded-md",
+              stock.quantity < 0 && "bg-red-500"
+            )}
+          >
+            <p>BAL</p>
+            <p>{stock.quantity}</p>
+            <p className="uppercase">{stock.uom}</p>
+          </div>
+
+          <p className="text-base">
+            {formatPrice(
+              stock.sellTxTotalQuantity < stock.buyTxTotalQuantity
+                ? stock.buyTxTotalAmount - stock?.sellTxActTotalAmount
+                : 0
+            )}
+          </p>
         </div>
       </div>
 
@@ -27,7 +43,7 @@ const StockCard = ({ stock }: Props) => {
             <div className="grid grid-cols-2 gap-1">
               <p className="justify-self-end">{stock.buyTxTotalQuantity}</p>
               <p className="uppercase justify-self-start">
-                {stock.uom.slice(0, 4)}
+                {stock && stock.uom && stock.uom.slice(0, 4)}
               </p>
             </div>
             <p>{formatPrice(stock.buyTxTotalAmount ?? 0)}</p>
@@ -40,7 +56,7 @@ const StockCard = ({ stock }: Props) => {
             <div className="grid grid-cols-2 gap-1">
               <p className="justify-self-end">{stock.sellTxTotalQuantity}</p>
               <p className="uppercase justify-self-start">
-                {stock.uom.slice(0, 4)}
+                {stock && stock.uom && stock.uom.slice(0, 4)}
               </p>
             </div>
             <p>{formatPrice(stock.sellTxTotalAmount ?? 0)}</p>

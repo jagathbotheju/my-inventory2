@@ -64,7 +64,9 @@ type StockBal = {
   buyTxTotalAmount: number;
   sellTxTotalQuantity: number;
   sellTxTotalAmount: number;
-  uom: string;
+  sellTxActTotalAmount: number;
+  uom?: string;
+  purchasedPrice?: number;
 };
 
 type ChequeData = {

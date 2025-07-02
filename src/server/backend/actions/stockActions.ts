@@ -1,8 +1,9 @@
 "use server";
+import { TableDataProductsPicker } from "@/components/ProductsPickerDialog";
 import { db } from "@/server/db";
 import { buyTransactions, sellTransactions, stocks } from "@/server/db/schema";
 import { Stock, StockExt } from "@/server/db/schema/stocks";
-import { and, asc, eq, ne, sql } from "drizzle-orm";
+import { and, asc, eq, ne, sql, sum } from "drizzle-orm";
 
 export const getStocks = async ({
   userId,
@@ -23,6 +24,7 @@ export const getStocks = async ({
   return stock as Stock[];
 };
 
+//ALL STOCKS BY SUPPLIER
 export const getStocksBySupplier = async ({
   userId,
   supplierId,
@@ -45,6 +47,145 @@ export const getStocksBySupplier = async ({
   return stock as StockExt[];
 };
 
+//ALL STOCKS BY SUPPLIER TEST
+export const getStocksBySupplierTest = async ({
+  userId,
+  supplierId,
+  sellMode,
+}: {
+  userId: string;
+  supplierId: string;
+  sellMode?: boolean;
+}) => {
+  // SELL TXS
+  let sellTxsTest = [] as {
+    quantity: string | null;
+    productNumber: string | null;
+    productId: string;
+    unitPrice?: number | null;
+  }[];
+
+  if (sellMode) {
+    sellTxsTest = await db
+      .select({
+        quantity: sum(sellTransactions.quantity),
+        productNumber: sellTransactions.productNumber,
+        productId: sellTransactions.productId,
+        purchasedPrice: sellTransactions.purchasedPrice,
+      })
+      .from(sellTransactions)
+      .where(
+        and(
+          eq(sellTransactions.userId, userId),
+          eq(sellTransactions.supplierId, supplierId)
+          // ilike(sellTransactions.productNumber, "%abc-001%")
+        )
+      )
+      .groupBy(
+        sellTransactions.purchasedPrice,
+        sellTransactions.productId,
+        sellTransactions.productNumber
+      );
+  } else {
+    sellTxsTest = await db
+      .select({
+        quantity: sum(sellTransactions.quantity),
+        productNumber: sellTransactions.productNumber,
+        productId: sellTransactions.productId,
+      })
+      .from(sellTransactions)
+      .where(
+        and(
+          eq(sellTransactions.userId, userId),
+          eq(sellTransactions.supplierId, supplierId)
+          // ilike(sellTransactions.productNumber, "%abc-001%")
+        )
+      )
+      .groupBy(sellTransactions.productId, sellTransactions.productNumber);
+  }
+
+  // BUY TXS
+  let buyTxsTest = [] as {
+    quantity: string | null;
+    productNumber: string | null;
+    productId: string;
+    unitPrice?: number | null;
+  }[];
+
+  if (sellMode) {
+    buyTxsTest = await db
+      .select({
+        quantity: sum(buyTransactions.quantity),
+        productNumber: buyTransactions.productNumber,
+        productId: buyTransactions.productId,
+        unitPrice: buyTransactions.unitPrice,
+      })
+      .from(buyTransactions)
+      .where(
+        and(
+          eq(buyTransactions.userId, userId),
+          eq(buyTransactions.supplierId, supplierId)
+          // ilike(buyTransactions.productNumber, "abc-001%")
+        )
+      )
+      .groupBy(
+        buyTransactions.unitPrice,
+        buyTransactions.productNumber,
+        buyTransactions.productId
+      );
+  } else {
+    buyTxsTest = await db
+      .select({
+        quantity: sum(buyTransactions.quantity),
+        productNumber: buyTransactions.productNumber,
+        productId: buyTransactions.productId,
+      })
+      .from(buyTransactions)
+      .where(
+        and(
+          eq(buyTransactions.userId, userId),
+          eq(buyTransactions.supplierId, supplierId)
+          // ilike(buyTransactions.productNumber, "%abc-001%")
+        )
+      )
+      .groupBy(buyTransactions.productId, buyTransactions.productNumber);
+  }
+
+  //STOCK BAL
+  const stockBal = [] as TableDataProductsPicker[];
+  buyTxsTest.map((buyTx) => {
+    const exist = sellMode
+      ? sellTxsTest.find(
+          (item) =>
+            item.productId === buyTx.productId &&
+            item.unitPrice === buyTx.unitPrice
+        )
+      : sellTxsTest.find((item) => item.productId === buyTx.productId);
+    const buyBal = buyTx && buyTx.quantity ? +buyTx?.quantity : 0;
+    const sellBal = exist?.quantity ? +exist.quantity : 0;
+    const bal = buyBal - sellBal;
+    if (bal !== 0) {
+      if (sellMode) {
+        stockBal.push({
+          quantity: buyBal - sellBal,
+          productNumber: buyTx.productNumber as string,
+          productId: buyTx.productId,
+          purchasedPrice: buyTx?.unitPrice ?? 0,
+          sellMode,
+        });
+      } else {
+        stockBal.push({
+          quantity: buyBal - sellBal,
+          productNumber: buyTx.productNumber as string,
+          productId: buyTx.productId,
+        });
+      }
+    }
+  });
+
+  return stockBal as StockBal[];
+};
+
 export const getAllStocks = async (userId: string) => {
   const stock = await db.query.stocks.findMany({
     where: and(eq(stocks.userId, userId), ne(stocks.quantity, 0)),
@@ -53,7 +194,7 @@ export const getAllStocks = async (userId: string) => {
   return stock as Stock[];
 };
 
-//====ALL STOCKS
+//====ALL USER STOCKS
 export const getAllUserStocks = async (userId: string) => {
   //SELL TXS
   const sellTxs = await db
@@ -71,10 +212,13 @@ export const getAllUserStocks = async (userId: string) => {
           productId: sellTx.productId,
           quantity: sellTx.quantity,
           sellTxTotalAmount: (sellTx.unitPrice ?? 0) * sellTx.quantity,
+          sellTxActTotalAmount: (sellTx.purchasedPrice ?? 0) * sellTx.quantity,
         });
       } else {
         exist.quantity += sellTx.quantity;
         exist.sellTxTotalAmount += (sellTx.unitPrice ?? 0) * sellTx.quantity;
+        exist.sellTxActTotalAmount +=
+          (sellTx.purchasedPrice ?? 0) * sellTx.quantity;
       }
       return acc;
     },
@@ -83,6 +227,7 @@ export const getAllUserStocks = async (userId: string) => {
         productId: "",
         quantity: 0,
         sellTxTotalAmount: 0,
+        sellTxActTotalAmount: 0,
       },
     ]
   );
@@ -146,6 +291,7 @@ export const getAllUserStocks = async (userId: string) => {
         buyTxTotalAmount: buyTx.buyTxTotalAmount,
         sellTxTotalQuantity: exist?.quantity ?? 0,
         sellTxTotalAmount: exist?.sellTxTotalAmount ?? 0,
+        sellTxActTotalAmount: exist?.sellTxActTotalAmount ?? 0,
         uom: buyTx.uom,
       });
     }
@@ -182,10 +328,13 @@ export const searchStocks = async ({
           productId: sellTx.productId,
           quantity: sellTx.quantity,
           sellTxTotalAmount: (sellTx.unitPrice ?? 0) * sellTx.quantity,
+          sellTxActTotalAmount: (sellTx.purchasedPrice ?? 0) * sellTx.quantity,
         });
       } else {
         exist.quantity += sellTx.quantity;
         exist.sellTxTotalAmount += (sellTx.unitPrice ?? 0) * sellTx.quantity;
+        exist.sellTxActTotalAmount +=
+          (sellTx.purchasedPrice ?? 0) * sellTx.quantity;
       }
       return acc;
     },
@@ -194,6 +343,7 @@ export const searchStocks = async ({
         productId: "",
         quantity: 0,
         sellTxTotalAmount: 0,
+        sellTxActTotalAmount: 0,
       },
     ]
   );
@@ -258,6 +408,7 @@ export const searchStocks = async ({
         buyTxTotalAmount: buyTx.buyTxTotalAmount,
         sellTxTotalQuantity: exist?.quantity ?? 0,
         sellTxTotalAmount: exist?.sellTxTotalAmount ?? 0,
+        sellTxActTotalAmount: exist?.sellTxActTotalAmount ?? 0,
         uom: buyTx.uom,
       });
     }
@@ -353,10 +504,13 @@ export const getAllUserStocksByPeriod = async ({
           productId: sellTx.productId,
           quantity: sellTx.quantity,
           sellTxTotalAmount: (sellTx.unitPrice ?? 0) * sellTx.quantity,
+          sellTxActTotalAmount: (sellTx.purchasedPrice ?? 0) * sellTx.quantity,
         });
       } else {
         exist.quantity += sellTx.quantity;
         exist.sellTxTotalAmount += (sellTx.unitPrice ?? 0) * sellTx.quantity;
+        exist.sellTxActTotalAmount +=
+          (sellTx.purchasedPrice ?? 0) * sellTx.quantity;
       }
       return acc;
     },
@@ -365,6 +519,7 @@ export const getAllUserStocksByPeriod = async ({
         productId: "",
         quantity: 0,
         sellTxTotalAmount: 0,
+        sellTxActTotalAmount: 0,
       },
     ]
   );
@@ -387,12 +542,11 @@ export const getAllUserStocksByPeriod = async ({
         buyTxTotalAmount: buyTx.buyTxTotalAmount,
         sellTxTotalQuantity: exist?.quantity ?? 0,
         sellTxTotalAmount: exist?.sellTxTotalAmount ?? 0,
+        sellTxActTotalAmount: exist?.sellTxActTotalAmount ?? 0,
         uom: buyTx.uom,
       });
     }
   });
-
-  // console.log("stockBal", stockBal);
 
   return stockBal as StockBal[];
 };

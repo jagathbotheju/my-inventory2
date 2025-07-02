@@ -24,6 +24,45 @@ export const BuyProductSchema = z.object({
   invoiceNumber: z.string().min(1, "invoice number is required"),
 });
 
+export const BuyProductsSchema = z.object({
+  date: z.date({ required_error: "purchase date is required" }),
+  invoiceNumber: z.string().min(1, "invoice number is required"),
+  paymentMode: z.string().min(1, "payment mode is required"),
+  cacheAmount: z.coerce.number().optional(),
+  creditAmount: z.coerce.number().optional(),
+  cheques: z
+    .array(
+      z.object({
+        chequeNumber: z.string().optional(),
+        chequeDate: z.date().optional(),
+        bankName: z.string().optional(),
+        amount: z.coerce.number().optional(),
+      })
+    )
+    .optional(),
+  products: z
+    .array(
+      z.object({
+        productId: z.string().optional(),
+        productNumber: z.string().optional(),
+        quantity: z.coerce
+          .number({
+            message: "must be a number",
+          })
+          .int({
+            message: "must be a whole number",
+          })
+          .positive({
+            message: "must be positive value",
+          }),
+        unitPrice: z.coerce
+          .number()
+          .refine(async (val) => val > 0, "must be a positive number"),
+      })
+    )
+    .nonempty({ message: "Product is required" }),
+});
+
 export const SellProductSchema = z.object({
   unitPrice: z.coerce
     .number()

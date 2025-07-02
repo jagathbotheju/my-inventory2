@@ -1,10 +1,12 @@
 import { useQuery } from "@tanstack/react-query";
 import {
+  getBuyTxInvoicesForPeriod,
   getSellTxInvoicesForPeriod,
   searchBuyTxInvoices,
   searchSellTxInvoices,
 } from "../actions/invoiceActions";
 
+//search SellTx Invoices
 export const useSearchSellTxInvoices = ({
   userId,
   searchTerm,
@@ -21,24 +23,24 @@ export const useSearchSellTxInvoices = ({
   });
 };
 
+//Search BuyTx Invoices
 export const useSearchBuyTxInvoices = ({
   userId,
   searchTerm,
-  isSellTx,
+  isBuyTx,
 }: {
   userId: string;
   searchTerm: string;
-  isSellTx: boolean;
+  isBuyTx: boolean;
 }) => {
-  console.log("query isSellTx", isSellTx, "searchTerm", searchTerm);
-
   return useQuery({
     queryKey: ["search-buy-txs", userId, searchTerm],
     queryFn: () => searchBuyTxInvoices({ userId, searchTerm }),
-    enabled: searchTerm.length >= 3 && !isSellTx,
+    enabled: searchTerm.length >= 3 && isBuyTx,
   });
 };
 
+//SellTx Invoices Period
 export const useSellTxInvoicesForPeriod = ({
   userId,
   period,
@@ -53,8 +55,29 @@ export const useSellTxInvoicesForPeriod = ({
   searchTerm: string;
 }) => {
   return useQuery({
-    queryKey: ["tell-tx-invoices-for-period", userId, period, timeFrame],
+    queryKey: ["sell-tx-invoices-for-period", userId, period, timeFrame],
     queryFn: () => getSellTxInvoicesForPeriod({ userId, period, timeFrame }),
     enabled: searchTerm.length === 0 && isSellTx,
+  });
+};
+
+//BuyTx Invoices Period
+export const useBuyTxInvoicesForPeriod = ({
+  userId,
+  period,
+  timeFrame,
+  isBuyTx,
+  searchTerm,
+}: {
+  userId: string;
+  period: Period;
+  timeFrame: TimeFrame;
+  isBuyTx: boolean;
+  searchTerm: string;
+}) => {
+  return useQuery({
+    queryKey: ["buy-tx-invoices-for-period", userId, period, timeFrame],
+    queryFn: () => getBuyTxInvoicesForPeriod({ userId, period, timeFrame }),
+    enabled: searchTerm.length === 0 && isBuyTx,
   });
 };

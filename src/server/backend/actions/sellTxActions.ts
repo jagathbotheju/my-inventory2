@@ -21,7 +21,7 @@ import {
 } from "@/server/db/schema/sellYearHistory";
 import { and, count, desc, eq, sql, sum } from "drizzle-orm";
 
-//addSellTransaction
+//SELL TX ADD TRANSACTION
 export const addSellTransaction = async ({
   data,
   supplierId,
@@ -182,7 +182,7 @@ export const addSellTransaction = async ({
   }
 };
 
-//addSellTransactions
+//SELL TX ADD TRANSACTIONS
 export const addSellTransactions = async ({
   sellTxData,
   chequeData,
@@ -681,10 +681,7 @@ export const getSellTransactionsPagination = async ({
 
   if (searchTerm.length) {
     const transactions = await db.query.sellTransactions.findMany({
-      where:
-        timeFrame === "month"
-          ? sql`to_char(${sellTransactions.date},'MM') like ${month} and to_char(${sellTransactions.date},'YYYY') like ${year} and ${sellTransactions.userId} like ${userId} and ${sellTransactions.invoiceNumber} ilike ${fSearch}`
-          : sql`to_char(${sellTransactions.date},'YYYY') like ${year} and ${sellTransactions.userId} like ${userId} and ${sellTransactions.invoiceNumber} ilike ${fSearch}`,
+      where: sql`${sellTransactions.userId} like ${userId} and ${sellTransactions.invoiceNumber} ilike ${fSearch}`,
       with: {
         products: true,
         customers: true,

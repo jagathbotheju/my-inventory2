@@ -23,6 +23,7 @@ import { format } from "date-fns";
 import { Calendar } from "../ui/calendar";
 import { BuyTransaction } from "@/server/db/schema/buyTransactions";
 import { useAddBuyTransaction } from "@/server/backend/mutations/buyTxMutations";
+import { useState } from "react";
 
 interface Props {
   productId: string;
@@ -33,6 +34,7 @@ const BuyProduct = ({ productId, userId }: Props) => {
   const router = useRouter();
   const { data: product, isLoading } = useProductById({ productId, userId });
   const { mutate: addBuyTransaction, isPending } = useAddBuyTransaction();
+  const [openCalendar, setOpenCalendar] = useState(false);
 
   const form = useForm<z.infer<typeof BuyProductSchema>>({
     resolver: zodResolver(BuyProductSchema),
@@ -182,7 +184,10 @@ const BuyProduct = ({ productId, userId }: Props) => {
                   name="date"
                   render={({ field }) => (
                     <FormItem className="flex flex-col">
-                      <Popover>
+                      <Popover
+                        open={openCalendar}
+                        onOpenChange={setOpenCalendar}
+                      >
                         <PopoverTrigger asChild>
                           <FormControl>
                             <Button
@@ -203,9 +208,13 @@ const BuyProduct = ({ productId, userId }: Props) => {
                         </PopoverTrigger>
                         <PopoverContent className="w-auto p-0" align="start">
                           <Calendar
+                            className="pointer-events-auto"
                             mode="single"
                             selected={field.value}
-                            onSelect={field.onChange}
+                            onSelect={(val) => {
+                              field.onChange(val);
+                              setOpenCalendar(false);
+                            }}
                             // disabled={(date) =>
                             //   date > new Date() || date < new Date("1900-01-01")
                             // }

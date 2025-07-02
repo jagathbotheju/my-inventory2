@@ -99,9 +99,16 @@ const AllProducts = ({ user }: Props) => {
               <Button
                 variant="secondary"
                 className="font-semibold border border-primary"
+                onClick={() => router.push("/products/buy-products")}
+              >
+                BUY Products
+              </Button>
+              <Button
+                variant="secondary"
+                className="font-semibold border border-primary"
                 onClick={() => router.push("/products/sell-products")}
               >
-                Sell Products
+                SELL Products
               </Button>
               <Button
                 className="font-semibold"

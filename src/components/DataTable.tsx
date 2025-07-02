@@ -9,6 +9,7 @@ import {
   getPaginationRowModel,
   getFilteredRowModel,
   RowSelectionState,
+  VisibilityState,
 } from "@tanstack/react-table";
 
 import {
@@ -22,17 +23,19 @@ import {
 import { Button } from "./ui/button";
 import { useEffect, useState } from "react";
 import { Input } from "./ui/input";
-import { TableData } from "./ProductsPickerDialog";
 import { useProductStore } from "@/store/productStore";
+import { TableDataProductsPicker } from "./ProductsPickerDialog";
 
 interface DataTableProps<TData, TValue> {
   columns: ColumnDef<TData, TValue>[];
   data: TData[];
+  sellMode?: boolean;
 }
 
 export function DataTable<TData, TValue>({
   columns,
   data,
+  sellMode,
 }: DataTableProps<TData, TValue>) {
   const { setSelectedProducts, setSelectedProductIds, selectedProductIds } =
     useProductStore();
@@ -40,6 +43,7 @@ export function DataTable<TData, TValue>({
   const [rowSelection, setRowSelection] = useState<RowSelectionState>(
     selectedProductIds ? selectedProductIds : {}
   );
+  const [columnVisibility, setColumnVisibility] = useState<VisibilityState>({});
 
   const table = useReactTable({
     data,
@@ -49,17 +53,26 @@ export function DataTable<TData, TValue>({
     onColumnFiltersChange: setColumnFilters,
     getFilteredRowModel: getFilteredRowModel(),
     onRowSelectionChange: setRowSelection,
+    onColumnVisibilityChange: setColumnVisibility,
     state: {
       columnFilters,
       rowSelection,
+      columnVisibility,
     },
     enableRowSelection: true,
   });
 
   useEffect(() => {
+    const column = table.getColumn("purchasedPrice");
+
+    if (sellMode) {
+      column?.toggleVisibility(true);
+    } else {
+      column?.toggleVisibility(false);
+    }
     if (rowSelection) {
       const selectedRows = table.getSelectedRowModel().rows;
-      const data: TableData[] = selectedRows.map((row) => {
+      const data: TableDataProductsPicker[] = selectedRows.map((row) => {
         return {
           productNumber: row.getValue("productNumber"),
           quantity: row.getValue("quantity"),
@@ -76,7 +89,13 @@ export function DataTable<TData, TValue>({
         setSelectedProductIds(rowSelection);
       }
     }
-  }, [rowSelection, table, setSelectedProducts, setSelectedProductIds]);
+  }, [
+    rowSelection,
+    table,
+    setSelectedProducts,
+    setSelectedProductIds,
+    sellMode,
+  ]);
 
   return (
     <div>
