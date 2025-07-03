@@ -44,6 +44,7 @@ const StockDetails = ({ user, productId, stockBal }: Props) => {
     // userId: "7e397cd1-19ad-4c68-aa50-a77c06450bc7",
     productId,
   });
+
   const totalSell = sellTxs?.reduce(
     (acc, item) => {
       return {
@@ -65,30 +66,35 @@ const StockDetails = ({ user, productId, stockBal }: Props) => {
       <CardHeader>
         <CardTitle className="text-3xl font-bold flex gap-3 items-center justify-between">
           <div className="flex flex-col gap-1">
-            <div className="flex items-center">
-              <p>Stock History,</p>
-              <p className="uppercase text-primary">
-                {buyTxs?.length && buyTxs[0]?.products.productNumber}
-              </p>
+            <div className="flex flex-col">
+              <div className="flex items-center">
+                <p>Stock History,</p>
+                <p className="uppercase text-primary">
+                  {buyTxs?.length && buyTxs[0]?.products.productNumber}
+                </p>
+              </div>
             </div>
-            {/* <p className="text-sm">{productId}</p> */}
+            <p className="text-sm">{productId}</p>
           </div>
           <div className="flex items-center gap-2">
             <div className="flex items-center gap-2">
               <p>Stock BAL</p>
               <p>{stockBal}</p>
             </div>
+
             <Separator orientation="vertical" className="h-6 w-1 bg-primary" />
             <div className="flex items-center gap-2">
               <p>AMT</p>
               <p>
                 {formatPrice(
-                  totalBuy &&
-                    totalSell &&
-                    totalSell.totalSellStock < totalBuy.totalBuyStock
-                    ? (totalBuy?.totalBuyAmount ?? 0) -
-                        (totalSell?.totalActSellAmount ?? 0)
-                    : 0
+                  (totalBuy?.totalBuyAmount ?? 0) -
+                    (totalSell?.totalActSellAmount ?? 0)
+                  // totalBuy &&
+                  //   totalSell &&
+                  //   totalSell.totalSellStock < totalBuy.totalBuyStock
+                  //   ? (totalBuy?.totalBuyAmount ?? 0) -
+                  //       (totalSell?.totalActSellAmount ?? 0)
+                  //   : 0
                 )}
               </p>
             </div>

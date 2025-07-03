@@ -45,6 +45,7 @@ const Stocks = ({ user }: Props) => {
       return acc;
     }, 0);
   }, [allUserStocks]);
+
   let allStock = 0;
   allUserStocks?.map((item) => {
     if (item.sellTxTotalQuantity < item.buyTxTotalQuantity) {
