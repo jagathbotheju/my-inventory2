@@ -6,6 +6,7 @@ import {
   BlocksIcon,
   LogIn,
   LogOutIcon,
+  PrinterIcon,
   ReceiptTextIcon,
   RulerIcon,
   // UserPen,
@@ -105,6 +106,15 @@ const AuthButton = ({ user }: Props) => {
               >
                 <BlocksIcon className="mr-2 w-4 group-hover:translate-x-1 transition-all duration-300 ease-in-out group-hover:text-primary group-hover:font-semibold" />
                 <span className="hover:text-primary">Stocks</span>
+              </DropdownMenuItem>
+
+              {/* print */}
+              <DropdownMenuItem
+                className="font-medium transition-all duration-500 cursor-pointer group ease-in-out"
+                onClick={() => router.push("/reports")}
+              >
+                <PrinterIcon className="mr-2 w-4 group-hover:translate-x-1 transition-all duration-300 ease-in-out group-hover:text-primary group-hover:font-semibold" />
+                <span className="hover:text-primary">Print Reports</span>
               </DropdownMenuItem>
 
               {/* uom */}

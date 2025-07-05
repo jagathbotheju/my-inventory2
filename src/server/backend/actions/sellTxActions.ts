@@ -19,7 +19,8 @@ import {
   SellYearHistory,
   sellYearHistory,
 } from "@/server/db/schema/sellYearHistory";
-import { and, count, desc, eq, sql, sum } from "drizzle-orm";
+import { and, count, desc, eq, gte, lte, sql, sum } from "drizzle-orm";
+import _ from "lodash";
 
 //SELL TX ADD TRANSACTION
 export const addSellTransaction = async ({
@@ -437,7 +438,7 @@ export const addSellTransactions = async ({
   }
 };
 
-//deleteSllTransaction
+//Delete SellTx
 export const deleteSellTransaction = async ({
   userId,
   sellTx,
@@ -650,6 +651,7 @@ export const deleteSellTransaction = async ({
   }
 };
 
+//SellTx Pagination
 export const getSellTransactionsPagination = async ({
   userId,
   period,
@@ -709,6 +711,7 @@ export const getSellTransactionsPagination = async ({
   }
 };
 
+//SellTx Count
 export const getSellTxCount = async ({
   userId,
   period,
@@ -733,6 +736,7 @@ export const getSellTxCount = async ({
   return sellTxCount[0];
 };
 
+//SellTx TotalCount
 export const getSellTxTotalSales = async ({
   userId,
   period,
@@ -762,6 +766,7 @@ export const getSellTxTotalSales = async ({
   return totalSales[0];
 };
 
+//Daily SellTx
 export const getDailySellTransactions = async ({
   sellDate,
   userId,
@@ -783,6 +788,7 @@ export const getDailySellTransactions = async ({
   return transactions as SellTransactionExt[];
 };
 
+//SellTx User Product
 export const getSellTxByUserProduct = async ({
   userId,
   productId,
@@ -807,6 +813,7 @@ export const getSellTxByUserProduct = async ({
   return transactions as SellTransactionExt[];
 };
 
+//SellTx User Period
 export const getSellTxByUserByPeriod = async ({
   userId,
   period,
@@ -842,4 +849,42 @@ export const getSellTxByUserByPeriod = async ({
   });
 
   return transactions as SellTransactionExt[];
+};
+
+//SellTx between dates
+export const getSellTxDateRange = async ({
+  userId,
+  from,
+  to,
+}: {
+  userId: string;
+  from: Date;
+  to: Date;
+}) => {
+  const sellTxs = await db.query.sellTransactions.findMany({
+    where: and(
+      eq(sellTransactions.userId, userId),
+      gte(sellTransactions.date, from.toDateString()),
+      lte(sellTransactions.date, to.toDateString())
+    ),
+    with: {
+      products: {
+        with: {
+          unitOfMeasurements: true,
+          // suppliers: true,
+        },
+      },
+      sellTxInvoices: {
+        with: {
+          sellTxPayments: true,
+        },
+      },
+      customers: true,
+    },
+  });
+
+  const sortedBuyTxs = _.sortBy(sellTxs, "customers.name", "date");
+  const groupedBuyTxs = _.groupBy(sortedBuyTxs, "customers.name");
+
+  return groupedBuyTxs;
 };

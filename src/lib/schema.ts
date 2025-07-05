@@ -1,5 +1,19 @@
 import { z } from "zod";
 
+export const DateRangeSchema = z.object({
+  date: z
+    .object(
+      {
+        from: z.date(),
+        to: z.date(),
+      },
+      { required_error: "Date is required" }
+    )
+    .refine((date) => {
+      return !!date.from;
+    }, "Date is required"),
+});
+
 export const SearchSchema = z.object({
   searchTerm: z.string().min(3, {
     message: "must be at least 3 characters.",

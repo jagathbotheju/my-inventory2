@@ -5,8 +5,25 @@ import {
   getSellTxByUserByPeriod,
   getSellTxByUserProduct,
   getSellTxCount,
+  getSellTxDateRange,
   getSellTxTotalSales,
 } from "../actions/sellTxActions";
+
+export const useSellTxDateRange = ({
+  userId,
+  from,
+  to,
+}: {
+  userId: string;
+  from: Date;
+  to: Date;
+}) => {
+  return useQuery({
+    queryKey: ["sell-tx-date-range", userId, from, to],
+    queryFn: () => getSellTxDateRange({ userId, from, to }),
+    // enabled: from > to,
+  });
+};
 
 export const useDailySellTransactions = ({
   sellDate,

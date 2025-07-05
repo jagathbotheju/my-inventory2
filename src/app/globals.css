@@ -71,3 +71,31 @@ body {
     @apply bg-background text-foreground;
   }
 }
+
+@media all {
+  .page-break {
+    display: none;
+  }
+}
+
+@media print {
+  html,
+  body {
+    height: 100vh;
+    /* height: initial !important; */
+    /* overflow: initial !important; */
+  }
+}
+
+@media print {
+  .page-break {
+    margin-top: 1rem;
+    display: block;
+    page-break-before: always;
+  }
+}
+
+@page {
+  size: auto;
+  margin: 20mm;
+}
