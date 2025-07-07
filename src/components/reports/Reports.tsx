@@ -118,10 +118,10 @@ const Reports = ({ user }: Props) => {
 
             {customers.map((customer, index) => {
               const customerTxs = cusTxs[index] as SellTransactionExt[];
-              const totalAmount = customerTxs.reduce(
-                (acc, item) => (acc += item.unitPrice ?? 0),
-                0
-              );
+              const totalAmount = customerTxs.reduce((acc, item) => {
+                console.log(customer, item.unitPrice! * item.quantity);
+                return (acc += (item.unitPrice ?? 0) * item.quantity);
+              }, 0);
               return (
                 <div className="flex flex-col mb-4" key={customer + index}>
                   <div className="flex justify-between items-center border border-b border-t-transparent border-r-transparent border-l-transparent border-primary">
@@ -138,6 +138,7 @@ const Reports = ({ user }: Props) => {
                         <TableHead>Product Number</TableHead>
                         <TableHead>Invoice Number</TableHead>
                         <TableHead>Selling Price</TableHead>
+                        <TableHead>Quantity</TableHead>
                       </TableRow>
                     </TableHeader>
                     <TableBody>
@@ -155,6 +156,7 @@ const Reports = ({ user }: Props) => {
                           <TableCell>
                             {formatPrice(tx.unitPrice ?? 0)}
                           </TableCell>
+                          <TableCell>{tx.quantity}</TableCell>
                         </TableRow>
                       ))}
                     </TableBody>

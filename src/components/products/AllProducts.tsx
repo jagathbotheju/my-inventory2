@@ -7,7 +7,7 @@ import {
 import { Card, CardContent, CardHeader, CardTitle } from "../ui/card";
 import {
   EyeIcon,
-  FilePenLineIcon,
+  // FilePenLineIcon,
   Loader2Icon,
   Trash2Icon,
 } from "lucide-react";
@@ -26,7 +26,7 @@ import SupplierPicker from "../SupplierPicker";
 import { useEffect, useState } from "react";
 import { Supplier } from "@/server/db/schema/suppliers";
 import ViewProductDialog from "./ViewProductDialog";
-import { TbShoppingCartDown } from "react-icons/tb";
+// import { TbShoppingCartDown } from "react-icons/tb";
 import {
   Tooltip,
   TooltipContent,
@@ -221,7 +221,7 @@ const AllProducts = ({ user }: Props) => {
                       </TableCell>
 
                       {/* edit */}
-                      <TableCell>
+                      {/* <TableCell>
                         <TooltipProvider>
                           <Tooltip>
                             <TooltipTrigger asChild>
@@ -239,7 +239,7 @@ const AllProducts = ({ user }: Props) => {
                             </TooltipContent>
                           </Tooltip>
                         </TooltipProvider>
-                      </TableCell>
+                      </TableCell> */}
 
                       {/* view */}
                       <TableCell>
@@ -263,7 +263,7 @@ const AllProducts = ({ user }: Props) => {
                       </TableCell>
 
                       {/* buy */}
-                      <TableCell>
+                      {/* <TableCell>
                         <ViewProductDialog product={product}>
                           <TooltipProvider>
                             <Tooltip>
@@ -283,7 +283,7 @@ const AllProducts = ({ user }: Props) => {
                             </Tooltip>
                           </TooltipProvider>
                         </ViewProductDialog>
-                      </TableCell>
+                      </TableCell> */}
 
                       {/* sell */}
                       {/* <TableCell>
