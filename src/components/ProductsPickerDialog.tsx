@@ -57,8 +57,8 @@ const ProductsPickerDialog = ({ children, userId, sellMode }: Props) => {
     stocks,
     "productNumber"
   )
-    ?.filter((stock) => stock.quantity > 0)
-    .map((stock) => {
+    // ?.filter((stock) => stock.quantity > 0)
+    ?.map((stock) => {
       const data = {
         quantity: stock.quantity,
         productNumber: stock.productNumber as string,

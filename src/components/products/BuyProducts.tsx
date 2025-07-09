@@ -160,6 +160,8 @@ const BuyProducts = ({ userId }: Props) => {
       <CardHeader>
         <div className="flex items-center justify-between">
           <CardTitle className="text-4xl font-bold">Buying Products</CardTitle>
+
+          {/* products picker */}
           <ProductsPickerDialog userId={userId}>
             <Button className="font-semibold">Select Products</Button>
           </ProductsPickerDialog>

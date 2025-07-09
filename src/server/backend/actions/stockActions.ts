@@ -125,7 +125,6 @@ export const getStocksBySupplierTest = async ({
         and(
           eq(buyTransactions.userId, userId),
           eq(buyTransactions.supplierId, supplierId)
-          // ilike(buyTransactions.productNumber, "abc-001%")
         )
       )
       .groupBy(
@@ -145,7 +144,6 @@ export const getStocksBySupplierTest = async ({
         and(
           eq(buyTransactions.userId, userId),
           eq(buyTransactions.supplierId, supplierId)
-          // ilike(buyTransactions.productNumber, "%abc-001%")
         )
       )
       .groupBy(buyTransactions.productId, buyTransactions.productNumber);
@@ -164,22 +162,22 @@ export const getStocksBySupplierTest = async ({
     const buyBal = buyTx && buyTx.quantity ? +buyTx?.quantity : 0;
     const sellBal = exist?.quantity ? +exist.quantity : 0;
     const bal = buyBal - sellBal;
-    if (bal !== 0) {
-      if (sellMode) {
+    if (sellMode) {
+      if (bal > 0) {
         stockBal.push({
-          quantity: buyBal - sellBal,
+          quantity: bal,
           productNumber: buyTx.productNumber as string,
           productId: buyTx.productId,
           purchasedPrice: buyTx?.unitPrice ?? 0,
           sellMode,
         });
-      } else {
-        stockBal.push({
-          quantity: buyBal - sellBal,
-          productNumber: buyTx.productNumber as string,
-          productId: buyTx.productId,
-        });
       }
+    } else {
+      stockBal.push({
+        quantity: bal,
+        productNumber: buyTx.productNumber as string,
+        productId: buyTx.productId,
+      });
     }
   });
 
