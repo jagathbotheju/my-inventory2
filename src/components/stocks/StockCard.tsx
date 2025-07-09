@@ -18,7 +18,7 @@ const StockCard = ({ stock }: Props) => {
           <div
             className={cn(
               "flex items-center gap-1 text-base p-[2px] px-1 rounded-md",
-              stock.quantity < 0 && "bg-red-500"
+              stock.quantity < 0 && "bg-primary"
             )}
           >
             <p>BAL</p>
