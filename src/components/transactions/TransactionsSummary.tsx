@@ -22,12 +22,14 @@ const TransactionsSummary = ({ user }: Props) => {
   const { data: buyTxTotalPurchase, isLoading: buyTxTotalPurchaseLoading } =
     useByTxTotalPurchase({
       userId: user?.id,
+      // userId: "7e397cd1-19ad-4c68-aa50-a77c06450bc7",
       period,
       timeFrame,
     });
   const { data: sellTxTotalSales, isLoading: sellTxTotalSalesLoading } =
     useSellTxTotalSales({
       userId: user?.id,
+      // userId: "7e397cd1-19ad-4c68-aa50-a77c06450bc7",
       period,
       timeFrame,
     });
@@ -87,7 +89,7 @@ const TransactionsSummary = ({ user }: Props) => {
           {/* diff */}
           <p className="col-span-3"></p>
           <p className="col-span-3"></p>
-          <p className="text-2xl font-semibold col-span-3">Diff</p>
+          <p className="text-2xl font-semibold col-span-3">Profit</p>
           <p className="text-2xl font-semibold col-span-3">
             {sellTxTotalSalesLoading ? (
               <Loader2Icon className="animate-spin w-8 h-8 text-primary" />

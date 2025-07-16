@@ -48,7 +48,7 @@ interface Props {
 const AuthButton = ({ user }: Props) => {
   const router = useRouter();
   const { setTheme, theme } = useTheme();
-  const { data: buyTxDueCheques } = useBuyTxDueCheques(user.id);
+  const { data: buyTxDueCheques } = useBuyTxDueCheques(user?.id);
 
   return (
     <div className="flex items-center gap-2">

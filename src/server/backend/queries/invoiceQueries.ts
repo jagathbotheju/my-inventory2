@@ -87,5 +87,6 @@ export const useBuyTxDueCheques = (userId: string) => {
   return useQuery({
     queryKey: ["buy-tx-due-cheques", userId],
     queryFn: () => buyTxDueChecks(userId),
+    enabled: !!!userId,
   });
 };
