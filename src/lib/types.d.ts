@@ -75,3 +75,14 @@ type ChequeData = {
   bankName?: string | undefined;
   amount?: number | undefined;
 };
+
+type BuyTxCurrentCheques = {
+  invoiceNumber: string;
+  id: string;
+  createdAt: string;
+  chequeNumber: string | null;
+  bankName: string | null;
+  amount: number | null;
+  chequeDate: string | null;
+  buyTxPaymentId: string;
+};

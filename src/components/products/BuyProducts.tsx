@@ -39,7 +39,9 @@ interface Props {
 const BuyProducts = ({ userId }: Props) => {
   const router = useRouter();
   const total: number[] = [];
-  const [openCalendar, setOpenCalendar] = useState(false);
+  const [openCalCheque, setOpenCalCheque] = useState(false);
+  const [openCalCashCheque, setOpenCalCashCheque] = useState(false);
+  const [openCalInvoice, setOpenCalInvoice] = useState(false);
   const [paymentMode, setPaymentMode] = useState<string>("");
   const [supplier, setSupplier] = useState<Supplier>({} as Supplier);
   const { mutate: addBuyTransactions } = useAddBuyTransactions();
@@ -478,8 +480,8 @@ const BuyProducts = ({ userId }: Props) => {
                                 date
                               </FormLabel>
                               <Popover
-                                open={openCalendar}
-                                onOpenChange={setOpenCalendar}
+                                open={openCalCheque}
+                                onOpenChange={setOpenCalCheque}
                               >
                                 <PopoverTrigger asChild>
                                   <FormControl>
@@ -509,7 +511,7 @@ const BuyProducts = ({ userId }: Props) => {
                                     selected={field.value}
                                     onSelect={(val) => {
                                       field.onChange(val);
-                                      setOpenCalendar(false);
+                                      setOpenCalCheque(false);
                                     }}
                                     initialFocus
                                   />
@@ -637,20 +639,18 @@ const BuyProducts = ({ userId }: Props) => {
                         control={form.control}
                         name={`cheques.${index}.chequeDate`}
                         render={({ field }) => (
-                          <FormItem className="whitespace-nowrap text-2xl col-span-2 relative my-1">
-                            <FormLabel className="absolute -top-3">
-                              date
-                            </FormLabel>
+                          <FormItem className="flex flex-col">
+                            <FormLabel>Date of birth</FormLabel>
                             <Popover
-                              open={openCalendar}
-                              onOpenChange={setOpenCalendar}
+                              open={openCalCashCheque}
+                              onOpenChange={setOpenCalCashCheque}
                             >
                               <PopoverTrigger asChild>
                                 <FormControl>
                                   <Button
                                     variant={"outline"}
                                     className={cn(
-                                      "w-[240px] pl-3 text-left font-normal dark:bg-slate-800",
+                                      "w-[240px] pl-3 text-left font-normal",
                                       !field.value && "text-muted-foreground"
                                     )}
                                   >
@@ -668,18 +668,19 @@ const BuyProducts = ({ userId }: Props) => {
                                 align="start"
                               >
                                 <Calendar
-                                  className="pointer-events-auto"
                                   mode="single"
                                   selected={field.value}
+                                  captionLayout="dropdown"
+                                  initialFocus
                                   onSelect={(val) => {
                                     field.onChange(val);
-                                    setOpenCalendar(false);
+                                    setOpenCalCashCheque(false);
                                   }}
-                                  initialFocus
                                 />
                               </PopoverContent>
                             </Popover>
-                            <FormMessage className="dark:text-white absolute -bottom-7" />
+
+                            <FormMessage />
                           </FormItem>
                         )}
                       />
@@ -713,7 +714,7 @@ const BuyProducts = ({ userId }: Props) => {
               </div>
             )}
 
-            {/* date */}
+            {/* invoice date */}
             <p className="whitespace-nowrap text-2xl col-span-3 font-semibold text-muted-foreground mt-4">
               Date
             </p>
@@ -723,7 +724,10 @@ const BuyProducts = ({ userId }: Props) => {
                 name="date"
                 render={({ field }) => (
                   <FormItem className="flex flex-col">
-                    <Popover open={openCalendar} onOpenChange={setOpenCalendar}>
+                    <Popover
+                      open={openCalInvoice}
+                      onOpenChange={setOpenCalInvoice}
+                    >
                       <PopoverTrigger asChild>
                         <FormControl>
                           <Button
@@ -749,7 +753,7 @@ const BuyProducts = ({ userId }: Props) => {
                           selected={field.value}
                           onSelect={(val) => {
                             field.onChange(val);
-                            setOpenCalendar(false);
+                            setOpenCalInvoice(false);
                           }}
                           initialFocus
                         />

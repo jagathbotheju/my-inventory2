@@ -54,7 +54,9 @@ export type SellProductsData = z.infer<typeof SellProductsSchema> & {
 const SellProducts = ({ userId }: Props) => {
   const router = useRouter();
   const total: number[] = [];
-  const [openCalendar, setOpenCalendar] = useState(false);
+  const [openCalCheque, setOpenCalCheque] = useState(false);
+  const [openCalCashCheque, setOpenCalCashCheque] = useState(false);
+  const [openCalInvoice, setOpenCalInvoice] = useState(false);
   const [paymentMode, setPaymentMode] = useState<string>("");
   const [customer, setCustomer] = useState<Customer>({} as Customer);
   // const [isLoading, setIsLoading] = useState<boolean>(false);
@@ -505,8 +507,8 @@ const SellProducts = ({ userId }: Props) => {
                                 date
                               </FormLabel>
                               <Popover
-                                open={openCalendar}
-                                onOpenChange={setOpenCalendar}
+                                open={openCalCheque}
+                                onOpenChange={setOpenCalCheque}
                               >
                                 <PopoverTrigger asChild>
                                   <FormControl>
@@ -536,7 +538,7 @@ const SellProducts = ({ userId }: Props) => {
                                     selected={field.value}
                                     onSelect={(val) => {
                                       field.onChange(val);
-                                      setOpenCalendar(false);
+                                      setOpenCalCheque(false);
                                     }}
                                     initialFocus
                                   />
@@ -669,8 +671,8 @@ const SellProducts = ({ userId }: Props) => {
                               date
                             </FormLabel>
                             <Popover
-                              open={openCalendar}
-                              onOpenChange={setOpenCalendar}
+                              open={openCalCashCheque}
+                              onOpenChange={setOpenCalCashCheque}
                             >
                               <PopoverTrigger asChild>
                                 <FormControl>
@@ -700,7 +702,7 @@ const SellProducts = ({ userId }: Props) => {
                                   selected={field.value}
                                   onSelect={(val) => {
                                     field.onChange(val);
-                                    setOpenCalendar(false);
+                                    setOpenCalCashCheque(false);
                                   }}
                                   initialFocus
                                 />
@@ -750,7 +752,10 @@ const SellProducts = ({ userId }: Props) => {
                 name="date"
                 render={({ field }) => (
                   <FormItem className="flex flex-col">
-                    <Popover open={openCalendar} onOpenChange={setOpenCalendar}>
+                    <Popover
+                      open={openCalInvoice}
+                      onOpenChange={setOpenCalInvoice}
+                    >
                       <PopoverTrigger asChild>
                         <FormControl>
                           <Button
@@ -776,7 +781,7 @@ const SellProducts = ({ userId }: Props) => {
                           selected={field.value}
                           onSelect={(val) => {
                             field.onChange(val);
-                            setOpenCalendar(false);
+                            setOpenCalInvoice(false);
                           }}
                           initialFocus
                         />

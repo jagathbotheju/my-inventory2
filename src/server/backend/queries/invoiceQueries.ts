@@ -1,5 +1,6 @@
 import { useQuery } from "@tanstack/react-query";
 import {
+  buyTxDueChecks,
   getBuyTxInvoicesForPeriod,
   getSellTxInvoicesForPeriod,
   searchBuyTxInvoices,
@@ -79,5 +80,12 @@ export const useBuyTxInvoicesForPeriod = ({
     queryKey: ["buy-tx-invoices-for-period", userId, period, timeFrame],
     queryFn: () => getBuyTxInvoicesForPeriod({ userId, period, timeFrame }),
     enabled: searchTerm.length === 0 && isBuyTx,
+  });
+};
+
+export const useBuyTxDueCheques = (userId: string) => {
+  return useQuery({
+    queryKey: ["buy-tx-due-cheques", userId],
+    queryFn: () => buyTxDueChecks(userId),
   });
 };

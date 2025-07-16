@@ -2,6 +2,7 @@
 import { db } from "@/server/db";
 import { desc, eq, sql } from "drizzle-orm";
 import {
+  buyTransactions,
   buyTxInvoices,
   buyTxPayments,
   sellTxInvoices,
@@ -15,6 +16,7 @@ import {
   buyTxPaymentCheques,
   BuyTxPaymentCheques,
 } from "@/server/db/schema/buyTxPaymentCheques";
+import _ from "lodash";
 
 //Add SellTx Payment
 export const addSellTxPayment = async ({
@@ -290,4 +292,41 @@ export const getBuyTxInvoicesForPeriod = async ({
   });
 
   return transactions as BuyTxInvoiceExt[];
+};
+
+//BuyTx due cheques
+export const buyTxDueChecks = async (userId: string) => {
+  const buyTxs = await db.query.buyTxInvoices.findMany({
+    where: eq(buyTransactions.userId, userId),
+    with: {
+      buyTxPayments: {
+        with: {
+          buyTxPaymentCheques: true,
+        },
+      },
+    },
+  });
+  if (buyTxs.length === 0) return [];
+
+  const cheques = [] as BuyTxCurrentCheques[];
+
+  buyTxs.map((tx) => {
+    tx.buyTxPayments.map((payment) => {
+      if (
+        payment.paymentMode === "cheque" ||
+        payment.paymentMode === "cash-cheque"
+      ) {
+        payment.buyTxPaymentCheques.map((cheque) => {
+          if (cheque.chequeDate && new Date(cheque.chequeDate) >= new Date()) {
+            cheques.push({
+              ...cheque,
+              invoiceNumber: tx.invoiceNumber,
+            });
+          }
+        });
+      }
+    });
+  });
+
+  return _.sortBy(cheques, "chequeDate") as BuyTxCurrentCheques[];
 };

@@ -3,6 +3,7 @@ import { Button } from "../ui/button";
 import Link from "next/link";
 import {
   BaggageClaimIcon,
+  BellIcon,
   BlocksIcon,
   LogIn,
   LogOutIcon,
@@ -26,6 +27,19 @@ import { useRouter } from "next/navigation";
 import { User } from "@/server/db/schema/users";
 import { ThemeSwitcher } from "../ThemeSwitcher";
 import { LucideFactory } from "lucide-react";
+import { useBuyTxDueCheques } from "@/server/backend/queries/invoiceQueries";
+import {
+  Sheet,
+  SheetContent,
+  SheetDescription,
+  SheetHeader,
+  SheetTitle,
+  SheetTrigger,
+} from "../ui/sheet";
+import { Separator } from "../ui/separator";
+import { format } from "date-fns";
+import { formatPrice } from "@/lib/utils";
+import { ScrollArea } from "../ui/scroll-area";
 
 interface Props {
   user: User;
@@ -34,6 +48,7 @@ interface Props {
 const AuthButton = ({ user }: Props) => {
   const router = useRouter();
   const { setTheme, theme } = useTheme();
+  const { data: buyTxDueCheques } = useBuyTxDueCheques(user.id);
 
   return (
     <div className="flex items-center gap-2">
@@ -184,6 +199,45 @@ const AuthButton = ({ user }: Props) => {
           </Button> */}
         </>
       )}
+
+      <Sheet>
+        <SheetTrigger asChild>
+          <div className="relative cursor-pointer">
+            <BellIcon className="w-8 h-8 text-primary " />
+            <div className="rounded-full -top-2 left-3 absolute font-bold bg-primary w-6 h-6 flex items-center justify-center">
+              <p className="text-white">{buyTxDueCheques?.length}</p>
+            </div>
+          </div>
+        </SheetTrigger>
+        <SheetContent className="dark:bg-slate-900">
+          <SheetHeader>
+            <SheetTitle className="uppercase text-center">
+              Buy Products due Cheques
+            </SheetTitle>
+            <Separator className="bg-primary" />
+            <SheetDescription className="hidden">due cheques</SheetDescription>
+          </SheetHeader>
+          <ScrollArea className="h-[100%]">
+            <div className="flex flex-col mt-4 gap-5">
+              {buyTxDueCheques?.map((item) => (
+                <div
+                  key={item.id}
+                  className="flex flex-col p-4 rounded-md shadow-md dark:shadow-slate-800 hover:dark:shadow-slate-700 cursor-pointer"
+                >
+                  <p className="uppercase">{item.invoiceNumber}</p>
+                  <p className="uppercase">{item.bankName}</p>
+                  <div className="flex items-center justify-between">
+                    <p className="font-semibold text-primary">
+                      {format(item.chequeDate as string, "yyyy-MMM-dd")}
+                    </p>
+                    <p>{formatPrice(item.amount ?? 0)}</p>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </ScrollArea>
+        </SheetContent>
+      </Sheet>
     </div>
   );
 };

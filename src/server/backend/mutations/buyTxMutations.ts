@@ -60,6 +60,7 @@ export const useAddBuyTransactions = () => {
       if (res?.success) {
         toast.success(res.success);
         queryClient.invalidateQueries({ queryKey: ["buy-transactions"] });
+        queryClient.invalidateQueries({ queryKey: ["buy-tx-due-cheques"] });
         router.push("/transactions/buy");
       }
       if (res?.error) {
