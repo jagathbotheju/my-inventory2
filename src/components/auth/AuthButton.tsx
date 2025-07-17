@@ -204,9 +204,11 @@ const AuthButton = ({ user }: Props) => {
         <SheetTrigger asChild>
           <div className="relative cursor-pointer">
             <BellIcon className="w-8 h-8 text-primary " />
-            <div className="rounded-full -top-2 left-3 absolute font-bold bg-primary w-6 h-6 flex items-center justify-center">
-              <p className="text-white">{buyTxDueCheques?.length}</p>
-            </div>
+            {buyTxDueCheques?.length && (
+              <div className="rounded-full -top-2 left-3 absolute font-bold bg-primary w-6 h-6 flex items-center justify-center">
+                <p className="text-white">{buyTxDueCheques?.length}</p>
+              </div>
+            )}
           </div>
         </SheetTrigger>
         <SheetContent className="dark:bg-slate-900">
