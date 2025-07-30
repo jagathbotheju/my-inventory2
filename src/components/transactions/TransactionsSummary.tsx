@@ -11,6 +11,7 @@ import { formatPrice } from "@/lib/utils";
 import { Loader2Icon } from "lucide-react";
 import { useSellTxTotalSales } from "@/server/backend/queries/sellTxQueries";
 import TransactionsCharts from "./TransactionsCharts";
+import { useTotalExpenses } from "@/server/backend/queries/expenseQueries";
 
 interface Props {
   user: User;
@@ -30,6 +31,12 @@ const TransactionsSummary = ({ user }: Props) => {
     useSellTxTotalSales({
       userId: user?.id,
       // userId: "7e397cd1-19ad-4c68-aa50-a77c06450bc7",
+      period,
+      timeFrame,
+    });
+  const { data: totalExpenses, isLoading: totalExpensesLoading } =
+    useTotalExpenses({
+      userId: user.id,
       period,
       timeFrame,
     });
@@ -66,37 +73,44 @@ const TransactionsSummary = ({ user }: Props) => {
           </div>
         </CardHeader>
         <CardContent className="w-full grid grid-cols-12 mt-6 gap-4">
-          {/* purchase summary */}
-          <p className="text-2xl font-semibold col-span-3">Total Purchase</p>
-          <p className="text-2xl font-semibold col-span-3">
-            {buyTxTotalPurchaseLoading ? (
-              <Loader2Icon className="animate-spin w-8 h-8 text-primary" />
-            ) : (
-              formatPrice(totalPurchase)
-            )}
-          </p>
+          {buyTxTotalPurchaseLoading ||
+          sellTxTotalSalesLoading ||
+          totalExpensesLoading ? (
+            <div className="col-span-12">
+              <div className="w-full flex items-center justify-center">
+                <Loader2Icon className="animate-spin w-8 h-8 text-primary" />
+              </div>
+            </div>
+          ) : (
+            <>
+              {/* purchase summary */}
+              <p className="text-2xl font-semibold col-span-3">
+                Total Purchase
+              </p>
+              <p className="text-2xl font-semibold col-span-3">
+                {formatPrice(totalPurchase)}
+              </p>
 
-          {/* sales summary */}
-          <p className="text-2xl font-semibold col-span-3">Total Sales</p>
-          <p className="text-2xl font-semibold col-span-3">
-            {sellTxTotalSalesLoading ? (
-              <Loader2Icon className="animate-spin w-8 h-8 text-primary" />
-            ) : (
-              formatPrice(totalSales)
-            )}
-          </p>
+              {/* sales summary */}
+              <p className="text-2xl font-semibold col-span-3">Total Sales</p>
+              <p className="text-2xl font-semibold col-span-3">
+                {formatPrice(totalSales)}
+              </p>
 
-          {/* diff */}
-          <p className="col-span-3"></p>
-          <p className="col-span-3"></p>
-          <p className="text-2xl font-semibold col-span-3">Profit</p>
-          <p className="text-2xl font-semibold col-span-3">
-            {sellTxTotalSalesLoading ? (
-              <Loader2Icon className="animate-spin w-8 h-8 text-primary" />
-            ) : (
-              formatPrice(totalSales - totalPurchase)
-            )}
-          </p>
+              <p className="col-span-3 text-2xl font-semibold">
+                Total Expenses
+              </p>
+              <p className="col-span-3 text-2xl font-semibold">
+                {totalExpenses ? formatPrice(+totalExpenses) : 0}
+              </p>
+
+              {/* profit */}
+              <p className="text-2xl font-semibold col-span-3">Profit</p>
+              <p className="text-2xl font-semibold col-span-3">
+                {formatPrice(totalSales - totalPurchase)}
+              </p>
+            </>
+          )}
         </CardContent>
       </Card>
 

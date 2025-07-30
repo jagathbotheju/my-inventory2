@@ -1,5 +1,14 @@
 import { z } from "zod";
 
+export const ExpenseSchema = z.object({
+  title: z.string().min(1, "expense title is required"),
+  description: z.string().optional(),
+  amount: z.coerce
+    .number()
+    .refine(async (val) => val > 0, "must be a positive number"),
+  date: z.date({ required_error: "date is required" }),
+});
+
 export const DateRangeSchema = z.object({
   date: z
     .object(

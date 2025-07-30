@@ -67,10 +67,9 @@ export const useAddBuyTransactions = () => {
         toast.error(res.error);
       }
     },
-    onError: (res) => {
-      const err = res.message;
-      toast.error(err);
-      toast.success("Could not Add Transaction");
+    onError: (error) => {
+      console.log("error", error);
+      toast.error("Could not Add Transaction");
     },
   });
 };

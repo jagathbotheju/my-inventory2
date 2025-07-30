@@ -5,6 +5,7 @@ import {
   BaggageClaimIcon,
   BellIcon,
   BlocksIcon,
+  CircleDollarSignIcon,
   LogIn,
   LogOutIcon,
   PrinterIcon,
@@ -49,6 +50,7 @@ const AuthButton = ({ user }: Props) => {
   const router = useRouter();
   const { setTheme, theme } = useTheme();
   const { data: buyTxDueCheques } = useBuyTxDueCheques(user?.id);
+  console.log("buyTxDueCheques");
 
   return (
     <div className="flex items-center gap-2">
@@ -121,6 +123,15 @@ const AuthButton = ({ user }: Props) => {
               >
                 <BlocksIcon className="mr-2 w-4 group-hover:translate-x-1 transition-all duration-300 ease-in-out group-hover:text-primary group-hover:font-semibold" />
                 <span className="hover:text-primary">Stocks</span>
+              </DropdownMenuItem>
+
+              {/* expenses*/}
+              <DropdownMenuItem
+                className="font-medium transition-all duration-500 cursor-pointer group ease-in-out"
+                onClick={() => router.push("/expenses")}
+              >
+                <CircleDollarSignIcon className="mr-2 w-4 group-hover:translate-x-1 transition-all duration-300 ease-in-out group-hover:text-primary group-hover:font-semibold" />
+                <span className="hover:text-primary">Expenses</span>
               </DropdownMenuItem>
 
               {/* print */}

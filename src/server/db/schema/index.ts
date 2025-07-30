@@ -13,6 +13,10 @@ export {
   sellTxPayments,
   sellTxPaymentRelations,
 } from "@/server/db/schema/sellTxPayments";
+
+//expenses
+export { expenses, expenseRelations } from "@/server/db/schema/expenses";
+
 export {
   buyTxPayments,
   buyTxPaymentRelations,
