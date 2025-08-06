@@ -89,7 +89,7 @@ export const getProductsBySupplierPagination = async ({
         suppliers: true,
         unitOfMeasurements: true,
       },
-      orderBy: asc(products.productNumber),
+      orderBy: desc(products.createdAt),
       limit: pageSize,
       offset: (page - 1) * pageSize,
     });

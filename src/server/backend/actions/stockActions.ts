@@ -1,7 +1,12 @@
 "use server";
 import { TableDataProductsPicker } from "@/components/ProductsPickerDialog";
 import { db } from "@/server/db";
-import { buyTransactions, sellTransactions, stocks } from "@/server/db/schema";
+import {
+  buyTransactions,
+  products,
+  sellTransactions,
+  stocks,
+} from "@/server/db/schema";
 import { Stock, StockExt } from "@/server/db/schema/stocks";
 import { and, asc, eq, ne, sql, sum } from "drizzle-orm";
 
@@ -57,6 +62,18 @@ export const getStocksBySupplierTest = async ({
   supplierId: string;
   sellMode?: boolean;
 }) => {
+  //products
+  const supplierProducts = await db
+    .select()
+    .from(products)
+    .where(
+      and(eq(products.userId, userId), eq(products.supplierId, supplierId))
+    );
+
+  if (!supplierProducts.length) {
+    return { error: "Products no found, please add a Product" };
+  }
+
   // SELL TXS
   let sellTxsTest = [] as {
     quantity: string | null;
@@ -147,6 +164,7 @@ export const getStocksBySupplierTest = async ({
         )
       )
       .groupBy(buyTransactions.productId, buyTransactions.productNumber);
+    // console.log("buyTxTest", buyTxsTest);
   }
 
   //STOCK BAL
@@ -181,7 +199,25 @@ export const getStocksBySupplierTest = async ({
     }
   });
 
-  return stockBal as StockBal[];
+  const filteredProducts = supplierProducts.map((product) => {
+    const existsInStockBal = stockBal.find(
+      (stock) => stock.productId === product.id
+    );
+    if (existsInStockBal) {
+      return existsInStockBal;
+    } else {
+      return {
+        productId: product.id,
+        productNumber: product.productNumber,
+        quantity: 0,
+      };
+    }
+  });
+
+  // console.log("products", filteredProducts);
+  // console.log("products", filteredProducts.length);
+
+  return filteredProducts as StockBal[];
 };
 
 export const getAllStocks = async (userId: string) => {
