@@ -48,6 +48,8 @@ const Reports = ({ user }: Props) => {
     to: dateRange.to,
   });
 
+  console.log("sellTxs", sellTxs);
+
   const customers = _.keys(sellTxs);
   const cusTxs = _.values(sellTxs);
 
@@ -121,33 +123,6 @@ const Reports = ({ user }: Props) => {
               const totalAmount = customerTxs.reduce((acc, item) => {
                 return (acc += (item.unitPrice ?? 0) * item.quantity);
               }, 0);
-
-              const fCustomerTxs = customerTxs.reduce(
-                (acc, sellTx) => {
-                  const exist = acc.find(
-                    (item) => item.invoiceNumber === sellTx.invoiceNumber
-                  );
-
-                  if (exist) {
-                    exist.invoiceTotal +=
-                      (sellTx.unitPrice ?? 0) * sellTx.quantity;
-                  } else {
-                    acc.push({
-                      invoiceNumber: sellTx.invoiceNumber,
-                      invoiceTotal: (sellTx.unitPrice ?? 0) * sellTx.quantity,
-                      date: sellTx.date,
-                    });
-                  }
-
-                  return acc;
-                },
-                [] as {
-                  invoiceNumber: string;
-                  invoiceTotal: number;
-                  date: string;
-                }[]
-              );
-
               return (
                 <div className="flex flex-col mb-4" key={customer + index}>
                   <div className="flex justify-between items-center border border-b border-t-transparent border-r-transparent border-l-transparent border-primary">
@@ -161,22 +136,28 @@ const Reports = ({ user }: Props) => {
                     <TableHeader>
                       <TableRow>
                         <TableHead>Date</TableHead>
+                        <TableHead>Product Number</TableHead>
                         <TableHead>Invoice Number</TableHead>
-                        <TableHead>Total</TableHead>
+                        <TableHead>Selling Price</TableHead>
+                        <TableHead>Quantity</TableHead>
                       </TableRow>
                     </TableHeader>
                     <TableBody>
-                      {fCustomerTxs.map((tx, index) => (
-                        <TableRow key={tx.invoiceNumber + index}>
+                      {customerTxs.map((tx) => (
+                        <TableRow key={tx.id}>
                           <TableCell>
                             {format(tx.date, "yyyy-MMM-dd")}
                           </TableCell>
                           <TableCell>
-                            {tx.invoiceNumber?.toUpperCase()}
+                            {tx.productNumber?.toUpperCase()}
                           </TableCell>
                           <TableCell>
-                            {formatPrice(tx.invoiceTotal ?? 0)}
+                            {tx.invoiceNumber.toUpperCase()}
                           </TableCell>
+                          <TableCell>
+                            {formatPrice(tx.unitPrice ?? 0)}
+                          </TableCell>
+                          <TableCell>{tx.quantity}</TableCell>
                         </TableRow>
                       ))}
                     </TableBody>

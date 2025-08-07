@@ -886,5 +886,8 @@ export const getSellTxDateRange = async ({
   const sortedBuyTxs = _.sortBy(sellTxs, "customers.name", "date");
   const groupedBuyTxs = _.groupBy(sortedBuyTxs, "customers.name");
 
+  // const groupByInvoice = _.groupBy(sellTxs, "invoiceId");
+  // console.log("sellTxs", groupByInvoice);
+
   return groupedBuyTxs;
 };
