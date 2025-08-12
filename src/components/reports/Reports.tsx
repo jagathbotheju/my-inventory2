@@ -20,6 +20,7 @@ import { SellTransactionExt } from "@/server/db/schema/sellTransactions";
 import _ from "lodash";
 import { useReactToPrint } from "react-to-print";
 import { toast } from "sonner";
+import { Separator } from "../ui/separator";
 
 interface Props {
   user: User;
@@ -51,6 +52,8 @@ const Reports = ({ user }: Props) => {
   const customers = _.keys(sellTxs);
   const cusTxs = _.values(sellTxs);
 
+  console.log("cusTx", cusTxs);
+
   return (
     <Card className="flex flex-col w-full h-fit bg-transparent dark:border-primary/40">
       <CardHeader>
@@ -63,7 +66,7 @@ const Reports = ({ user }: Props) => {
                 id="date"
                 variant={"outline"}
                 className={cn(
-                  "w-full justify-start text-left",
+                  "w-full justify-start text-left dark:bg-slate-900 bg-slate-50",
                   !dateRange.from && "text-muted-foreground"
                 )}
               >
@@ -122,8 +125,11 @@ const Reports = ({ user }: Props) => {
                 return (acc += (item.unitPrice ?? 0) * item.quantity);
               }, 0);
 
+              let totalPaymentReceived = 0;
               const fCustomerTxs = customerTxs.reduce(
                 (acc, sellTx) => {
+                  if (sellTx.customers.name.toLowerCase() === "cash bill")
+                    return acc;
                   const exist = acc.find(
                     (item) => item.invoiceNumber === sellTx.invoiceNumber
                   );
@@ -132,10 +138,36 @@ const Reports = ({ user }: Props) => {
                     exist.invoiceTotal +=
                       (sellTx.unitPrice ?? 0) * sellTx.quantity;
                   } else {
+                    const paymentReceived =
+                      sellTx.sellTxInvoices.sellTxPayments.reduce(
+                        (acc, item) => {
+                          if (item.paymentMode === "cash") {
+                            acc += item.cacheAmount ?? 0;
+                          }
+                          if (item.paymentMode === "cheque") {
+                            acc += item.sellTxPaymentCheques.reduce(
+                              (acc, item) => acc + (item.amount ?? 0),
+                              0
+                            );
+                          }
+                          if (item.paymentMode === "cash-cheque") {
+                            acc += item.cacheAmount ?? 0;
+                            acc += item.sellTxPaymentCheques.reduce(
+                              (acc, item) => acc + (item.amount ?? 0),
+                              0
+                            );
+                          }
+                          return acc;
+                        },
+                        0
+                      );
+
+                    totalPaymentReceived += paymentReceived;
                     acc.push({
                       invoiceNumber: sellTx.invoiceNumber,
                       invoiceTotal: (sellTx.unitPrice ?? 0) * sellTx.quantity,
                       date: sellTx.date,
+                      paymentReceived,
                     });
                   }
 
@@ -145,16 +177,32 @@ const Reports = ({ user }: Props) => {
                   invoiceNumber: string;
                   invoiceTotal: number;
                   date: string;
+                  paymentReceived: number;
                 }[]
               );
 
               return (
                 <div className="flex flex-col mb-4" key={customer + index}>
                   <div className="flex justify-between items-center border border-b border-t-transparent border-r-transparent border-l-transparent border-primary">
-                    <h3 className="text-xl font-semibold">{customer}</h3>
-                    <p className="text-xl font-semibold">
-                      {formatPrice(totalAmount)}
-                    </p>
+                    <h3 className="text-lg font-semibold">{customer}</h3>
+                    <div className="flex items-center gap-4">
+                      {totalPaymentReceived !== 0 && (
+                        <>
+                          <p className="text-lg font-semibold">
+                            <span className="mr-2">Payment Received</span>{" "}
+                            {formatPrice(totalPaymentReceived)}
+                          </p>
+                          <Separator
+                            orientation="vertical"
+                            className="h-6 w-[2px] bg-primary"
+                          />
+                        </>
+                      )}
+                      <p className="text-lg font-semibold">
+                        <span className="mr-2">Total</span>{" "}
+                        {formatPrice(totalAmount)}
+                      </p>
+                    </div>
                   </div>
 
                   <Table>
@@ -163,22 +211,33 @@ const Reports = ({ user }: Props) => {
                         <TableHead>Date</TableHead>
                         <TableHead>Invoice Number</TableHead>
                         <TableHead>Total</TableHead>
+                        {totalPaymentReceived !== 0 && (
+                          <TableHead>Payment Received</TableHead>
+                        )}
                       </TableRow>
                     </TableHeader>
                     <TableBody>
-                      {fCustomerTxs.map((tx, index) => (
-                        <TableRow key={tx.invoiceNumber + index}>
-                          <TableCell>
-                            {format(tx.date, "yyyy-MMM-dd")}
-                          </TableCell>
-                          <TableCell>
-                            {tx.invoiceNumber?.toUpperCase()}
-                          </TableCell>
-                          <TableCell>
-                            {formatPrice(tx.invoiceTotal ?? 0)}
-                          </TableCell>
-                        </TableRow>
-                      ))}
+                      {fCustomerTxs.map((tx, index) => {
+                        // const amountReceived=tx.
+                        return (
+                          <TableRow key={tx.invoiceNumber + index}>
+                            <TableCell>
+                              {format(tx.date, "yyyy-MMM-dd")}
+                            </TableCell>
+                            <TableCell>
+                              {tx.invoiceNumber?.toUpperCase()}
+                            </TableCell>
+                            <TableCell>
+                              {formatPrice(tx.invoiceTotal ?? 0)}
+                            </TableCell>
+                            {totalPaymentReceived !== 0 && (
+                              <TableCell>
+                                {formatPrice(tx.paymentReceived ?? 0)}
+                              </TableCell>
+                            )}
+                          </TableRow>
+                        );
+                      })}
                     </TableBody>
                   </Table>
                 </div>

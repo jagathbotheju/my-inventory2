@@ -25,7 +25,7 @@ const DeleteExpenseDialog = ({ children, expenseId, userId }: Props) => {
   return (
     <Dialog open={open} onOpenChange={setOpen}>
       <DialogTrigger asChild>{children}</DialogTrigger>
-      <DialogContent className="sm:max-w-[425px]">
+      <DialogContent className="sm:max-w-[425px] dark:bg-slate-900 bg-slate-50">
         <DialogHeader>
           <DialogTitle>Delete Expense</DialogTitle>
           <DialogDescription className="hidden">
@@ -46,6 +46,10 @@ const DeleteExpenseDialog = ({ children, expenseId, userId }: Props) => {
             type="submit"
             onClick={() => {
               deleteExpense({ userId, expenseId });
+              // deleteExpense({
+              //   userId: "7e397cd1-19ad-4c68-aa50-a77c06450bc7",
+              //   expenseId,
+              // });
               setOpen(false);
             }}
           >

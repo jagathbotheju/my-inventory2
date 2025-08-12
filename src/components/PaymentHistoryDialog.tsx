@@ -39,7 +39,7 @@ const PaymentHistoryDialog = ({
   return (
     <Dialog open={open} onOpenChange={setOpen} modal={true}>
       <DialogTrigger asChild>{children}</DialogTrigger>
-      <DialogContent className="sm:max-w-[50%] h-[450px] flex flex-col">
+      <DialogContent className="sm:max-w-[50%] h-[450px] flex flex-col dark:bg-slate-900 bg-slate-50">
         <DialogHeader>
           <DialogTitle>
             <div className="flex flex-col p-1">
@@ -68,7 +68,7 @@ const PaymentHistoryDialog = ({
         </DialogHeader>
         {/* Payment details */}
         <ScrollArea>
-          <div className="mt-1">
+          <div className="mt-4">
             {/* SellTx Payment History */}
             {!isBuyTx && sellTxInvoice ? (
               <div className="flex flex-col -mt-4 gap-2">

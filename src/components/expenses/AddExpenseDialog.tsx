@@ -56,6 +56,7 @@ const AddExpenseDialog = ({ children, userId }: Props) => {
   const onSubmit = (formData: z.infer<typeof ExpenseSchema>) => {
     setOpen(false);
     addExpense({ formData, userId });
+    // addExpense({ formData, userId: "7e397cd1-19ad-4c68-aa50-a77c06450bc7" });
   };
 
   useEffect(() => {
@@ -65,7 +66,7 @@ const AddExpenseDialog = ({ children, userId }: Props) => {
   return (
     <Dialog modal open={open} onOpenChange={setOpen}>
       <DialogTrigger asChild>{children}</DialogTrigger>
-      <DialogContent className="sm:max-w-[425px]">
+      <DialogContent className="sm:max-w-[425px] dark:bg-slate-900 bg-slate-50">
         <DialogHeader>
           <DialogTitle>Add Expense</DialogTitle>
           <DialogDescription className="hidden">

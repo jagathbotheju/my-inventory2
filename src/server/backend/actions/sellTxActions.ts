@@ -876,14 +876,22 @@ export const getSellTxDateRange = async ({
       },
       sellTxInvoices: {
         with: {
-          sellTxPayments: true,
+          sellTxPayments: {
+            with: {
+              sellTxPaymentCheques: true,
+            },
+          },
         },
       },
       customers: true,
     },
   });
 
-  const sortedBuyTxs = _.sortBy(sellTxs, "customers.name", "date");
+  const fSellTxs = sellTxs.filter(
+    (item) => item.customers.name.toLowerCase() !== "cash bill"
+  );
+
+  const sortedBuyTxs = _.sortBy(fSellTxs, "customers.name", "date");
   const groupedBuyTxs = _.groupBy(sortedBuyTxs, "customers.name");
 
   // const groupByInvoice = _.groupBy(sellTxs, "invoiceId");
