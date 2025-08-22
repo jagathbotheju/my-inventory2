@@ -48,8 +48,6 @@ const Reports = ({ user }: Props) => {
     to: dateRange.to,
   });
 
-  console.log("sellTxs", sellTxs);
-
   const customers = _.keys(sellTxs);
   const cusTxs = _.values(sellTxs);
 

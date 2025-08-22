@@ -50,7 +50,6 @@ const AuthButton = ({ user }: Props) => {
   const router = useRouter();
   const { setTheme, theme } = useTheme();
   const { data: buyTxDueCheques } = useBuyTxDueCheques(user?.id);
-  console.log("buyTxDueCheques");
 
   return (
     <div className="flex items-center gap-2">
@@ -215,11 +214,11 @@ const AuthButton = ({ user }: Props) => {
         <SheetTrigger asChild>
           <div className="relative cursor-pointer">
             <BellIcon className="w-8 h-8 text-primary " />
-            {buyTxDueCheques?.length && (
+            {buyTxDueCheques?.length ? (
               <div className="rounded-full -top-2 left-3 absolute font-bold bg-primary w-6 h-6 flex items-center justify-center">
                 <p className="text-white">{buyTxDueCheques?.length}</p>
               </div>
-            )}
+            ) : null}
           </div>
         </SheetTrigger>
         <SheetContent className="dark:bg-slate-900">

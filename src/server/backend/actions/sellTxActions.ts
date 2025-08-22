@@ -854,19 +854,28 @@ export const getSellTxByUserByPeriod = async ({
 //SellTx between dates
 export const getSellTxDateRange = async ({
   userId,
+  customerId,
   from,
   to,
 }: {
+  customerId?: string;
   userId: string;
   from: Date;
   to: Date;
 }) => {
   const sellTxs = await db.query.sellTransactions.findMany({
-    where: and(
-      eq(sellTransactions.userId, userId),
-      gte(sellTransactions.date, from.toDateString()),
-      lte(sellTransactions.date, to.toDateString())
-    ),
+    where: customerId
+      ? and(
+          eq(sellTransactions.userId, userId),
+          eq(sellTransactions.customerId, customerId),
+          gte(sellTransactions.date, from.toDateString()),
+          lte(sellTransactions.date, to.toDateString())
+        )
+      : and(
+          eq(sellTransactions.userId, userId),
+          gte(sellTransactions.date, from.toDateString()),
+          lte(sellTransactions.date, to.toDateString())
+        ),
     with: {
       products: {
         with: {
@@ -893,9 +902,6 @@ export const getSellTxDateRange = async ({
 
   const sortedBuyTxs = _.sortBy(fSellTxs, "customers.name", "date");
   const groupedBuyTxs = _.groupBy(sortedBuyTxs, "customers.name");
-
-  // const groupByInvoice = _.groupBy(sellTxs, "invoiceId");
-  // console.log("sellTxs", groupByInvoice);
 
   return groupedBuyTxs;
 };

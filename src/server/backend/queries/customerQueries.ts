@@ -3,7 +3,25 @@ import {
   getCustomerById,
   getCustomers,
   getCustomersBySupplier,
+  searchCustomers,
 } from "../actions/customerActions";
+
+export const useSearchCustomers = ({
+  searchTerm,
+  userId,
+}: {
+  searchTerm: string;
+  userId: string;
+}) => {
+  return useQuery({
+    queryKey: ["search-customers", searchTerm, userId],
+    queryFn: () => {
+      if (searchTerm.length > 3) return searchCustomers({ searchTerm, userId });
+      return [];
+    },
+    refetchOnMount: false,
+  });
+};
 
 export const useCustomers = (userId: string) => {
   return useQuery({

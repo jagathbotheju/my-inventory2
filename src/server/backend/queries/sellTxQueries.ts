@@ -11,17 +11,19 @@ import {
 
 export const useSellTxDateRange = ({
   userId,
+  customerId,
   from,
   to,
 }: {
   userId: string;
+  customerId?: string;
   from: Date;
   to: Date;
 }) => {
   return useQuery({
-    queryKey: ["sell-tx-date-range", userId, from, to],
-    queryFn: () => getSellTxDateRange({ userId, from, to }),
-    // enabled: from > to,
+    queryKey: ["sell-tx-date-range", userId, from, to, customerId],
+    queryFn: () => getSellTxDateRange({ userId, from, to, customerId }),
+    enabled: from < to,
   });
 };
 

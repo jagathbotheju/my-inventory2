@@ -21,17 +21,25 @@ import _ from "lodash";
 import { useReactToPrint } from "react-to-print";
 import { toast } from "sonner";
 import { Separator } from "../ui/separator";
+import { Customer } from "@/server/db/schema/customers";
+import CustomersAutoComplete from "../CustomersAutoComplete";
+import { useQueryClient } from "@tanstack/react-query";
 
 interface Props {
   user: User;
 }
 
 const Reports = ({ user }: Props) => {
+  const queryClient = useQueryClient();
+
+  const [customer, setCustomer] = useState<Customer | null>(null);
+  const [allReports, setAllReports] = useState(true);
   const [dateRange, setDateRange] = useState({
     from: new Date(),
     to: new Date(),
   });
 
+  // print
   const printRef = useRef<HTMLDivElement>(null);
   const reactToPrintFn = useReactToPrint({
     contentRef: printRef,
@@ -42,7 +50,9 @@ const Reports = ({ user }: Props) => {
     onAfterPrint: () => toast.success("Sales report printed successfully"),
   });
 
+  // data
   const { data: sellTxs, isLoading } = useSellTxDateRange({
+    customerId: customer?.id,
     userId: user.id,
     // userId: "7e397cd1-19ad-4c68-aa50-a77c06450bc7",
     from: dateRange.from,
@@ -52,21 +62,47 @@ const Reports = ({ user }: Props) => {
   const customers = _.keys(sellTxs);
   const cusTxs = _.values(sellTxs);
 
-  console.log("cusTx", cusTxs);
-
   return (
     <Card className="flex flex-col w-full h-fit bg-transparent dark:border-primary/40">
       <CardHeader>
-        <CardTitle className="text-4xl font-bold flex justify-between items-center">
-          <p>Sales Report</p>
+        <CardTitle className="text-4xl font-bold flex flex-col gap-4">
+          <p>{allReports ? "All Sales Report" : "Sales Report for Customer"}</p>
 
+          {/* report types - ALL | Customer */}
           <div className="flex items-center gap-4">
+            <Button
+              onClick={() => {
+                setAllReports(!allReports);
+                queryClient.removeQueries({
+                  queryKey: ["sell-tx-date-range"],
+                });
+                queryClient.removeQueries({
+                  queryKey: ["search-customers"],
+                });
+                setDateRange({ from: new Date(), to: new Date() });
+                setCustomer(null);
+              }}
+              className="tracking-wide"
+            >
+              {allReports ? "Customer Reports" : "All Reports"}
+            </Button>
+
+            {!allReports && (
+              <CustomersAutoComplete
+                customer={customer}
+                setCustomer={setCustomer}
+                userId={user.id}
+                setDateRange={setDateRange}
+              />
+            )}
+
+            {/* date range picker */}
             <DateRangePicker setDateRange={setDateRange}>
               <Button
                 id="date"
                 variant={"outline"}
                 className={cn(
-                  "w-full justify-start text-left dark:bg-slate-900 bg-slate-50",
+                  "w-fit justify-start text-left dark:bg-slate-900 bg-slate-50",
                   !dateRange.from && "text-muted-foreground"
                 )}
               >
@@ -87,9 +123,11 @@ const Reports = ({ user }: Props) => {
                 )}
               </Button>
             </DateRangePicker>
-            {dateRange.from < dateRange.to && (
+
+            {/* print button */}
+            {!_.isEmpty(sellTxs) && (
               <PrinterIcon
-                className="text-primary cursor-pointer"
+                className="text-primary cursor-pointer w-6 h-6"
                 onClick={reactToPrintFn}
               />
             )}
@@ -101,9 +139,12 @@ const Reports = ({ user }: Props) => {
           <div className="flex items-center justify-center w-full">
             <Loader2 className="w-6 h-6 animate-spin text-primary" />
           </div>
-        ) : !sellTxs ? (
-          <div className="flex items-center justify-center w-full">
-            <h3 className="text-3xl font-semibold">No Transactions Found!</h3>
+        ) : _.isEmpty(sellTxs) &&
+          dateRange.from.getTime() !== dateRange.to.getTime() ? (
+          <div className="flex items-center justify-center w-full mt-6">
+            <h3 className="text-3xl font-semibold text-muted-foreground">
+              No Transactions Found!
+            </h3>
           </div>
         ) : (
           // print page

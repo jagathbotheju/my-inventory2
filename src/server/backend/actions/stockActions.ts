@@ -164,7 +164,6 @@ export const getStocksBySupplierTest = async ({
         )
       )
       .groupBy(buyTransactions.productId, buyTransactions.productNumber);
-    // console.log("buyTxTest", buyTxsTest);
   }
 
   //STOCK BAL
@@ -213,9 +212,6 @@ export const getStocksBySupplierTest = async ({
       };
     }
   });
-
-  // console.log("products", filteredProducts);
-  // console.log("products", filteredProducts.length);
 
   return filteredProducts as StockBal[];
 };

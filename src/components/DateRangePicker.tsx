@@ -3,7 +3,7 @@ import { DateRangeSchema } from "@/lib/schema";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { Popover, PopoverContent, PopoverTrigger } from "./ui/popover";
 import { Button } from "./ui/button";
 import { FormField, FormItem, Form } from "./ui/form";
@@ -33,6 +33,12 @@ const DateRangePicker = ({ children, setDateRange }: Props) => {
     });
     setOpen(false);
   };
+
+  useEffect(() => {
+    if (open) {
+      form.reset();
+    }
+  }, [form, open]);
 
   return (
     <Popover open={open} onOpenChange={setOpen} modal>

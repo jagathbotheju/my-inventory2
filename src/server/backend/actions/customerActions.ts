@@ -2,7 +2,7 @@
 import { db } from "@/server/db";
 import { NewCustomerSchema } from "@/lib/schema";
 import { z } from "zod";
-import { and, desc, eq } from "drizzle-orm";
+import { and, asc, desc, eq, ilike, sql } from "drizzle-orm";
 import { Customer, CustomerExt, customers } from "@/server/db/schema/customers";
 
 export const getCustomers = async (userId: string) => {
@@ -103,4 +103,21 @@ export const deleteCustomer = async (id: string) => {
     console.log(error);
     return { error: "Could not delete Customer" };
   }
+};
+
+export const searchCustomers = async ({
+  searchTerm,
+  userId,
+}: {
+  searchTerm: string;
+  userId: string;
+}) => {
+  const searchResult = await db.query.customers.findMany({
+    where: and(
+      ilike(customers.name, `%${searchTerm}%`),
+      eq(customers.userId, userId)
+    ),
+    orderBy: asc(sql`lower(${customers.name})`),
+  });
+  return searchResult as Customer[];
 };
