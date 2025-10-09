@@ -7,7 +7,7 @@ import { TableDataProductsPicker } from "@/components/ProductsPickerDialog";
 export type ProductStore = {
   currentSupplier: Supplier;
   selectedProducts: TableDataProductsPicker[];
-  updateSelectedProduct: (product: TableDataProductsPicker) => void;
+  // updateSelectedProduct: (product: TableDataProductsPicker) => void;
   selectedProductIds: RowSelectionState;
   setCurrentSupplier: (supplier: Supplier) => void;
   setSelectedProducts: (products: TableDataProductsPicker[]) => void;
@@ -32,31 +32,29 @@ export const useProductStore = create<ProductStore>()(
           selectedProducts: products,
         }));
       },
-      updateSelectedProduct: (product) => {
-        set((state) => {
-          const update = state.selectedProducts.find(
-            (item) => item.productId === product.productId
-          )!;
-          // if(!update) return [...state.selectedProducts]
+      // updateSelectedProduct: (product) => {
+      //   set((state) => {
+      //     const update = state.selectedProducts.find(
+      //       (item) => item.productId === product.productId
+      //     )!;
+      //     // if(!update) return [...state.selectedProducts]
 
-          return {
-            selectedProducts: [
-              ...state.selectedProducts,
-              {
-                ...update,
-                sellQuantity: product.sellQuantity,
-                sellUnitPrice: product.sellUnitPrice,
-              },
-            ],
-          };
-        });
-      },
+      //     return {
+      //       selectedProducts: [
+      //         ...state.selectedProducts,
+      //         {
+      //           ...update,
+      //           sellQuantity: product.sellQuantity,
+      //           sellUnitPrice: product.sellUnitPrice,
+      //         },
+      //       ],
+      //     };
+      //   });
+      // },
       removeSelectedProduct: (product: TableDataProductsPicker) => {
         set((state) => ({
           selectedProducts: state.selectedProducts.filter(
-            (item) =>
-              item.productId === product.productId &&
-              item.purchasedPrice !== product.purchasedPrice
+            (item) => item.productId !== product.productId
           ),
         }));
       },

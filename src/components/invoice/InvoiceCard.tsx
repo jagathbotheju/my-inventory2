@@ -6,7 +6,7 @@ import PaymentHistoryDialog from "../PaymentHistoryDialog";
 import { User } from "@/server/db/schema/users";
 import { Separator } from "../ui/separator";
 import { format } from "date-fns";
-import { BuyTxInvoiceExt } from "@/server/db/schema/buyTxInvoices";
+import { BuyTxInvoiceExt } from "@/server/db/schema/buyTxInvoice";
 
 interface Props {
   // item: SellTxInvoiceExt | BuyTxInvoiceExt;

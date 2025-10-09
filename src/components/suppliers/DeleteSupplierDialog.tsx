@@ -11,7 +11,7 @@ import {
 } from "../ui/dialog";
 import { Button } from "../ui/button";
 import { useDeleteSupplier } from "@/server/backend/mutations/supplierMutations";
-import { Supplier } from "@/server/db/schema/suppliers";
+import { Supplier } from "@/server/db/schema/supplier";
 import { User } from "@/server/db/schema/users";
 
 interface Props {

@@ -4,7 +4,7 @@ import {
   getAllUserStocks,
   getAllUserStocksByPeriod,
   getStocks,
-  getStocksBySupplierTest,
+  getStocksBySupplier,
   searchStocks,
 } from "../actions/stockActions";
 
@@ -70,17 +70,15 @@ export const useAllUserStocksByPeriod = ({
 };
 
 export const useStocksBySupplier = ({
-  sellMode,
   userId,
   supplierId,
 }: {
-  sellMode?: boolean;
   userId: string;
   supplierId: string;
 }) => {
   return useQuery({
-    queryKey: ["stocks-supplier", userId, supplierId, sellMode],
-    queryFn: () => getStocksBySupplierTest({ userId, supplierId, sellMode }),
+    queryKey: ["stocks-supplier", userId, supplierId],
+    queryFn: () => getStocksBySupplier({ userId, supplierId }),
     enabled: !!supplierId,
   });
 };

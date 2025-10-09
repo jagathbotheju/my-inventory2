@@ -1,20 +1,16 @@
 import LoginForm from "@/components/auth/LoginForm";
 import { auth } from "@/lib/auth";
+import { headers } from "next/headers";
 import { redirect } from "next/navigation";
-
-// interface Props {
-//   searchParams: {
-//     callbackUrl?: string;
-//   };
-
-// }
 
 const LoginPage = async ({
   searchParams,
 }: {
   searchParams: Promise<{ callbackUrl?: string }>;
 }) => {
-  const session = await auth();
+  const session = await auth.api.getSession({
+    headers: await headers(),
+  });
   const user = session?.user;
   const { callbackUrl } = await searchParams;
 

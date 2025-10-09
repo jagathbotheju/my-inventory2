@@ -57,7 +57,7 @@ type TxPayments = {
 };
 
 type StockBal = {
-  productNumber: string;
+  // productNumber: string;
   productId: string;
   quantity: number;
   buyTxTotalQuantity: number;

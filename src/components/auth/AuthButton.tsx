@@ -15,7 +15,6 @@ import {
   UserRoundPen,
   Users2Icon,
 } from "lucide-react";
-import { signOut } from "next-auth/react";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -41,6 +40,7 @@ import { Separator } from "../ui/separator";
 import { format } from "date-fns";
 import { formatPrice } from "@/lib/utils";
 import { ScrollArea } from "../ui/scroll-area";
+import { signOut } from "@/lib/auth-client";
 
 interface Props {
   user: User;

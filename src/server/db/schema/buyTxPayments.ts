@@ -22,7 +22,7 @@ export const buyTxPayments = pgTable("buy_tx_payments", {
 export const buyTxPaymentRelations = relations(
   buyTxPayments,
   ({ one, many }) => ({
-    buuTxInvoices: one(buyTxInvoices, {
+    buyTxInvoices: one(buyTxInvoices, {
       fields: [buyTxPayments.invoiceId],
       references: [buyTxInvoices.id],
     }),

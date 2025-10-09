@@ -21,7 +21,7 @@ import _ from "lodash";
 import { useReactToPrint } from "react-to-print";
 import { toast } from "sonner";
 import { Separator } from "../ui/separator";
-import { Customer } from "@/server/db/schema/customers";
+import { Customer } from "@/server/db/schema/customer";
 import CustomersAutoComplete from "../CustomersAutoComplete";
 import { useQueryClient } from "@tanstack/react-query";
 

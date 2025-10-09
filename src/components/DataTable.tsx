@@ -74,13 +74,11 @@ export function DataTable<TData, TValue>({
       const selectedRows = table.getSelectedRowModel().rows;
       const data: TableDataProductsPicker[] = selectedRows.map((row) => {
         return {
+          productId: row.getValue("productId"),
           productNumber: row.getValue("productNumber"),
+          unit: row.getValue("unit"),
           quantity: row.getValue("quantity"),
           purchasedPrice: row.getValue("purchasedPrice"),
-          productId: row.getValue("productId"),
-          supplierId: row.getValue("supplierId"),
-          unit: row.getValue("unit"),
-          // supplier: row.getValue("supplier"),
           selectedRowId: row.id,
         };
       });

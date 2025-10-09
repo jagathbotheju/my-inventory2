@@ -2,47 +2,13 @@
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardFooter, CardHeader } from "../ui/card";
 import Image from "next/image";
-import { socialSignIn } from "@/server/backend/actions/authActions";
+import { signIn } from "@/lib/auth-client";
 
 interface Props {
   callbackUrl?: string;
 }
 
 const LoginForm = ({ callbackUrl }: Props) => {
-  // const [isPending, startTransition] = useTransition();
-  // const router = useRouter();
-  // const [showPass, setShowPass] = useState(false);
-  // const form = useForm<z.infer<typeof LoginSchema>>({
-  //   resolver: zodResolver(LoginSchema),
-  //   defaultValues: {
-  //     email: "",
-  //     password: "",
-  //   },
-  //   mode: "all",
-  // });
-
-  // const [error, setError] = useState("");
-  // const [success, setSuccess] = useState("");
-
-  // const onSubmit = (formData: z.infer<typeof LoginSchema>) => {
-  //   startTransition(() => {
-  //     // execute(formData);
-  //     emailSignIn(formData)
-  //       .then((res) => {
-  //         if (res.success) {
-  //           router.push("/");
-  //           return toast.success(res.success);
-  //         }
-  //         if (res.error) {
-  //           return toast.error(res.error);
-  //         }
-  //       })
-  //       .catch((err) => {
-  //         return toast.error("Invalid Credentials");
-  //       });
-  //   });
-  // };
-
   return (
     <div className="flex items-center justify-center flex-col w-full ">
       <Card className="w-full md:w-[400px] dark:bg-transparent dark:border-primary/40">
@@ -65,7 +31,10 @@ const LoginForm = ({ callbackUrl }: Props) => {
             className="w-full mb-3"
             variant="secondary"
             onClick={() =>
-              socialSignIn({ social: "google", callback: callbackUrl ?? "/" })
+              signIn.social({
+                provider: "google",
+                callbackURL: callbackUrl ?? "/",
+              })
             }
           >
             <div className="relative mr-2">

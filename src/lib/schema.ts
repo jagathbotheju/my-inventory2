@@ -208,7 +208,6 @@ export const NewSupplierSchema = z.object({
 });
 
 export const NewCustomerSchema = z.object({
-  supplier: z.string().min(1, "supplier name is required"),
   name: z.string().min(1, "customer name is required"),
   address: z.string().optional(),
   landPhone: z.string().optional(),

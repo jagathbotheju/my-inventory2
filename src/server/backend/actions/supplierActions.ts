@@ -6,6 +6,7 @@ import { suppliers } from "@/server/db/schema";
 import { z } from "zod";
 import { and, eq } from "drizzle-orm";
 
+//===get suppliers===
 export const getSuppliers = async (userId: string) => {
   const allSuppliers = await db
     .select()

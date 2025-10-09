@@ -2,22 +2,97 @@
 import { db } from "@/server/db";
 import { NewProductSchema } from "@/lib/schema";
 import { z } from "zod";
-import { and, asc, count, desc, eq, ilike, or, sql } from "drizzle-orm";
+import {
+  and,
+  asc,
+  count,
+  desc,
+  eq,
+  ilike,
+  inArray,
+  or,
+  sql,
+} from "drizzle-orm";
 import { ProductExt, products } from "@/server/db/schema/products";
+import { sellTransactions, stocks } from "@/server/db/schema";
+import { TableDataProductsPicker } from "@/components/ProductsPickerDialog";
 
-export const searchProducts = async (searchTerm: string) => {
-  const searchResult = await db.query.products.findMany({
+//===Products for Picker
+export const getProductsForPicker = async ({
+  userId,
+  supplierId,
+  sellMode,
+}: {
+  userId: string;
+  supplierId: string;
+  sellMode: boolean;
+}) => {
+  //products
+  const supplierProducts = await db.query.products.findMany({
+    where: and(
+      eq(products.userId, userId),
+      eq(products.supplierId, supplierId)
+    ),
     with: {
-      suppliers: true,
       unitOfMeasurements: true,
     },
-    where: or(
-      ilike(products.description, `%${searchTerm}%`),
-      ilike(products.productNumber, `%${searchTerm}%`)
-    ),
-    orderBy: desc(products.description),
   });
-  return searchResult as ProductExt[];
+
+  let tableData: TableDataProductsPicker[] = supplierProducts.map((product) => {
+    return {
+      productId: product.id,
+      productNumber: product.productNumber,
+      unit: product.unitOfMeasurements.unit,
+    };
+  });
+
+  //check stock balance
+  const productIds = supplierProducts.map((product) => product.id);
+  const stockBalance = await db
+    .select({
+      productId: stocks.productId,
+      quantity: stocks.quantity,
+    })
+    .from(stocks)
+    .where(inArray(stocks.productId, productIds));
+
+  if (stockBalance) {
+    tableData = tableData.map((tableDataItem) => {
+      const exist = stockBalance.find(
+        (stockItem) => stockItem.productId === tableDataItem.productId
+      );
+      if (exist) {
+        return { ...tableDataItem, quantity: exist.quantity };
+      }
+      return tableDataItem;
+    });
+  }
+
+  //check purchased price
+  let purchasedProducts: { productId: string; purchasedPrice: number }[] = [];
+  if (sellMode) {
+    purchasedProducts = await db
+      .select({
+        productId: sellTransactions.productId,
+        purchasedPrice: sellTransactions.purchasedPrice,
+      })
+      .from(sellTransactions)
+      .where(inArray(sellTransactions.productId, productIds));
+  }
+
+  if (purchasedProducts) {
+    tableData = tableData.map((tableDataItem) => {
+      const exist = purchasedProducts.find(
+        (purchasedItem) => purchasedItem.productId === tableDataItem.productId
+      );
+      if (exist) {
+        return { ...tableDataItem, quantity: exist.purchasedPrice };
+      }
+      return tableDataItem;
+    });
+  }
+
+  return tableData;
 };
 
 export const getProducts = async (userId: string) => {
@@ -209,4 +284,19 @@ export const deleteProduct = async ({
     console.log(error);
     return { error: "Could not delete Product" };
   }
+};
+
+export const searchProducts = async (searchTerm: string) => {
+  const searchResult = await db.query.products.findMany({
+    with: {
+      suppliers: true,
+      unitOfMeasurements: true,
+    },
+    where: or(
+      ilike(products.description, `%${searchTerm}%`),
+      ilike(products.productNumber, `%${searchTerm}%`)
+    ),
+    orderBy: desc(products.description),
+  });
+  return searchResult as ProductExt[];
 };

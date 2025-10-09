@@ -23,7 +23,7 @@ export const sellTransactions = pgTable("sell_transactions", {
     .references(() => customers.id)
     .notNull(),
   supplierId: text("supplier_id").references(() => suppliers.id),
-  purchasedPrice: doublePrecision("purchased_price").default(0),
+  purchasedPrice: doublePrecision("purchased_price").default(0).notNull(),
   productId: text("product_id")
     .notNull()
     .references(() => products.id, { onDelete: "cascade" }),

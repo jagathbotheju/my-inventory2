@@ -15,7 +15,7 @@ import { Button } from "./ui/button";
 import { formatPrice } from "@/lib/utils";
 import { SellTxInvoiceExt } from "@/server/db/schema/sellTxInvoices";
 import { ScrollArea } from "./ui/scroll-area";
-import { BuyTxInvoiceExt } from "@/server/db/schema/buyTxInvoices";
+import { BuyTxInvoiceExt } from "@/server/db/schema/buyTxInvoice";
 import PaymentHistoryDialogCard from "./PaymentHistoryDialogCard";
 
 interface Props {

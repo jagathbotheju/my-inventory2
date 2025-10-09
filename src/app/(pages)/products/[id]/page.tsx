@@ -2,6 +2,7 @@ import { auth } from "@/lib/auth";
 import { redirect } from "next/navigation";
 import { User } from "@/server/db/schema/users";
 import ProductDetails from "@/components/products/ProductDetails";
+import { headers } from "next/headers";
 
 const ProductDetailsPage = async ({
   params,
@@ -9,7 +10,9 @@ const ProductDetailsPage = async ({
   params: Promise<{ id: string }>;
 }) => {
   const productId = (await params).id;
-  const session = await auth();
+  const session = await auth.api.getSession({
+    headers: await headers(),
+  });
   const user = session?.user as User;
 
   if (!session) {

@@ -23,7 +23,7 @@ import { format } from "date-fns";
 import { Calendar } from "../ui/calendar";
 import { useAddSellTransaction } from "@/server/backend/mutations/sellTxMutations";
 import { SellTransaction } from "@/server/db/schema/sellTransactions";
-import { Customer } from "@/server/db/schema/customers";
+import { Customer } from "@/server/db/schema/customer";
 import { useState } from "react";
 import CustomerPicker from "../CustomerPicker";
 import { toast } from "sonner";

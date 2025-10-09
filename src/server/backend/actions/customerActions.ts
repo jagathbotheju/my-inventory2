@@ -3,32 +3,12 @@ import { db } from "@/server/db";
 import { NewCustomerSchema } from "@/lib/schema";
 import { z } from "zod";
 import { and, asc, desc, eq, ilike, sql } from "drizzle-orm";
-import { Customer, CustomerExt, customers } from "@/server/db/schema/customers";
+import { Customer, customers } from "@/server/db/schema/customers";
 
 export const getCustomers = async (userId: string) => {
   const allCustomers = await db.query.customers.findMany({
     where: eq(customers.userId, userId),
-    with: {
-      suppliers: true,
-    },
     orderBy: desc(customers.createdAt),
-  });
-
-  return allCustomers as CustomerExt[];
-};
-
-export const getCustomersBySupplier = async ({
-  userId,
-  supplierId,
-}: {
-  userId: string;
-  supplierId: string;
-}) => {
-  const allCustomers = await db.query.customers.findMany({
-    where: and(
-      eq(customers.userId, userId),
-      eq(customers.supplierId, supplierId)
-    ),
   });
 
   return allCustomers as Customer[];
@@ -37,12 +17,9 @@ export const getCustomersBySupplier = async ({
 export const getCustomerById = async (id: string) => {
   const customer = await db.query.customers.findFirst({
     where: eq(customers.id, id),
-    with: {
-      suppliers: true,
-    },
   });
-  if (customer) return customer as CustomerExt;
-  return {} as CustomerExt;
+  if (customer) return customer as Customer;
+  return {} as Customer;
 };
 
 export const addCustomer = async ({
@@ -59,7 +36,6 @@ export const addCustomer = async ({
       const updatedCustomer = await db
         .update(customers)
         .set({
-          supplierId: formData.supplier,
           ...formData,
           userId,
         })
@@ -74,7 +50,6 @@ export const addCustomer = async ({
         .insert(customers)
         .values({
           userId,
-          supplierId: formData.supplier,
           ...formData,
         })
         .returning();

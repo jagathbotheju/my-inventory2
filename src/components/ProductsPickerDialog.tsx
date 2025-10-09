@@ -13,30 +13,25 @@ import {
 import { Button } from "./ui/button";
 import SupplierPicker from "./SupplierPicker";
 import { Supplier } from "@/server/db/schema/suppliers";
-import { useStocksBySupplier } from "@/server/backend/queries/stockQueries";
 import { DataTable } from "./DataTable";
 import { productTableColumns } from "./products/productTableColumns";
 import { useProductStore } from "@/store/productStore";
-import _ from "lodash";
+import { useProductsForPicker } from "@/server/backend/queries/productQueries";
 
 interface Props {
   children: React.ReactNode;
   userId: string;
-  sellMode?: boolean;
+  sellMode: boolean;
 }
 
 export type TableDataProductsPicker = {
-  quantity: number;
-  productNumber: string;
   productId: string;
-  purchasedPrice?: number;
-  // supplierId: string;
-  // unit: string;
-  // supplier: string;
-  selectedRowId?: string;
-  sellQuantity?: number;
-  sellUnitPrice?: number;
+  productNumber: string;
+  unit: string;
   sellMode?: boolean;
+  selectedRowId?: string;
+  quantity?: number;
+  purchasedPrice?: number;
 };
 
 const ProductsPickerDialog = ({ children, userId, sellMode }: Props) => {
@@ -45,32 +40,12 @@ const ProductsPickerDialog = ({ children, userId, sellMode }: Props) => {
   const { setSelectedProducts, setSelectedProductIds } = useProductStore();
   const { currentSupplier } = useProductStore();
 
-  const { data: stocks } = useStocksBySupplier({
-    sellMode,
+  //Products for Picker
+  const { data: products } = useProductsForPicker({
     userId,
-    // userId: "7e397cd1-19ad-4c68-aa50-a77c06450bc7",
     supplierId: supplier && supplier.id ? supplier.id : currentSupplier?.id,
-    // supplierId: "c55b7f22-38cb-40d4-bad4-4cb1bf63c4ab",
+    sellMode,
   });
-
-  const tableData: TableDataProductsPicker[] | undefined = _.sortBy(
-    stocks,
-    "productNumber"
-  )
-    // ?.filter((stock) => stock.quantity > 0)
-    ?.map((stock: StockBal) => {
-      const data = {
-        quantity: stock.quantity,
-        productNumber: stock.productNumber as string,
-        productId: stock.productId,
-        sellMode,
-        purchasedPrice: stock.purchasedPrice,
-        // supplierId: stock.supplierId,
-        // unit: stock.products?.unitOfMeasurements?.unit,
-        // supplier: stock.products?.suppliers?.name,
-      } as TableDataProductsPicker;
-      return data;
-    });
 
   return (
     <Dialog open={open} onOpenChange={setOpen}>
@@ -86,6 +61,7 @@ const ProductsPickerDialog = ({ children, userId, sellMode }: Props) => {
             select products to sell
           </DialogDescription>
         </DialogHeader>
+
         <div className="flex w-full flex-col gap-4 mt-2">
           <div className="grid grid-cols-12 gap-4 items-center">
             {/* suppliers */}
@@ -102,17 +78,11 @@ const ProductsPickerDialog = ({ children, userId, sellMode }: Props) => {
           </div>
 
           {/* product table */}
-          {tableData?.length ? (
-            <DataTable
-              columns={productTableColumns}
-              data={tableData}
-              sellMode={sellMode}
-            />
-          ) : (
-            <div className="text-center text-muted-foreground mt-4 font-semibold">
-              No products found for this supplier
-            </div>
-          )}
+          <DataTable
+            columns={productTableColumns}
+            data={products ?? []}
+            sellMode={sellMode}
+          />
 
           {/* footer */}
           <DialogFooter className="sm:justify-start mt-8">

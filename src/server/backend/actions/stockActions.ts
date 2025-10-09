@@ -1,14 +1,8 @@
 "use server";
-import { TableDataProductsPicker } from "@/components/ProductsPickerDialog";
 import { db } from "@/server/db";
-import {
-  buyTransactions,
-  products,
-  sellTransactions,
-  stocks,
-} from "@/server/db/schema";
+import { buyTransactions, sellTransactions, stocks } from "@/server/db/schema";
 import { Stock, StockExt } from "@/server/db/schema/stocks";
-import { and, asc, eq, ne, sql, sum } from "drizzle-orm";
+import { and, eq, ne, sql } from "drizzle-orm";
 
 export const getStocks = async ({
   userId,
@@ -29,7 +23,7 @@ export const getStocks = async ({
   return stock as Stock[];
 };
 
-//ALL STOCKS BY SUPPLIER
+//===STOCKS BY SUPPLIER
 export const getStocksBySupplier = async ({
   userId,
   supplierId,
@@ -47,184 +41,19 @@ export const getStocksBySupplier = async ({
         },
       },
     },
-    orderBy: asc(stocks.productNumber),
   });
   return stock as StockExt[];
 };
 
-//ALL STOCKS BY SUPPLIER TEST
-export const getStocksBySupplierTest = async ({
-  userId,
-  supplierId,
-  sellMode,
-}: {
-  userId: string;
-  supplierId: string;
-  sellMode?: boolean;
-}) => {
-  //products
-  const supplierProducts = await db
-    .select()
-    .from(products)
-    .where(
-      and(eq(products.userId, userId), eq(products.supplierId, supplierId))
-    );
-
-  if (!supplierProducts.length) {
-    return { error: "Products no found, please add a Product" };
-  }
-
-  // SELL TXS
-  let sellTxsTest = [] as {
-    quantity: string | null;
-    productNumber: string | null;
-    productId: string;
-    unitPrice?: number | null;
-  }[];
-
-  if (sellMode) {
-    sellTxsTest = await db
-      .select({
-        quantity: sum(sellTransactions.quantity),
-        productNumber: sellTransactions.productNumber,
-        productId: sellTransactions.productId,
-        purchasedPrice: sellTransactions.purchasedPrice,
-      })
-      .from(sellTransactions)
-      .where(
-        and(
-          eq(sellTransactions.userId, userId),
-          eq(sellTransactions.supplierId, supplierId)
-          // ilike(sellTransactions.productNumber, "%abc-001%")
-        )
-      )
-      .groupBy(
-        sellTransactions.purchasedPrice,
-        sellTransactions.productId,
-        sellTransactions.productNumber
-      );
-  } else {
-    sellTxsTest = await db
-      .select({
-        quantity: sum(sellTransactions.quantity),
-        productNumber: sellTransactions.productNumber,
-        productId: sellTransactions.productId,
-      })
-      .from(sellTransactions)
-      .where(
-        and(
-          eq(sellTransactions.userId, userId),
-          eq(sellTransactions.supplierId, supplierId)
-          // ilike(sellTransactions.productNumber, "%abc-001%")
-        )
-      )
-      .groupBy(sellTransactions.productId, sellTransactions.productNumber);
-  }
-
-  // BUY TXS
-  let buyTxsTest = [] as {
-    quantity: string | null;
-    productNumber: string | null;
-    productId: string;
-    unitPrice?: number | null;
-  }[];
-
-  if (sellMode) {
-    buyTxsTest = await db
-      .select({
-        quantity: sum(buyTransactions.quantity),
-        productNumber: buyTransactions.productNumber,
-        productId: buyTransactions.productId,
-        unitPrice: buyTransactions.unitPrice,
-      })
-      .from(buyTransactions)
-      .where(
-        and(
-          eq(buyTransactions.userId, userId),
-          eq(buyTransactions.supplierId, supplierId)
-        )
-      )
-      .groupBy(
-        buyTransactions.unitPrice,
-        buyTransactions.productNumber,
-        buyTransactions.productId
-      );
-  } else {
-    buyTxsTest = await db
-      .select({
-        quantity: sum(buyTransactions.quantity),
-        productNumber: buyTransactions.productNumber,
-        productId: buyTransactions.productId,
-      })
-      .from(buyTransactions)
-      .where(
-        and(
-          eq(buyTransactions.userId, userId),
-          eq(buyTransactions.supplierId, supplierId)
-        )
-      )
-      .groupBy(buyTransactions.productId, buyTransactions.productNumber);
-  }
-
-  //STOCK BAL
-  const stockBal = [] as TableDataProductsPicker[];
-  buyTxsTest.map((buyTx) => {
-    const exist = sellMode
-      ? sellTxsTest.find(
-          (item) =>
-            item.productId === buyTx.productId &&
-            item.unitPrice === buyTx.unitPrice
-        )
-      : sellTxsTest.find((item) => item.productId === buyTx.productId);
-    const buyBal = buyTx && buyTx.quantity ? +buyTx?.quantity : 0;
-    const sellBal = exist?.quantity ? +exist.quantity : 0;
-    const bal = buyBal - sellBal;
-    if (sellMode) {
-      if (bal > 0) {
-        stockBal.push({
-          quantity: bal,
-          productNumber: buyTx.productNumber as string,
-          productId: buyTx.productId,
-          purchasedPrice: buyTx?.unitPrice ?? 0,
-          sellMode,
-        });
-      }
-    } else {
-      stockBal.push({
-        quantity: bal,
-        productNumber: buyTx.productNumber as string,
-        productId: buyTx.productId,
-      });
-    }
-  });
-
-  const filteredProducts = supplierProducts.map((product) => {
-    const existsInStockBal = stockBal.find(
-      (stock) => stock.productId === product.id
-    );
-    if (existsInStockBal) {
-      return existsInStockBal;
-    } else {
-      return {
-        productId: product.id,
-        productNumber: product.productNumber,
-        quantity: 0,
-      };
-    }
-  });
-
-  return filteredProducts as StockBal[];
-};
-
+//===All stocks===
 export const getAllStocks = async (userId: string) => {
   const stock = await db.query.stocks.findMany({
     where: and(eq(stocks.userId, userId), ne(stocks.quantity, 0)),
-    orderBy: asc(stocks.productNumber),
   });
   return stock as Stock[];
 };
 
-//====ALL USER STOCKS
+//====ALL USER STOCKS===
 export const getAllUserStocks = async (userId: string) => {
   //SELL TXS
   const sellTxs = await db
@@ -282,7 +111,6 @@ export const getAllUserStocks = async (userId: string) => {
       if (!exist) {
         acc.push({
           productId: buyTx.productId,
-          productNumber: buyTx.productNumber as string,
           quantity: buyTx.quantity,
           buyTxTotalAmount: buyTx.unitPrice * buyTx.quantity,
           uom: buyTx.products.unitOfMeasurements.unit,
@@ -295,7 +123,6 @@ export const getAllUserStocks = async (userId: string) => {
     [
       {
         productId: "",
-        productNumber: "",
         quantity: 0,
         buyTxTotalAmount: 0,
         uom: "",
@@ -314,7 +141,7 @@ export const getAllUserStocks = async (userId: string) => {
     const bal = buyBal - sellBal;
     if (bal !== 0) {
       stockBal.push({
-        productNumber: buyTx.productNumber,
+        // productNumber: buyTx.productNumber,
         productId: buyTx.productId,
         quantity: buyBal - sellBal,
         buyTxTotalQuantity: buyTx.quantity,
@@ -380,7 +207,7 @@ export const searchStocks = async ({
 
   //BUY TXS
   const buyTxs = await db.query.buyTransactions.findMany({
-    where: sql`${buyTransactions.userId} like ${userId} and ${buyTransactions.productNumber} ilike ${fSearch}`,
+    where: sql`${buyTransactions.userId} like ${userId}  ilike ${fSearch}`,
     with: {
       products: {
         with: {
@@ -398,7 +225,6 @@ export const searchStocks = async ({
       if (!exist) {
         acc.push({
           productId: buyTx.productId,
-          productNumber: buyTx.productNumber as string,
           quantity: buyTx.quantity,
           buyTxTotalAmount: buyTx.unitPrice * buyTx.quantity,
           uom: buyTx.products.unitOfMeasurements.unit,
@@ -412,7 +238,6 @@ export const searchStocks = async ({
     [
       {
         productId: "",
-        productNumber: "",
         quantity: 0,
         buyTxTotalAmount: 0,
         uom: "",
@@ -431,7 +256,6 @@ export const searchStocks = async ({
     const bal = buyBal - sellBal;
     if (bal !== 0) {
       stockBal.push({
-        productNumber: buyTx.productNumber,
         productId: buyTx.productId,
         quantity: buyBal - sellBal,
         buyTxTotalQuantity: buyTx.quantity,
@@ -489,7 +313,6 @@ export const getAllUserStocksByPeriod = async ({
       if (!exist) {
         acc.push({
           productId: buyTx.productId,
-          productNumber: buyTx.productNumber as string,
           quantity: buyTx.quantity,
           buyTxTotalAmount: buyTx.unitPrice * buyTx.quantity,
           uom: buyTx.products.unitOfMeasurements.unit,
@@ -503,7 +326,6 @@ export const getAllUserStocksByPeriod = async ({
     [
       {
         productId: "",
-        productNumber: "",
         quantity: 0,
         buyTxTotalAmount: 0,
         uom: "",
@@ -565,7 +387,6 @@ export const getAllUserStocksByPeriod = async ({
     const bal = buyBal - sellBal;
     if (bal !== 0) {
       stockBal.push({
-        productNumber: buyTx.productNumber,
         productId: buyTx.productId,
         quantity: buyBal - sellBal,
         buyTxTotalQuantity: buyTx.quantity,

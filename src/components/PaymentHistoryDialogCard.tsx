@@ -1,7 +1,7 @@
 "use client";
 
 import { formatPrice } from "@/lib/utils";
-import { BuyTxPaymentExt } from "@/server/db/schema/buyTxPayments";
+import { BuyTxPaymentExt } from "@/server/db/schema/buyTxPayment";
 import { SellTxPaymentExt } from "@/server/db/schema/sellTxPayments";
 import { format } from "date-fns";
 

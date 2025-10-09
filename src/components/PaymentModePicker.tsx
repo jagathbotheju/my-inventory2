@@ -35,7 +35,9 @@ const PaymentModePicker = ({ value, setValue, clearFields }: Props) => {
           className="justify-between"
         >
           {value
-            ? paymentModes?.find((item) => item.value === value)?.label
+            ? paymentModes
+                ?.find((item) => item.value === value)
+                ?.label.toUpperCase()
             : "Select Payment Mode..."}
           <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
         </Button>

@@ -1,10 +1,13 @@
 import Link from "next/link";
 import { User } from "@/server/db/schema/users";
-import { auth } from "@/lib/auth";
 import AuthButton from "./auth/AuthButton";
+import { auth } from "@/lib/auth";
+import { headers } from "next/headers";
 
 const Navbar = async () => {
-  const session = await auth();
+  const session = await auth.api.getSession({
+    headers: await headers(),
+  });
   const user = session?.user as User;
 
   return (

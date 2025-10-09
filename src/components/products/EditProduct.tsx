@@ -12,7 +12,7 @@ import {
 import UomPicker from "../UomPicker";
 import { z } from "zod";
 import { useEffect, useState } from "react";
-import { Supplier } from "@/server/db/schema/suppliers";
+import { Supplier } from "@/server/db/schema/supplier";
 import { UnitOfMeasurement } from "@/server/db/schema/unitOfMeasurements";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";

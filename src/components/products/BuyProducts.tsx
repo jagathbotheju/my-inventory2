@@ -1,7 +1,7 @@
 "use client";
 
 import { Card, CardContent, CardHeader, CardTitle } from "../ui/card";
-import { CalendarIcon, Trash2Icon } from "lucide-react";
+import { CalendarIcon, Loader2Icon, Trash2Icon } from "lucide-react";
 import { useForm, useFieldArray } from "react-hook-form";
 import { z } from "zod";
 import { BuyProductsSchema } from "@/lib/schema";
@@ -27,10 +27,9 @@ import ProductsPickerDialog, {
 import { useProductStore } from "@/store/productStore";
 import PaymentModePicker from "../PaymentModePicker";
 import { useRouter } from "next/navigation";
-import { BuyTransaction } from "@/server/db/schema/buyTransactions";
 import SupplierPicker from "../SupplierPicker";
 import { Supplier } from "@/server/db/schema/suppliers";
-import { useAddBuyTransactions } from "@/server/backend/mutations/buyTxMutations";
+import { useAddByTxInvoice } from "@/server/backend/mutations/invoiceMutations";
 
 interface Props {
   userId: string;
@@ -39,12 +38,9 @@ interface Props {
 const BuyProducts = ({ userId }: Props) => {
   const router = useRouter();
   const total: number[] = [];
-  const [openCalCheque, setOpenCalCheque] = useState(false);
-  const [openCalCashCheque, setOpenCalCashCheque] = useState(false);
   const [openCalInvoice, setOpenCalInvoice] = useState(false);
   const [paymentMode, setPaymentMode] = useState<string>("");
   const [supplier, setSupplier] = useState<Supplier>({} as Supplier);
-  const { mutate: addBuyTransactions } = useAddBuyTransactions();
   const {
     selectedProducts,
     currentSupplier,
@@ -53,6 +49,7 @@ const BuyProducts = ({ userId }: Props) => {
     setSelectedProducts,
     setSelectedProductIds,
   } = useProductStore();
+  const { mutate: addBuyTxInvoice, isPending } = useAddByTxInvoice();
 
   const form = useForm<z.infer<typeof BuyProductsSchema>>({
     resolver: zodResolver(BuyProductsSchema),
@@ -106,26 +103,6 @@ const BuyProducts = ({ userId }: Props) => {
     });
   }, [append, selectedProducts, remove]);
 
-  const onSubmit = async (formData: z.infer<typeof BuyProductsSchema>) => {
-    const products = formData.products;
-    if (!products.length) return;
-    const buyTxData = products.map((item) => ({
-      productId: item.productId as string, //ok
-      productNumber: item.productNumber, //ok
-      quantity: item.quantity, //ok
-      unitPrice: item.unitPrice, //ok
-      userId, //ok
-      supplierId: supplier.id ? supplier.id : currentSupplier.id, //ok
-      date: formData.date.toDateString(), //ok
-      invoiceNumber: formData.invoiceNumber, //ok
-      paymentMode: formData.paymentMode, //ok
-      cacheAmount: formData.cacheAmount, //ok
-      creditAmount: formData.creditAmount, //ok
-    })) as BuyTransaction[];
-
-    addBuyTransactions({ buyTxData, chequeData: formData.cheques });
-  };
-
   const removeSelected = (product: TableDataProductsPicker) => {
     removeSelectedProduct(product);
     removeSelectedProductId(product.selectedRowId as string);
@@ -142,6 +119,14 @@ const BuyProducts = ({ userId }: Props) => {
         amount: 0,
       },
     ]);
+  };
+
+  const onSubmit = async (formData: z.infer<typeof BuyProductsSchema>) => {
+    const products = formData.products;
+    if (!products.length) return;
+
+    console.log(formData);
+    addBuyTxInvoice({ userId, formData, supplierId: currentSupplier.id });
   };
 
   useEffect(() => {
@@ -164,7 +149,7 @@ const BuyProducts = ({ userId }: Props) => {
           <CardTitle className="text-4xl font-bold">Buying Products</CardTitle>
 
           {/* products picker */}
-          <ProductsPickerDialog userId={userId}>
+          <ProductsPickerDialog userId={userId} sellMode={false}>
             <Button className="font-semibold">Select Products</Button>
           </ProductsPickerDialog>
         </div>
@@ -175,7 +160,7 @@ const BuyProducts = ({ userId }: Props) => {
             onSubmit={form.handleSubmit(onSubmit)}
             className="grid grid-cols-12 gap-4"
           >
-            {/* supplier */}
+            {/* supplier picker*/}
             <p className="whitespace-nowrap text-2xl col-span-3 font-semibold text-muted-foreground">
               Select Supplier
             </p>
@@ -256,7 +241,7 @@ const BuyProducts = ({ userId }: Props) => {
 
                         {/* 2-cols - stockBal */}
                         <p className="col-span-2 self-center">
-                          {product.quantity}
+                          {product.quantity ?? 0}
                         </p>
 
                         {/* 2-cols - purchasePrice */}
@@ -411,180 +396,18 @@ const BuyProducts = ({ userId }: Props) => {
 
             {paymentMode === "cheque" && (
               <>
-                <div className="col-span-12 border border-1 rounded-md p-6">
-                  <div className="flex flex-col gap-6 justify-center w-full">
-                    {checkFields.map((field, index) => (
-                      <div key={field.id} className="flex items-center gap-5">
-                        {/* cheque number */}
-                        <FormField
-                          control={form.control}
-                          name={`cheques.${index}.chequeNumber`}
-                          render={({ field }) => (
-                            <FormItem className="whitespace-nowrap text-2xl col-span-2 relative my-1">
-                              <FormLabel className="absolute -top-3">
-                                cheque number
-                              </FormLabel>
-                              <FormControl>
-                                <Input {...field} />
-                              </FormControl>
-                              <FormMessage className="dark:text-white absolute -bottom-7" />
-                            </FormItem>
-                          )}
-                        />
-
-                        {/* bank name */}
-                        <FormField
-                          control={form.control}
-                          name={`cheques.${index}.bankName`}
-                          render={({ field }) => (
-                            <FormItem className="whitespace-nowrap text-2xl col-span-2 relative my-1">
-                              <FormLabel className="absolute -top-3">
-                                bank name
-                              </FormLabel>
-                              <FormControl>
-                                <Input {...field} />
-                              </FormControl>
-                              <FormMessage className="dark:text-white absolute -bottom-7" />
-                            </FormItem>
-                          )}
-                        />
-
-                        {/* amount */}
-                        <FormField
-                          control={form.control}
-                          name={`cheques.${index}.amount`}
-                          render={({ field }) => (
-                            <FormItem className="whitespace-nowrap text-2xl col-span-2 relative my-1">
-                              <FormLabel className="absolute -top-3">
-                                amount
-                              </FormLabel>
-                              <FormControl>
-                                <Input
-                                  {...field}
-                                  type="number"
-                                  placeholder="Amount"
-                                />
-                              </FormControl>
-                              <FormMessage className="dark:text-white absolute -bottom-7" />
-                            </FormItem>
-                          )}
-                        />
-
-                        {/* date */}
-                        <FormField
-                          control={form.control}
-                          name={`cheques.${index}.chequeDate`}
-                          render={({ field }) => (
-                            <FormItem className="whitespace-nowrap text-2xl col-span-2 relative my-1">
-                              <FormLabel className="absolute -top-3">
-                                date
-                              </FormLabel>
-                              <Popover
-                                open={openCalCheque}
-                                onOpenChange={setOpenCalCheque}
-                              >
-                                <PopoverTrigger asChild>
-                                  <FormControl>
-                                    <Button
-                                      variant={"outline"}
-                                      className={cn(
-                                        "w-[240px] pl-3 text-left font-normal dark:bg-slate-800",
-                                        !field.value && "text-muted-foreground"
-                                      )}
-                                    >
-                                      {field.value ? (
-                                        format(field.value, "PPP")
-                                      ) : (
-                                        <span>Pick a date</span>
-                                      )}
-                                      <CalendarIcon className="ml-auto h-4 w-4 opacity-50" />
-                                    </Button>
-                                  </FormControl>
-                                </PopoverTrigger>
-                                <PopoverContent
-                                  className="w-auto p-0"
-                                  align="start"
-                                >
-                                  <Calendar
-                                    className="pointer-events-auto"
-                                    mode="single"
-                                    selected={field.value}
-                                    onSelect={(val) => {
-                                      field.onChange(val);
-                                      setOpenCalCheque(false);
-                                    }}
-                                    initialFocus
-                                  />
-                                </PopoverContent>
-                              </Popover>
-                              <FormMessage className="dark:text-white absolute -bottom-7" />
-                            </FormItem>
-                          )}
-                        />
-
-                        {/* delete cheque */}
-                        {checkFields.length > 1 && (
-                          <Trash2Icon
-                            onClick={() => checkRemove(index)}
-                            className="text-red-500 w-5 h-5 cursor-pointer col-span-2 -mb-1"
-                          />
-                        )}
-
-                        {/* add cheque */}
-                        <Button
-                          type="button"
-                          className="w-fit font-semibold col-span-2 -mb-2"
-                          onClick={() =>
-                            checkAppend({
-                              chequeNumber: "",
-                              bankName: "",
-                              amount: 0,
-                              chequeDate: new Date(),
-                            })
-                          }
-                        >
-                          New
-                        </Button>
-                      </div>
-                    ))}
-                  </div>
-                </div>
-              </>
-            )}
-
-            {paymentMode === "cash-cheque" && (
-              <div className="col-span-12 border border-1 rounded-md p-6">
-                {/* cache */}
-                <div className="col-span-12 flex items-center gap-4 ml-12">
-                  <p className="whitespace-nowrap font-semibold text-muted-foreground">
-                    Cache Amount
-                  </p>
-
-                  {/* cache amount */}
-                  <FormField
-                    control={form.control}
-                    name="cacheAmount"
-                    render={({ field }) => (
-                      <FormItem className="whitespace-nowrap text-2xl relative">
-                        <FormControl>
-                          <Input {...field} placeholder="Enter cash amount" />
-                        </FormControl>
-                        <FormMessage className="dark:text-white absolute -bottom-7" />
-                      </FormItem>
-                    )}
-                  />
-                </div>
-
-                {/* cheque */}
-                <div className="flex flex-col gap-6 ml-12 col-span-12 mt-8">
+                <div className="col-span-12 border border-1 rounded-md p-6 flex gap-8 flex-col">
                   {checkFields.map((field, index) => (
-                    <div key={field.id} className="flex items-center gap-5">
+                    <div
+                      key={field.id}
+                      className="flex items-center gap-6 my-1"
+                    >
                       {/* cheque number */}
                       <FormField
                         control={form.control}
                         name={`cheques.${index}.chequeNumber`}
                         render={({ field }) => (
-                          <FormItem className="whitespace-nowrap text-2xl col-span-2 relative my-1">
+                          <FormItem className="text-2xl relative">
                             <FormLabel className="absolute -top-3">
                               cheque number
                             </FormLabel>
@@ -601,7 +424,7 @@ const BuyProducts = ({ userId }: Props) => {
                         control={form.control}
                         name={`cheques.${index}.bankName`}
                         render={({ field }) => (
-                          <FormItem className="whitespace-nowrap text-2xl col-span-2 relative my-1">
+                          <FormItem className="text-2xl relative">
                             <FormLabel className="absolute -top-3">
                               bank name
                             </FormLabel>
@@ -618,7 +441,7 @@ const BuyProducts = ({ userId }: Props) => {
                         control={form.control}
                         name={`cheques.${index}.amount`}
                         render={({ field }) => (
-                          <FormItem className="whitespace-nowrap text-2xl col-span-2 relative my-1">
+                          <FormItem className="text-2xl relative">
                             <FormLabel className="absolute -top-3">
                               amount
                             </FormLabel>
@@ -639,18 +462,17 @@ const BuyProducts = ({ userId }: Props) => {
                         control={form.control}
                         name={`cheques.${index}.chequeDate`}
                         render={({ field }) => (
-                          <FormItem className="flex flex-col">
-                            <FormLabel>Date of birth</FormLabel>
-                            <Popover
-                              open={openCalCashCheque}
-                              onOpenChange={setOpenCalCashCheque}
-                            >
+                          <FormItem className="text-2xl relative">
+                            <FormLabel className="absolute -top-3">
+                              date
+                            </FormLabel>
+                            <Popover>
                               <PopoverTrigger asChild>
                                 <FormControl>
                                   <Button
                                     variant={"outline"}
                                     className={cn(
-                                      "w-[240px] pl-3 text-left font-normal",
+                                      "w-[240px] pl-3 text-left font-normal dark:bg-slate-800",
                                       !field.value && "text-muted-foreground"
                                     )}
                                   >
@@ -668,34 +490,24 @@ const BuyProducts = ({ userId }: Props) => {
                                 align="start"
                               >
                                 <Calendar
+                                  className="pointer-events-auto"
                                   mode="single"
                                   selected={field.value}
-                                  captionLayout="dropdown"
-                                  initialFocus
                                   onSelect={(val) => {
                                     field.onChange(val);
-                                    setOpenCalCashCheque(false);
                                   }}
                                 />
                               </PopoverContent>
                             </Popover>
-
-                            <FormMessage />
+                            <FormMessage className="dark:text-white absolute -bottom-7" />
                           </FormItem>
                         )}
                       />
 
-                      {/* delete cheque */}
-                      {checkFields.length > 1 && (
-                        <Trash2Icon
-                          onClick={() => checkRemove(index)}
-                          className="text-red-500 w-5 h-5 cursor-pointer col-span-1"
-                        />
-                      )}
-
                       {/* add cheque */}
                       <Button
                         type="button"
+                        size="sm"
                         className="w-fit font-semibold"
                         onClick={() =>
                           checkAppend({
@@ -708,9 +520,175 @@ const BuyProducts = ({ userId }: Props) => {
                       >
                         New
                       </Button>
+
+                      {/* delete cheque */}
+                      {checkFields.length > 1 && (
+                        <Trash2Icon
+                          onClick={() => checkRemove(index)}
+                          className="text-red-500 w-5 h-5 cursor-pointer"
+                        />
+                      )}
                     </div>
                   ))}
                 </div>
+              </>
+            )}
+
+            {paymentMode === "cash-cheque" && (
+              <div className="col-span-12 border border-1 rounded-md p-6 flex gap-8 flex-col">
+                {/* cache */}
+                <div className="col-span-12 flex items-center gap-4 mb-6">
+                  <p className="whitespace-nowrap font-semibold text-muted-foreground">
+                    Cache Amount
+                  </p>
+
+                  {/* cache amount */}
+                  <FormField
+                    control={form.control}
+                    name="cacheAmount"
+                    render={({ field }) => (
+                      <FormItem className="whitespace-nowrap text-2xl relative">
+                        <FormControl>
+                          <Input {...field} placeholder="Enter cash amount" />
+                        </FormControl>
+                        <FormMessage className="dark:text-white absolute -bottom-7" />
+                      </FormItem>
+                    )}
+                  />
+                </div>
+
+                {/* cheque */}
+                {checkFields.map((field, index) => (
+                  <div key={field.id} className="flex items-center gap-6 my-1">
+                    {/* cheque number */}
+                    <FormField
+                      control={form.control}
+                      name={`cheques.${index}.chequeNumber`}
+                      render={({ field }) => (
+                        <FormItem className="text-2xl relative">
+                          <FormLabel className="absolute -top-3">
+                            cheque number
+                          </FormLabel>
+                          <FormControl>
+                            <Input {...field} />
+                          </FormControl>
+                          <FormMessage className="dark:text-white absolute -bottom-7" />
+                        </FormItem>
+                      )}
+                    />
+
+                    {/* bank name */}
+                    <FormField
+                      control={form.control}
+                      name={`cheques.${index}.bankName`}
+                      render={({ field }) => (
+                        <FormItem className="text-2xl relative">
+                          <FormLabel className="absolute -top-3">
+                            bank name
+                          </FormLabel>
+                          <FormControl>
+                            <Input {...field} />
+                          </FormControl>
+                          <FormMessage className="dark:text-white absolute -bottom-7" />
+                        </FormItem>
+                      )}
+                    />
+
+                    {/* amount */}
+                    <FormField
+                      control={form.control}
+                      name={`cheques.${index}.amount`}
+                      render={({ field }) => (
+                        <FormItem className="text-2xl relative">
+                          <FormLabel className="absolute -top-3">
+                            amount
+                          </FormLabel>
+                          <FormControl>
+                            <Input
+                              {...field}
+                              type="number"
+                              placeholder="Amount"
+                            />
+                          </FormControl>
+                          <FormMessage className="dark:text-white absolute -bottom-7" />
+                        </FormItem>
+                      )}
+                    />
+
+                    {/* date */}
+                    <FormField
+                      control={form.control}
+                      name={`cheques.${index}.chequeDate`}
+                      render={({ field }) => (
+                        <FormItem className="text-2xl relative">
+                          <FormLabel className="absolute -top-3">
+                            Date of birth
+                          </FormLabel>
+                          <Popover>
+                            <PopoverTrigger asChild>
+                              <FormControl>
+                                <Button
+                                  variant={"outline"}
+                                  className={cn(
+                                    "w-[240px] pl-3 text-left font-normal",
+                                    !field.value && "text-muted-foreground"
+                                  )}
+                                >
+                                  {field.value ? (
+                                    format(field.value, "PPP")
+                                  ) : (
+                                    <span>Pick a date</span>
+                                  )}
+                                  <CalendarIcon className="ml-auto h-4 w-4 opacity-50" />
+                                </Button>
+                              </FormControl>
+                            </PopoverTrigger>
+                            <PopoverContent
+                              className="w-auto p-0"
+                              align="start"
+                            >
+                              <Calendar
+                                mode="single"
+                                selected={field.value}
+                                captionLayout="dropdown"
+                                onSelect={(val) => {
+                                  field.onChange(val);
+                                }}
+                              />
+                            </PopoverContent>
+                          </Popover>
+
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
+
+                    {/* add cheque */}
+                    <Button
+                      type="button"
+                      size="sm"
+                      className="w-fit font-semibold"
+                      onClick={() =>
+                        checkAppend({
+                          chequeNumber: "",
+                          bankName: "",
+                          amount: 0,
+                          chequeDate: new Date(),
+                        })
+                      }
+                    >
+                      New
+                    </Button>
+
+                    {/* delete cheque */}
+                    {checkFields.length > 1 && (
+                      <Trash2Icon
+                        onClick={() => checkRemove(index)}
+                        className="text-red-500 w-5 h-5 cursor-pointer"
+                      />
+                    )}
+                  </div>
+                ))}
               </div>
             )}
 
@@ -755,7 +733,6 @@ const BuyProducts = ({ userId }: Props) => {
                             field.onChange(val);
                             setOpenCalInvoice(false);
                           }}
-                          initialFocus
                         />
                       </PopoverContent>
                     </Popover>
@@ -764,6 +741,8 @@ const BuyProducts = ({ userId }: Props) => {
                 )}
               />
             </div>
+
+            {/* form actions */}
             <div className="flex items-center gap-4 mt-8 col-span-12">
               {/* sell product */}
               <Button
@@ -771,7 +750,8 @@ const BuyProducts = ({ userId }: Props) => {
                 className="font-semibold"
                 // disabled={!form.formState.isValid || isPending}
               >
-                Sell
+                {isPending && <Loader2Icon className="mr-2 animate-spin" />}
+                {isPending ? "Buying Products..." : "Buy Products"}
               </Button>
               <Button
                 onClick={() =>

@@ -21,6 +21,7 @@ interface Props {
 
 const Customers = ({ user }: Props) => {
   const { data: customers, isLoading } = useCustomers(user?.id);
+  console.log("customers", customers);
 
   return (
     <Card className="flex flex-col w-full h-fit bg-transparent dark:border-primary/40">
@@ -50,7 +51,6 @@ const Customers = ({ user }: Props) => {
             <Table className="w-full text-xl">
               <TableHeader>
                 <TableRow>
-                  <TableHead>Supplier</TableHead>
                   <TableHead>Customer</TableHead>
                   <TableHead>Address</TableHead>
                   <TableHead>Land Phone</TableHead>
@@ -60,9 +60,6 @@ const Customers = ({ user }: Props) => {
               <TableBody>
                 {customers?.map((customer) => (
                   <TableRow key={customer.id}>
-                    <TableCell>
-                      {customer.suppliers?.name || "No Supplier"}
-                    </TableCell>
                     <TableCell>{customer.name}</TableCell>
                     <TableCell>{customer.address}</TableCell>
                     <TableCell>{customer.landPhone}</TableCell>

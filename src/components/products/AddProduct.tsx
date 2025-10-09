@@ -66,12 +66,6 @@ const AddProduct = ({ user }: Props) => {
   } else if (!suppliers?.length) {
     return (
       <div className="flex flex-col gap-2 w-full mt-8 justify-center items-center dark:text-slate-400 text-slate-500">
-        {/* <div className="animate-pulse flex flex-col w-full gap-4">
-          <div className="h-6 bg-gray-200 dark:bg-gray-700 rounded"></div>
-          <div className="h-6 bg-gray-200 dark:bg-gray-700 rounded"></div>
-          <div className="h-6 bg-gray-200 dark:bg-gray-700 rounded"></div>
-          <div className="h-6 bg-gray-200 dark:bg-gray-700 rounded"></div>
-        </div> */}
         <h1 className="text-4xl font-bold">No Suppliers Found!</h1>
         <p className="font-semibold text-2xl">
           To add New Product, please register New Supplier...

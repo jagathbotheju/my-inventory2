@@ -20,7 +20,6 @@ import {
   BuyYearHistory,
   buyYearHistory,
 } from "@/server/db/schema/buyYearHistory";
-import { Stock } from "@/server/db/schema/stocks";
 import { and, asc, count, desc, eq, sql, sum } from "drizzle-orm";
 
 //GET DAILY BUY TRANSACTIONS
@@ -261,8 +260,7 @@ export const addBuyTransactions = async ({
           and(
             eq(stocks.userId, item.userId),
             eq(stocks.productId, item.productId),
-            eq(stocks.supplierId, item.supplierId as string),
-            eq(stocks.unitPrice, item.unitPrice)
+            eq(stocks.supplierId, item.supplierId as string)
           )
         );
 
@@ -297,10 +295,10 @@ export const addBuyTransactions = async ({
   }
 };
 
-//ADD BUY TRANSACTION
+//===ADD BUY TRANSACTION===
 export const addBuyTransaction = async (data: BuyTransaction) => {
   try {
-    //add new transaction
+    //existTransaction
     const existTransaction = await db
       .select()
       .from(buyTransactions)
@@ -318,12 +316,6 @@ export const addBuyTransaction = async (data: BuyTransaction) => {
       return { error: "Transaction already exist" };
     }
 
-    const newTransaction = await db
-      .insert(buyTransactions)
-      .values(data)
-      .returning();
-
-    // update history
     const existBuyMonthHistory = await db
       .select()
       .from(buyMonthHistory)
@@ -335,6 +327,7 @@ export const addBuyTransaction = async (data: BuyTransaction) => {
           eq(buyMonthHistory.year, new Date(data.date).getFullYear())
         )
       );
+
     const existBuyYearHistory = await db
       .select()
       .from(buyYearHistory)
@@ -345,67 +338,7 @@ export const addBuyTransaction = async (data: BuyTransaction) => {
           eq(buyYearHistory.year, new Date(data.date).getFullYear())
         )
       );
-    let monthHistory = [] as BuyMonthHistory[];
-    let yearHistory = [] as BuyYearHistory[];
-    if (existBuyMonthHistory.length) {
-      monthHistory = await db
-        .update(buyMonthHistory)
-        .set({
-          totalPrice:
-            data.quantity * (data.unitPrice ?? 0) +
-            (existBuyMonthHistory[0].totalPrice ?? 0),
-        })
-        .where(
-          and(
-            eq(buyMonthHistory.userId, data.userId),
-            eq(buyMonthHistory.day, new Date(data.date).getDate()),
-            eq(buyMonthHistory.month, new Date(data.date).getMonth() + 1),
-            eq(buyMonthHistory.year, new Date(data.date).getFullYear())
-          )
-        )
-        .returning();
-    } else {
-      monthHistory = await db
-        .insert(buyMonthHistory)
-        .values({
-          day: new Date(data.date).getDate(),
-          month: new Date(data.date).getMonth() + 1,
-          year: new Date(data.date).getFullYear(),
-          userId: data.userId,
-          totalPrice: data.quantity * (data.unitPrice ?? 0),
-        })
-        .returning();
-    }
-    if (existBuyYearHistory.length) {
-      yearHistory = await db
-        .update(buyYearHistory)
-        .set({
-          totalPrice:
-            data.quantity * (data.unitPrice ?? 0) +
-            (existBuyYearHistory[0].totalPrice ?? 0),
-        })
-        .where(
-          and(
-            eq(buyYearHistory.userId, data.userId),
-            eq(buyYearHistory.month, new Date(data.date).getMonth() + 1),
-            eq(buyYearHistory.year, new Date(data.date).getFullYear())
-          )
-        )
-        .returning();
-    } else {
-      yearHistory = await db
-        .insert(buyYearHistory)
-        .values({
-          month: new Date(data.date).getMonth() + 1,
-          year: new Date(data.date).getFullYear(),
-          userId: data.userId,
-          totalPrice: data.quantity * (data.unitPrice ?? 0),
-        })
-        .returning();
-    }
 
-    //update stock
-    let stock = [] as Stock[];
     const existStock = await db
       .select()
       .from(stocks)
@@ -413,49 +346,103 @@ export const addBuyTransaction = async (data: BuyTransaction) => {
         and(
           eq(stocks.userId, data.userId),
           eq(stocks.supplierId, data.supplierId),
-          eq(stocks.productId, data.productId),
-          eq(stocks.unitPrice, data.unitPrice)
+          eq(stocks.productId, data.productId)
         )
       );
 
-    if (existStock.length) {
-      stock = await db
-        .update(stocks)
-        .set({
-          quantity: data.quantity + (existStock[0].quantity ?? 0),
-        })
-        .where(
-          and(
-            eq(stocks.userId, data.userId),
-            eq(stocks.supplierId, data.supplierId),
-            eq(stocks.productId, data.productId),
-            eq(stocks.unitPrice, data.unitPrice)
-          )
-        )
-        .returning();
-    } else {
-      stock = await db
-        .insert(stocks)
-        .values({
-          userId: data.userId,
-          supplierId: data.supplierId,
-          productId: data.productId,
-          productNumber: data.productNumber,
-          quantity: data.quantity,
-          unitPrice: data.unitPrice,
-        })
-        .returning();
-    }
+    //transactions
+    await db.transaction(async (tx) => {
+      //new buyTransaction
+      await tx.insert(buyTransactions).values(data).returning();
 
-    if (
-      newTransaction.length &&
-      monthHistory.length &&
-      yearHistory.length &&
-      stock.length
-    ) {
-      return { success: "Buy Transaction added successfully" };
-    }
-    return { error: "Count not add Transaction" };
+      // update buyMonthHistory
+      if (existBuyMonthHistory.length) {
+        await tx
+          .update(buyMonthHistory)
+          .set({
+            totalPrice:
+              data.quantity * (data.unitPrice ?? 0) +
+              (existBuyMonthHistory[0].totalPrice ?? 0),
+          })
+          .where(
+            and(
+              eq(buyMonthHistory.userId, data.userId),
+              eq(buyMonthHistory.day, new Date(data.date).getDate()),
+              eq(buyMonthHistory.month, new Date(data.date).getMonth() + 1),
+              eq(buyMonthHistory.year, new Date(data.date).getFullYear())
+            )
+          )
+          .returning();
+      } else {
+        await tx
+          .insert(buyMonthHistory)
+          .values({
+            day: new Date(data.date).getDate(),
+            month: new Date(data.date).getMonth() + 1,
+            year: new Date(data.date).getFullYear(),
+            userId: data.userId,
+            totalPrice: data.quantity * (data.unitPrice ?? 0),
+          })
+          .returning();
+      }
+
+      // update buyYearHistory
+      if (existBuyYearHistory.length) {
+        await tx
+          .update(buyYearHistory)
+          .set({
+            totalPrice:
+              data.quantity * (data.unitPrice ?? 0) +
+              (existBuyYearHistory[0].totalPrice ?? 0),
+          })
+          .where(
+            and(
+              eq(buyYearHistory.userId, data.userId),
+              eq(buyYearHistory.month, new Date(data.date).getMonth() + 1),
+              eq(buyYearHistory.year, new Date(data.date).getFullYear())
+            )
+          )
+          .returning();
+      } else {
+        tx.insert(buyYearHistory)
+          .values({
+            month: new Date(data.date).getMonth() + 1,
+            year: new Date(data.date).getFullYear(),
+            userId: data.userId,
+            totalPrice: data.quantity * (data.unitPrice ?? 0),
+          })
+          .returning();
+      }
+
+      //update stock
+      if (existStock.length) {
+        await tx
+          .update(stocks)
+          .set({
+            quantity: data.quantity + (existStock[0].quantity ?? 0),
+          })
+          .where(
+            and(
+              eq(stocks.userId, data.userId),
+              eq(stocks.supplierId, data.supplierId),
+              eq(stocks.productId, data.productId)
+            )
+          )
+          .returning();
+      } else {
+        await tx
+          .insert(stocks)
+          .values({
+            userId: data.userId,
+            supplierId: data.supplierId,
+            productId: data.productId,
+            quantity: data.quantity,
+          })
+          .returning();
+      }
+    });
+
+    return { success: "Buy Transaction added successfully" };
   } catch (error) {
     console.log(error);
     return { error: "Count not add Transaction" };
@@ -488,7 +475,6 @@ export const getBuyTransactionsPagination = async ({
       where: sql`${buyTransactions.userId} like ${userId} and ${buyTransactions.invoiceNumber} ilike ${fSearch}`,
       with: {
         products: true,
-        suppliers: true,
       },
       orderBy: desc(buyTransactions.date),
       limit: pageSize,
@@ -503,7 +489,6 @@ export const getBuyTransactionsPagination = async ({
           : sql`to_char(${buyTransactions.date},'YYYY') like ${year} and ${buyTransactions.userId} like ${userId}`,
       with: {
         products: true,
-        suppliers: true,
       },
       orderBy: desc(buyTransactions.date),
       limit: pageSize,
@@ -643,12 +628,7 @@ export const deleteBuyTransaction = async ({
       .select()
       .from(stocks)
       .where(
-        and(
-          eq(stocks.userId, userId),
-          eq(stocks.supplierId, buyTx.suppliers.id),
-          eq(stocks.productId, buyTx.productId),
-          eq(stocks.unitPrice, buyTx.unitPrice)
-        )
+        and(eq(stocks.userId, userId), eq(stocks.productId, buyTx.productId))
       );
     if (existStock.length) {
       await db
@@ -657,12 +637,7 @@ export const deleteBuyTransaction = async ({
           quantity: existStock[0].quantity - buyTx.quantity,
         })
         .where(
-          and(
-            eq(stocks.userId, userId),
-            eq(stocks.supplierId, buyTx.suppliers.id),
-            eq(stocks.productId, buyTx.productId),
-            eq(stocks.unitPrice, buyTx.unitPrice)
-          )
+          and(eq(stocks.userId, userId), eq(stocks.productId, buyTx.productId))
         )
         .returning();
     }

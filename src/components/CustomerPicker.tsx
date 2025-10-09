@@ -16,7 +16,7 @@ import {
 import { Check, ChevronsUpDown, Loader2Icon } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useEffect, useState } from "react";
-import { Customer } from "@/server/db/schema/customers";
+import { Customer } from "@/server/db/schema/customer";
 import {
   useCustomers,
   // useCustomersBySupplier,

@@ -1,5 +1,4 @@
 import {
-  doublePrecision,
   integer,
   pgTable,
   primaryKey,
@@ -9,8 +8,8 @@ import {
 import { users } from "./users";
 import { InferSelectModel, relations } from "drizzle-orm";
 import { ProductExt, products } from "./products";
-import { Supplier, suppliers } from "./suppliers";
 import { UnitOfMeasurement } from "./unitOfMeasurements";
+import { Supplier, suppliers } from "./suppliers";
 
 export const stocks = pgTable(
   "stocks",
@@ -21,25 +20,18 @@ export const stocks = pgTable(
     productId: text("product_id")
       .references(() => products.id, { onDelete: "cascade" })
       .notNull(),
-    productNumber: text("product_number"),
     supplierId: text("supplier_id")
       .references(() => suppliers.id, { onDelete: "cascade" })
       .notNull(),
+    quantity: integer("quantity").notNull(),
     createdAt: timestamp("created_at", { mode: "string" })
       .notNull()
       .defaultNow(),
-    quantity: integer("quantity").notNull(),
-    unitPrice: doublePrecision("unit_price").notNull(),
   },
   (table) => [
     {
       pk: primaryKey({
-        columns: [
-          table.userId,
-          table.productId,
-          table.supplierId,
-          table.unitPrice,
-        ],
+        columns: [table.userId, table.productId],
       }),
     },
   ]

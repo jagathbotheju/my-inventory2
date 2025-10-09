@@ -40,6 +40,7 @@ import { format } from "date-fns";
 import { useProductStore } from "@/store/productStore";
 import { Input } from "../ui/input";
 import { useDebounce } from "use-debounce";
+import { useSupplierById } from "@/server/backend/queries/supplierQueries";
 
 interface Props {
   user: User;
@@ -48,10 +49,17 @@ interface Props {
 const AllProducts = ({ user }: Props) => {
   const searchParams = useSearchParams();
   const router = useRouter();
+
+  //supplier
   const [supplier, setSupplier] = useState<Supplier>({} as Supplier);
+  const { currentSupplier } = useProductStore();
+  const { data: dbSupplier } = useSupplierById({
+    supplierId: currentSupplier.id,
+    userId: user.id,
+  });
+
   const [productId, setProductId] = useState("");
   const [page, setPage] = useState(1);
-  const { currentSupplier } = useProductStore();
   const [isError, setIsError] = useState(false);
   const [searchTerm, setSearchTerm] = useState("");
   const [bouncedSearchTerm] = useDebounce(searchTerm, 1000);
@@ -91,9 +99,10 @@ const AllProducts = ({ user }: Props) => {
           <div className="flex items-center justify-between">
             <CardTitle className="text-4xl font-bold">All Products</CardTitle>
             <div className="flex items-center gap-4">
+              {/* supplier picker */}
               <SupplierPicker
                 setSupplier={setSupplier}
-                supplierId={currentSupplier?.id}
+                supplierId={dbSupplier?.length ? dbSupplier[0]?.id : ""}
                 userId={user?.id}
               />
               <Button

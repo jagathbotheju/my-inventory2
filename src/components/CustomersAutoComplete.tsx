@@ -9,7 +9,7 @@ import {
   CommandItem,
   CommandList,
 } from "./ui/command";
-import { Customer } from "@/server/db/schema/customers";
+import { Customer } from "@/server/db/schema/customer";
 import { useSearchCustomers } from "@/server/backend/queries/customerQueries";
 import { useQueryClient } from "@tanstack/react-query";
 

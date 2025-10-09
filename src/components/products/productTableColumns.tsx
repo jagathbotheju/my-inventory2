@@ -31,15 +31,21 @@ export const productTableColumns: ColumnDef<TableDataProductsPicker>[] = [
     header: "Product Number",
     cell: ({ row }) => {
       const productNumber = row.getValue("productNumber") as string;
-      return <div>{productNumber.toUpperCase()}</div>;
+      return <div>{productNumber?.toUpperCase()}</div>;
     },
   },
   {
     accessorKey: "quantity",
     header: "Stock Balance",
     cell: ({ row }) => {
-      const quantity = parseFloat(row.getValue("quantity"));
-      return <div className="ml-6">{quantity}</div>;
+      const quantity = parseFloat(row.getValue("quantity") ?? 0);
+      const unit = row.getValue("unit") as string;
+      return (
+        <div className="ml-6 flex items-center gap-2">
+          <span>{quantity}</span>
+          <span className="uppercase">{unit}</span>
+        </div>
+      );
     },
   },
   {
@@ -57,13 +63,6 @@ export const productTableColumns: ColumnDef<TableDataProductsPicker>[] = [
   },
   {
     accessorKey: "productId",
-    header: "",
-    cell: () => {
-      return <div></div>;
-    },
-  },
-  {
-    accessorKey: "supplierId",
     header: "",
     cell: () => {
       return <div></div>;

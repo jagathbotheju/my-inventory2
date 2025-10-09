@@ -5,6 +5,7 @@ import {
   getProductsBySupplier,
   getProductsBySupplierPagination,
   getProductsCount,
+  getProductsForPicker,
   searchProducts,
 } from "../actions/productActions";
 
@@ -86,5 +87,21 @@ export const useProductsCount = ({
   return useQuery({
     queryKey: ["products-count", supplierId],
     queryFn: () => getProductsCount({ supplierId, userId }),
+  });
+};
+
+//==Products for Picker
+export const useProductsForPicker = ({
+  userId,
+  supplierId,
+  sellMode,
+}: {
+  userId: string;
+  supplierId: string;
+  sellMode: boolean;
+}) => {
+  return useQuery({
+    queryKey: ["products-picker", userId, supplierId],
+    queryFn: () => getProductsForPicker({ supplierId, userId, sellMode }),
   });
 };

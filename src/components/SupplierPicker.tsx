@@ -17,7 +17,7 @@ import {
 import { Check, ChevronsUpDown, Loader2Icon } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useSuppliers } from "@/server/backend/queries/supplierQueries";
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import { useProductStore } from "@/store/productStore";
 
 interface Props {
@@ -28,15 +28,23 @@ interface Props {
 
 const SupplierPicker = ({ setSupplier, supplierId, userId }: Props) => {
   const [open, setOpen] = useState(false);
-  const [value, setValue] = useState("");
+  const [value, setValue] = useState(supplierId);
   const { data: suppliers, isLoading } = useSuppliers(userId);
   const { setCurrentSupplier } = useProductStore();
 
-  useEffect(() => {
-    if (supplierId) {
-      setValue(supplierId);
-    }
-  }, [supplierId]);
+  // useEffect(() => {
+  //   console.log("inside useEffect....");
+  //   if (supplierId) {
+  //     setValue(supplierId);
+  //     console.log("setting supplierId", supplierId);
+  //   } else {
+  //     setValue("");
+  //     console.log("setting value to null");
+  //   }
+  // }, [supplierId]);
+
+  // console.log("supplierId", supplierId);
+  // console.log("value", value);
 
   return (
     <div className="flex">
@@ -49,11 +57,11 @@ const SupplierPicker = ({ setSupplier, supplierId, userId }: Props) => {
               variant="outline"
               role="combobox"
               aria-expanded={open}
-              className="w-full justify-between"
+              className="w-full justify-between font-semibold"
             >
               {value
                 ? suppliers?.find((item) => item.id === value)?.name
-                : "Select supplier..."}
+                : "Select Supplier..."}
               <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
             </Button>
           </PopoverTrigger>

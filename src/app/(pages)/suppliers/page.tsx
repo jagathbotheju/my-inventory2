@@ -1,10 +1,13 @@
 import Suppliers from "@/components/suppliers/Suppliers";
 import { auth } from "@/lib/auth";
 import { User } from "@/server/db/schema/users";
+import { headers } from "next/headers";
 import { redirect } from "next/navigation";
 
 const SuppliersPage = async () => {
-  const session = await auth();
+  const session = await auth.api.getSession({
+    headers: await headers(),
+  });
   const user = session?.user as User;
   if (!session) redirect("/auth/login");
 

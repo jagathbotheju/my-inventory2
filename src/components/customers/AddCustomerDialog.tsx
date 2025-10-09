@@ -29,7 +29,6 @@ import { Button } from "../ui/button";
 import { useEffect, useState } from "react";
 import { useAddCustomer } from "@/server/backend/mutations/customerMutations";
 import { useCustomerById } from "@/server/backend/queries/customerQueries";
-import SupplierPicker from "../SupplierPicker";
 
 interface Props {
   children: React.ReactNode;
@@ -46,7 +45,6 @@ const AddCustomerDialog = ({ children, customerId, userId }: Props) => {
   const form = useForm<z.infer<typeof NewCustomerSchema>>({
     resolver: zodResolver(NewCustomerSchema),
     defaultValues: {
-      supplier: customer && customer?.suppliers ? customer?.suppliers.name : "",
       name: customer ? customer?.name : "",
       address: (customer && customer?.address) ?? "",
       landPhone: (customer && customer?.landPhone) ?? "",
@@ -87,29 +85,6 @@ const AddCustomerDialog = ({ children, customerId, userId }: Props) => {
         <div className="flex flex-col gap-4">
           <Form {...form}>
             <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
-              {/* supplier */}
-              <FormField
-                control={form.control}
-                name="supplier"
-                render={({ field }) => {
-                  return (
-                    <FormItem>
-                      <FormLabel>Supplier</FormLabel>
-                      <FormControl>
-                        <SupplierPicker
-                          setSupplier={(supplier) => {
-                            field.onChange(supplier.id);
-                          }}
-                          supplierId={customer ? customer?.suppliers?.id : ""}
-                          userId={userId}
-                        />
-                      </FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  );
-                }}
-              />
-
               {/* name */}
               <FormField
                 control={form.control}

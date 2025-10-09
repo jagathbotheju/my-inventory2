@@ -1,81 +1,30 @@
-import NextAuth from "next-auth";
-import { DrizzleAdapter } from "@auth/drizzle-adapter";
-import Google from "next-auth/providers/google";
-// import Github from "next-auth/providers/github";
-// import Credentials from "next-auth/providers/credentials";
-import { eq } from "drizzle-orm";
+import { betterAuth } from "better-auth";
+import { drizzleAdapter } from "better-auth/adapters/drizzle";
+import * as schema from "@/server/db/schema";
 import { db } from "@/server/db";
-// import { LoginSchema } from "./schema";
-// import { compare } from "bcryptjs";
-// import { users } from "@/server/db/schema";
-import { User, users } from "@/server/db/schema/users";
 
-export const { handlers, signIn, signOut, auth } = NextAuth({
-  adapter: DrizzleAdapter(db),
+export const auth = betterAuth({
+  appName: "inventory2",
+  secret: process.env.BETTER_AUTH_SECRET,
+  baseURL: process.env.BETTER_AUTH_URL,
+  database: drizzleAdapter(db, {
+    provider: "pg",
+    usePlural: true,
+    schema,
+  }),
   session: {
-    strategy: "jwt",
+    expiresIn: 60 * 60 * 24 * 7, //7 days
+    updateAge: 60 * 60 * 24, //1 day
+    cookieCache: {
+      enabled: true,
+      maxAge: 60 * 5, //5 min
+    },
+    disableSessionRefresh: true,
   },
-  secret: process.env.AUTH_SECRET,
-  providers: [
-    Google({
+  socialProviders: {
+    google: {
       clientId: process.env.GOOGLE_CLIENT_ID as string,
       clientSecret: process.env.GOOGLE_CLIENT_SECRET as string,
-      allowDangerousEmailAccountLinking: true,
-    }),
-
-    // Github({
-    //   clientId: process.env.GITHUB_CLIENT_ID as string,
-    //   clientSecret: process.env.GITHUB_CLIENT_SECRET as string,
-    //   allowDangerousEmailAccountLinking: true,
-    // }),
-
-    // Credentials({
-    //   authorize: async (credentials) => {
-    //     const validated = LoginSchema.safeParse(credentials);
-    //     if (!validated.success) return null;
-
-    //     const { email, password } = validated.data;
-    //     const existStudent = await db.query.users.findFirst({
-    //       where: eq(users.email, email),
-    //     });
-
-    //     if (!existStudent || existStudent.email !== email) return null;
-    //     if (!existStudent || !existStudent.password) return null;
-    //     const matchPassword = await compare(password, existStudent.password);
-    //     if (!matchPassword) return null;
-
-    //     return existStudent as User;
-    //   },
-    // }),
-  ],
-  callbacks: {
-    async session({ token, session }) {
-      const tokenUser = token.user as User;
-      if (tokenUser) {
-        session.user = tokenUser;
-      }
-
-      if (!tokenUser || !tokenUser.id) {
-        if (token && token.sub) {
-          const studentDB = await db.query.users.findFirst({
-            where: eq(users.id, token.sub),
-          });
-          if (studentDB) {
-            session.user = studentDB;
-          }
-        }
-      }
-
-      return session;
-    },
-    async jwt({ token }) {
-      if (token && token.sub) {
-        const studentDB = await db.query.users.findFirst({
-          where: eq(users.id, token.sub),
-        });
-        token.user = studentDB;
-      }
-      return token;
     },
   },
 });

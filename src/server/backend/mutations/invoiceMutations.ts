@@ -1,6 +1,44 @@
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
-import { addBuyTxPayment, addSellTxPayment } from "../actions/invoiceActions";
+import {
+  addBuyTxInvoice,
+  addBuyTxPayment,
+  addSellTxPayment,
+} from "../actions/invoiceActions";
+import { BuyProductsSchema } from "@/lib/schema";
+import { z } from "zod";
+import { useRouter } from "next/navigation";
+
+//==AddBuyTxInvoice
+export const useAddByTxInvoice = () => {
+  const router = useRouter();
+
+  return useMutation({
+    mutationFn: ({
+      formData,
+      userId,
+      supplierId,
+    }: {
+      formData: z.infer<typeof BuyProductsSchema>;
+      userId: string;
+      supplierId: string;
+    }) => addBuyTxInvoice({ formData, userId, supplierId }),
+    onSuccess: async (res) => {
+      if (res?.success) {
+        toast.success(res.success);
+        router.push("/products");
+      }
+      if (res?.error) {
+        toast.error(res.error);
+      }
+    },
+    onError: (res) => {
+      const err = res.message;
+      toast.error(err);
+      toast.success("Could not Purchase");
+    },
+  });
+};
 
 export const useAddPayment = () => {
   const queryClient = useQueryClient();
