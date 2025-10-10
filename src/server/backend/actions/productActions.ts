@@ -14,10 +14,10 @@ import {
   sql,
 } from "drizzle-orm";
 import { ProductExt, products } from "@/server/db/schema/products";
-import { sellTransactions, stocks } from "@/server/db/schema";
+import { buyTransactions, stocks } from "@/server/db/schema";
 import { TableDataProductsPicker } from "@/components/ProductsPickerDialog";
 
-//===Products for Picker
+//===Products for Buy/Sell ProductPicker
 export const getProductsForPicker = async ({
   userId,
   supplierId,
@@ -43,10 +43,11 @@ export const getProductsForPicker = async ({
       productId: product.id,
       productNumber: product.productNumber,
       unit: product.unitOfMeasurements.unit,
+      sellMode,
     };
   });
 
-  //check stock balance
+  //include stock balance
   const productIds = supplierProducts.map((product) => product.id);
   const stockBalance = await db
     .select({
@@ -68,16 +69,17 @@ export const getProductsForPicker = async ({
     });
   }
 
-  //check purchased price
+  //if sellMode include purchased price
   let purchasedProducts: { productId: string; purchasedPrice: number }[] = [];
   if (sellMode) {
     purchasedProducts = await db
       .select({
-        productId: sellTransactions.productId,
-        purchasedPrice: sellTransactions.purchasedPrice,
+        productId: buyTransactions.productId,
+        purchasedPrice: buyTransactions.unitPrice,
       })
-      .from(sellTransactions)
-      .where(inArray(sellTransactions.productId, productIds));
+      .from(buyTransactions)
+      .where(inArray(buyTransactions.productId, productIds));
+    console.log("purchasedProducts", purchasedProducts);
   }
 
   if (purchasedProducts) {
@@ -85,8 +87,13 @@ export const getProductsForPicker = async ({
       const exist = purchasedProducts.find(
         (purchasedItem) => purchasedItem.productId === tableDataItem.productId
       );
+
+      purchasedProducts.map((product) => {
+        if (product.productId === tableDataItem.productId) {
+        }
+      });
       if (exist) {
-        return { ...tableDataItem, quantity: exist.purchasedPrice };
+        return { ...tableDataItem, purchasedPrice: exist.purchasedPrice };
       }
       return tableDataItem;
     });

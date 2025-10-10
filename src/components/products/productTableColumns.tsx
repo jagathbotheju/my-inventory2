@@ -54,6 +54,7 @@ export const productTableColumns: ColumnDef<TableDataProductsPicker>[] = [
     cell: ({ row }) => {
       const amount = parseFloat(row.getValue("purchasedPrice"));
       const sellMode = row.original.sellMode;
+      console.log("purchased column", sellMode);
       if (sellMode) {
         return <div>{formatPrice(amount)}</div>;
       } else {

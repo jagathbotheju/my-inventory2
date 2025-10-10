@@ -9,7 +9,6 @@ import {
 import { users } from "./users";
 import { ProductExt, products } from "./products";
 import { Customer, customers } from "./customers";
-import { suppliers } from "./suppliers";
 import { SellTxInvoiceExt, sellTxInvoices } from "./sellTxInvoices";
 
 export const sellTransactions = pgTable("sell_transactions", {
@@ -19,26 +18,19 @@ export const sellTransactions = pgTable("sell_transactions", {
   userId: text("userId")
     .references(() => users.id)
     .notNull(),
-  customerId: text("customer_id")
-    .references(() => customers.id)
-    .notNull(),
-  supplierId: text("supplier_id").references(() => suppliers.id),
-  purchasedPrice: doublePrecision("purchased_price").default(0).notNull(),
   productId: text("product_id")
     .notNull()
     .references(() => products.id, { onDelete: "cascade" }),
-  productNumber: text("product_number"),
-  quantity: integer("quantity").notNull(),
-  unitPrice: doublePrecision("unit_price").default(0),
-  invoiceNumber: text("invoice_number").notNull(),
   invoiceId: text("invoice_id")
     .references(() => sellTxInvoices.id, {
       onDelete: "cascade",
     })
     .notNull(),
-  paymentMode: text("payment_mode"),
-  cacheAmount: doublePrecision("cache_amount").default(0),
-  creditAmount: doublePrecision("credit_amount").default(0),
+  quantity: integer("quantity").notNull(),
+  unitPrice: doublePrecision("unit_price").default(0).notNull(),
+  customerId: text("customer_id")
+    .references(() => customers.id)
+    .notNull(),
   date: timestamp("date", { mode: "string" }).notNull().defaultNow(),
   createdAt: timestamp("created_at", { mode: "string" }).notNull().defaultNow(),
 });
@@ -49,6 +41,10 @@ export const sellTransactionRelations = relations(
     customers: one(customers, {
       fields: [sellTransactions.customerId],
       references: [customers.id],
+    }),
+    users: one(users, {
+      fields: [sellTransactions.userId],
+      references: [users.id],
     }),
     sellTxInvoices: one(sellTxInvoices, {
       fields: [sellTransactions.invoiceId],

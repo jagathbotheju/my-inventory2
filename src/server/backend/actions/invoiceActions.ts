@@ -15,7 +15,7 @@ import {
   sellTxPayments,
   stocks,
 } from "@/server/db/schema";
-import { SellTxInvoiceExt } from "@/server/db/schema/sellTxInvoices";
+import { SellTxInvoice } from "@/server/db/schema/sellTxInvoices";
 import { SellTxPaymentCheques } from "@/server/db/schema/sellTxPaymentCheques";
 import {
   buyTxPaymentCheques,
@@ -347,7 +347,7 @@ export const addSellTxPayment = async ({
   const updatedInvoice = await db
     .update(sellTxInvoices)
     .set({
-      totalCash: sql`${sellTxInvoices.totalCash} + ${cashAmount} + ${chequesAmount}`,
+      totalAmount: sql`${sellTxInvoices.totalAmount} + ${cashAmount} + ${chequesAmount}`,
     })
     .where(eq(sellTxInvoices.id, invoiceId))
     .returning();
@@ -441,7 +441,6 @@ export const searchSellTxInvoices = async ({
     with: {
       sellTransactions: {
         with: {
-          customers: true,
           products: true,
         },
       },
@@ -454,7 +453,7 @@ export const searchSellTxInvoices = async ({
     orderBy: [desc(sellTxInvoices.date), desc(sellTxInvoices.invoiceNumber)],
   });
 
-  return invoices as SellTxInvoiceExt[];
+  return invoices as SellTxInvoice[];
 };
 
 //Search BuyTx Invoices-ok
@@ -521,7 +520,7 @@ export const getSellTxInvoicesForPeriod = async ({
     orderBy: [desc(sellTxInvoices.date), desc(sellTxInvoices.invoiceNumber)],
   });
 
-  return transactions as SellTxInvoiceExt[];
+  return transactions as SellTxInvoice[];
 };
 
 //BuyTx Invoices Period-ok

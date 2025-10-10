@@ -20,9 +20,6 @@ import { Popover, PopoverContent, PopoverTrigger } from "../ui/popover";
 import { cn, formatPrice } from "@/lib/utils";
 import { format } from "date-fns";
 import { Calendar } from "../ui/calendar";
-import { useAddSellTransactions } from "@/server/backend/mutations/sellTxMutations";
-import { SellTransaction } from "@/server/db/schema/sellTransactions";
-import { Customer } from "@/server/db/schema/customer";
 import { useCallback, useEffect, useState } from "react";
 import CustomerPicker from "../CustomerPicker";
 import { toast } from "sonner";
@@ -40,6 +37,7 @@ import {
 import ProductsPickerDialog, {
   TableDataProductsPicker,
 } from "../ProductsPickerDialog";
+import { Customer } from "@/server/db/schema/customers";
 
 interface Props {
   userId: string;
@@ -52,15 +50,11 @@ export type SellProductsData = z.infer<typeof SellProductsSchema> & {
 };
 
 const SellProducts = ({ userId }: Props) => {
-  const router = useRouter();
   const total: number[] = [];
-  const [openCalCheque, setOpenCalCheque] = useState(false);
-  const [openCalCashCheque, setOpenCalCashCheque] = useState(false);
+  const router = useRouter();
   const [openCalInvoice, setOpenCalInvoice] = useState(false);
   const [paymentMode, setPaymentMode] = useState<string>("");
   const [customer, setCustomer] = useState<Customer>({} as Customer);
-  // const [isLoading, setIsLoading] = useState<boolean>(false);
-  const { mutate: addSellTransactions } = useAddSellTransactions();
   const {
     selectedProducts,
     currentSupplier,
@@ -128,22 +122,7 @@ const SellProducts = ({ userId }: Props) => {
     const products = formData.products;
     if (!products.length) return;
 
-    const sellTxData = products.map((item) => ({
-      productId: item.productId as string,
-      productNumber: item.productNumber,
-      quantity: item.quantity,
-      unitPrice: item.unitPrice,
-      purchasedPrice: item.purchasedPrice ?? 0,
-      userId,
-      customerId: customer.id,
-      supplierId: currentSupplier.id,
-      date: formData.date.toDateString(),
-      invoiceNumber: formData.invoiceNumber,
-      paymentMode: formData.paymentMode,
-      cacheAmount: formData.cacheAmount,
-      creditAmount: formData.creditAmount,
-    })) as SellTransaction[];
-    addSellTransactions({ sellTxData, chequeData: formData.cheques });
+    console.log("formData", formData);
   };
 
   const removeSelected = (product: TableDataProductsPicker) => {
@@ -174,15 +153,6 @@ const SellProducts = ({ userId }: Props) => {
     setSelectedProductIds({});
   }, [setSelectedProducts, setSelectedProductIds]);
 
-  // useEffect(() => {
-  //   if (total.length) {
-  //     form.setValue(
-  //       "creditAmount",
-  //       total.reduce((acc, item) => acc + item)
-  //     );
-  //   }
-  // }, [total, form]);
-
   if (!fields.length) return null;
 
   return (
@@ -190,6 +160,8 @@ const SellProducts = ({ userId }: Props) => {
       <CardHeader>
         <div className="flex items-center justify-between">
           <CardTitle className="text-4xl font-bold">Sell Products</CardTitle>
+
+          {/* products picker */}
           <ProductsPickerDialog userId={userId} sellMode>
             <Button className="font-semibold">Select Products</Button>
           </ProductsPickerDialog>
@@ -214,6 +186,7 @@ const SellProducts = ({ userId }: Props) => {
               Select Customer
             </p>
             <div className="whitespace-nowrap text-2xl col-span-8">
+              {/* customer picker */}
               <CustomerPicker
                 setCustomer={setCustomer}
                 userId={userId}
@@ -323,11 +296,11 @@ const SellProducts = ({ userId }: Props) => {
                                   </FormItem>
                                 )}
                               />
-                              {product.quantity < sellQuantity && (
+                              {/* {product?.quantity < sellQuantity && (
                                 <span className="text-sm text-red-500 absolute font-semibold -bottom-3 left-3">
                                   no stocks
                                 </span>
-                              )}
+                              )} */}
                             </TableCell>
                             <TableCell>{formatPrice(totalPrice)}</TableCell>
                             <TableCell>
@@ -506,10 +479,7 @@ const SellProducts = ({ userId }: Props) => {
                               <FormLabel className="absolute -top-3">
                                 date
                               </FormLabel>
-                              <Popover
-                                open={openCalCheque}
-                                onOpenChange={setOpenCalCheque}
-                              >
+                              <Popover>
                                 <PopoverTrigger asChild>
                                   <FormControl>
                                     <Button
@@ -538,9 +508,7 @@ const SellProducts = ({ userId }: Props) => {
                                     selected={field.value}
                                     onSelect={(val) => {
                                       field.onChange(val);
-                                      setOpenCalCheque(false);
                                     }}
-                                    initialFocus
                                   />
                                 </PopoverContent>
                               </Popover>
@@ -670,10 +638,7 @@ const SellProducts = ({ userId }: Props) => {
                             <FormLabel className="absolute -top-3">
                               date
                             </FormLabel>
-                            <Popover
-                              open={openCalCashCheque}
-                              onOpenChange={setOpenCalCashCheque}
-                            >
+                            <Popover>
                               <PopoverTrigger asChild>
                                 <FormControl>
                                   <Button
@@ -702,9 +667,7 @@ const SellProducts = ({ userId }: Props) => {
                                   selected={field.value}
                                   onSelect={(val) => {
                                     field.onChange(val);
-                                    setOpenCalCashCheque(false);
                                   }}
-                                  initialFocus
                                 />
                               </PopoverContent>
                             </Popover>

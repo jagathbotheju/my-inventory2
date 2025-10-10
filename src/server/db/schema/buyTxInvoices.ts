@@ -12,6 +12,7 @@ export const buyTxInvoices = pgTable("buy_tx_invoices", {
   invoiceNumber: text("invoice_number").notNull(),
   totalAmount: doublePrecision("total_amount").default(0),
   date: timestamp("date", { mode: "string" }).defaultNow(),
+  createdAt: timestamp("created_at", { mode: "string" }).notNull().defaultNow(),
 });
 
 export const buyTxInvoiceRelations = relations(
