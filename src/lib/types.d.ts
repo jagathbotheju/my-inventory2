@@ -57,15 +57,20 @@ type TxPayments = {
 };
 
 type StockBal = {
-  // productNumber: string;
+  productNumber: string;
   productId: string;
   quantity: number;
+  uom: string;
+
+  buyTxTotal: number;
   buyTxTotalQuantity: number;
   buyTxTotalAmount: number;
+
+  sellTxTotal: number;
   sellTxTotalQuantity: number;
   sellTxTotalAmount: number;
   sellTxActTotalAmount: number;
-  uom?: string;
+
   purchasedPrice?: number;
 };
 

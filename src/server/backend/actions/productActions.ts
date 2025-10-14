@@ -47,7 +47,7 @@ export const getProductsForPicker = async ({
     };
   });
 
-  //include stock balance
+  //stock balance
   const productIds = supplierProducts.map((product) => product.id);
   const stockBalance = await db
     .select({
@@ -69,7 +69,7 @@ export const getProductsForPicker = async ({
     });
   }
 
-  //if sellMode include purchased price
+  //purchased price
   let purchasedProducts: { productId: string; purchasedPrice: number }[] = [];
   if (sellMode) {
     purchasedProducts = await db
@@ -79,21 +79,28 @@ export const getProductsForPicker = async ({
       })
       .from(buyTransactions)
       .where(inArray(buyTransactions.productId, productIds));
-    console.log("purchasedProducts", purchasedProducts);
   }
 
   if (purchasedProducts) {
+    let prices = new Set<number>();
     tableData = tableData.map((tableDataItem) => {
       const exist = purchasedProducts.find(
         (purchasedItem) => purchasedItem.productId === tableDataItem.productId
       );
 
-      purchasedProducts.map((product) => {
+      prices = purchasedProducts.reduce((acc, product) => {
         if (product.productId === tableDataItem.productId) {
+          acc.add(product.purchasedPrice);
         }
-      });
+        return acc;
+      }, new Set<number>());
+
       if (exist) {
-        return { ...tableDataItem, purchasedPrice: exist.purchasedPrice };
+        return {
+          ...tableDataItem,
+          // purchasedPrice: exist.purchasedPrice,
+          purchasedPrice: prices,
+        };
       }
       return tableDataItem;
     });

@@ -8,8 +8,7 @@ import {
 import { users } from "./users";
 import { InferSelectModel, relations } from "drizzle-orm";
 import { ProductExt, products } from "./products";
-import { UnitOfMeasurement } from "./unitOfMeasurements";
-import { Supplier, suppliers } from "./suppliers";
+import { suppliers } from "./suppliers";
 
 export const stocks = pgTable(
   "stocks",
@@ -47,6 +46,4 @@ export const stocksRelations = relations(stocks, ({ one }) => ({
 export type Stock = InferSelectModel<typeof stocks>;
 export type StockExt = InferSelectModel<typeof stocks> & {
   products: ProductExt;
-  suppliers: Supplier;
-  unitOfMeasurements: UnitOfMeasurement;
 };

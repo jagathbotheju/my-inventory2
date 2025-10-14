@@ -5,8 +5,8 @@ import {
   getBuyTxByUserByPeriod,
   getBuyTxByUserProduct,
   getBuyTxCount,
+  getBuyTxTotalPurchase,
   getBuyTxYears,
-  getByTxTotalPurchase,
   getDailyBuyTransactions,
 } from "../actions/buyTxActions";
 
@@ -23,6 +23,7 @@ export const useDailyBuyTransactions = ({
   });
 };
 
+//--buyTransactions-pagination---
 export const useBuyTransactionsPagination = ({
   userId,
   period,
@@ -50,6 +51,7 @@ export const useBuyTransactionsPagination = ({
   });
 };
 
+//---buyTx-total-purchases---
 export const useByTxTotalPurchase = ({
   userId,
   period,
@@ -63,7 +65,7 @@ export const useByTxTotalPurchase = ({
 }) => {
   return useQuery({
     queryKey: ["buy-transactions", userId, period, timeFrame],
-    queryFn: () => getByTxTotalPurchase({ userId, period, timeFrame }),
+    queryFn: () => getBuyTxTotalPurchase({ userId, period, timeFrame }),
     enabled: !!!searchTerm,
   });
 };
@@ -75,6 +77,7 @@ export const useBuyTxYears = () => {
   });
 };
 
+//--buyTransactions-count---
 export const useBuyTxCount = ({
   userId,
   period,
@@ -121,6 +124,7 @@ export const useBuyTxByUserByPeriod = ({
   });
 };
 
+//---QRY-buyTransactions-for-user---
 export const useBuyTxByUserProduct = ({
   userId,
   productId,

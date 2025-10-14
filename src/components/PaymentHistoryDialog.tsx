@@ -15,8 +15,8 @@ import { Button } from "./ui/button";
 import { formatPrice } from "@/lib/utils";
 import { SellTxInvoiceExt } from "@/server/db/schema/sellTxInvoices";
 import { ScrollArea } from "./ui/scroll-area";
-import { BuyTxInvoiceExt } from "@/server/db/schema/buyTxInvoice";
 import PaymentHistoryDialogCard from "./PaymentHistoryDialogCard";
+import { BuyTxInvoiceExt } from "@/server/db/schema/buyTxInvoices";
 
 interface Props {
   children: React.ReactNode;
@@ -55,8 +55,8 @@ const PaymentHistoryDialog = ({
                   /
                   <p className="text-xl font-semibold">
                     {isBuyTx
-                      ? formatPrice(buyTxInvoice?.totalCash ?? 0)
-                      : formatPrice(sellTxInvoice?.totalCash ?? 0)}
+                      ? formatPrice(buyTxInvoice?.totalAmount ?? 0)
+                      : formatPrice(sellTxInvoice?.totalAmount ?? 0)}
                   </p>
                 </div>
               </div>
@@ -70,24 +70,18 @@ const PaymentHistoryDialog = ({
         <ScrollArea>
           <div className="mt-4">
             {/* SellTx Payment History */}
-            {!isBuyTx && sellTxInvoice ? (
+            {!isBuyTx && sellTxInvoice && sellTxInvoice.sellTxPayments ? (
               <div className="flex flex-col -mt-4 gap-2">
-                {sellTxInvoice.sellTxPayments.map((item) => (
-                  <PaymentHistoryDialogCard
-                    key={item.id}
-                    sellTxPayment={item}
-                  />
-                ))}
+                <PaymentHistoryDialogCard
+                  sellTxPayment={sellTxInvoice.sellTxPayments}
+                />
               </div>
             ) : // BuyTx Payment History
-            isBuyTx && buyTxInvoice ? (
-              buyTxInvoice.buyTxPayments.map((item) => (
-                <PaymentHistoryDialogCard
-                  key={item.id}
-                  buyTxPayment={item}
-                  isBuyTx
-                />
-              ))
+            isBuyTx && buyTxInvoice && buyTxInvoice.buyTxPayments ? (
+              <PaymentHistoryDialogCard
+                buyTxPayment={buyTxInvoice.buyTxPayments}
+                isBuyTx
+              />
             ) : (
               <p className="text-xl font-bold text-muted-foreground">
                 No payment history available.

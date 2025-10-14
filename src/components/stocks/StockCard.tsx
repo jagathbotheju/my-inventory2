@@ -12,12 +12,13 @@ const StockCard = ({ stock }: Props) => {
       href={`/stocks/${stock.productId}?stockBal=${stock.quantity}`}
       className="flex flex-col col-span-1 rounded-md border-primary border shadow hover:shadow-lg"
     >
-      <div className="bg-primary/30 p-2 text-xl w-full font-semibold uppercase flex flex-col">
-        <p className="text-ellipsis">{stock.productNumber}</p>
-        <div className="flex items-center gap-2">
+      <div className="bg-primary/30 p-2 w-full uppercase flex flex-col font-bold">
+        <p className="text-ellipsis text-xl">{stock.productNumber}</p>
+        {/* balance */}
+        <div className="flex items-center justify-between">
           <div
             className={cn(
-              "flex items-center gap-1 text-base p-[2px] px-1 rounded-md",
+              "flex items-center gap-1 text-base rounded-md",
               stock.quantity < 0 && "bg-primary"
             )}
           >
@@ -29,7 +30,7 @@ const StockCard = ({ stock }: Props) => {
           <p className="text-base">
             {formatPrice(
               stock.sellTxTotalQuantity < stock.buyTxTotalQuantity
-                ? stock.buyTxTotalAmount - stock?.sellTxActTotalAmount
+                ? stock.buyTxTotalAmount - stock.sellTxActTotalAmount
                 : 0
             )}
           </p>

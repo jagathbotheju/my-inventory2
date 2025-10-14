@@ -295,161 +295,7 @@ export const addBuyTransactions = async ({
   }
 };
 
-//===ADD BUY TRANSACTION===
-export const addBuyTransaction = async (data: BuyTransaction) => {
-  try {
-    //existTransaction
-    const existTransaction = await db
-      .select()
-      .from(buyTransactions)
-      .where(
-        and(
-          eq(buyTransactions.userId, data.userId),
-          eq(buyTransactions.supplierId, data.supplierId),
-          eq(buyTransactions.productId, data.productId),
-          eq(buyTransactions.quantity, data.quantity),
-          eq(buyTransactions.unitPrice, data.unitPrice),
-          eq(buyTransactions.date, data.date)
-        )
-      );
-    if (existTransaction.length) {
-      return { error: "Transaction already exist" };
-    }
-
-    const existBuyMonthHistory = await db
-      .select()
-      .from(buyMonthHistory)
-      .where(
-        and(
-          eq(buyMonthHistory.userId, data.userId),
-          eq(buyMonthHistory.day, new Date(data.date).getDate()),
-          eq(buyMonthHistory.month, new Date(data.date).getMonth() + 1),
-          eq(buyMonthHistory.year, new Date(data.date).getFullYear())
-        )
-      );
-
-    const existBuyYearHistory = await db
-      .select()
-      .from(buyYearHistory)
-      .where(
-        and(
-          eq(buyYearHistory.userId, data.userId),
-          eq(buyYearHistory.month, new Date(data.date).getMonth() + 1),
-          eq(buyYearHistory.year, new Date(data.date).getFullYear())
-        )
-      );
-
-    const existStock = await db
-      .select()
-      .from(stocks)
-      .where(
-        and(
-          eq(stocks.userId, data.userId),
-          eq(stocks.supplierId, data.supplierId),
-          eq(stocks.productId, data.productId)
-        )
-      );
-
-    //transactions
-    await db.transaction(async (tx) => {
-      //new buyTransaction
-      await tx.insert(buyTransactions).values(data).returning();
-
-      // update buyMonthHistory
-      if (existBuyMonthHistory.length) {
-        await tx
-          .update(buyMonthHistory)
-          .set({
-            totalPrice:
-              data.quantity * (data.unitPrice ?? 0) +
-              (existBuyMonthHistory[0].totalPrice ?? 0),
-          })
-          .where(
-            and(
-              eq(buyMonthHistory.userId, data.userId),
-              eq(buyMonthHistory.day, new Date(data.date).getDate()),
-              eq(buyMonthHistory.month, new Date(data.date).getMonth() + 1),
-              eq(buyMonthHistory.year, new Date(data.date).getFullYear())
-            )
-          )
-          .returning();
-      } else {
-        await tx
-          .insert(buyMonthHistory)
-          .values({
-            day: new Date(data.date).getDate(),
-            month: new Date(data.date).getMonth() + 1,
-            year: new Date(data.date).getFullYear(),
-            userId: data.userId,
-            totalPrice: data.quantity * (data.unitPrice ?? 0),
-          })
-          .returning();
-      }
-
-      // update buyYearHistory
-      if (existBuyYearHistory.length) {
-        await tx
-          .update(buyYearHistory)
-          .set({
-            totalPrice:
-              data.quantity * (data.unitPrice ?? 0) +
-              (existBuyYearHistory[0].totalPrice ?? 0),
-          })
-          .where(
-            and(
-              eq(buyYearHistory.userId, data.userId),
-              eq(buyYearHistory.month, new Date(data.date).getMonth() + 1),
-              eq(buyYearHistory.year, new Date(data.date).getFullYear())
-            )
-          )
-          .returning();
-      } else {
-        tx.insert(buyYearHistory)
-          .values({
-            month: new Date(data.date).getMonth() + 1,
-            year: new Date(data.date).getFullYear(),
-            userId: data.userId,
-            totalPrice: data.quantity * (data.unitPrice ?? 0),
-          })
-          .returning();
-      }
-
-      //update stock
-      if (existStock.length) {
-        await tx
-          .update(stocks)
-          .set({
-            quantity: data.quantity + (existStock[0].quantity ?? 0),
-          })
-          .where(
-            and(
-              eq(stocks.userId, data.userId),
-              eq(stocks.supplierId, data.supplierId),
-              eq(stocks.productId, data.productId)
-            )
-          )
-          .returning();
-      } else {
-        await tx
-          .insert(stocks)
-          .values({
-            userId: data.userId,
-            supplierId: data.supplierId,
-            productId: data.productId,
-            quantity: data.quantity,
-          })
-          .returning();
-      }
-    });
-
-    return { success: "Buy Transaction added successfully" };
-  } catch (error) {
-    console.log(error);
-    return { error: "Count not add Transaction" };
-  }
-};
-
-//GET BUY TRANSACTIONS PAGINATION
+//---QRY-get-buy-transactions-pagination
 export const getBuyTransactionsPagination = async ({
   userId,
   period,
@@ -468,37 +314,64 @@ export const getBuyTransactionsPagination = async ({
   const year = period.year;
   const month =
     period.month.toString().length > 1 ? period.month : `0${period.month}`;
-  const fSearch = `%${searchTerm}%`;
+  // const fSearch = `%${searchTerm}%`;
 
   if (searchTerm?.length) {
+    //if search, find in all txs
     const transactions = await db.query.buyTransactions.findMany({
-      where: sql`${buyTransactions.userId} like ${userId} and ${buyTransactions.invoiceNumber} ilike ${fSearch}`,
+      where: eq(buyTransactions.userId, userId),
       with: {
-        products: true,
+        products: {
+          with: {
+            suppliers: true,
+          },
+        },
+        buyTxInvoices: true,
       },
       orderBy: desc(buyTransactions.date),
       limit: pageSize,
       offset: (page - 1) * pageSize,
     });
-    return transactions as BuyTransactionExt[];
+
+    if (transactions.length) {
+      const result = transactions.filter(
+        (item) =>
+          item.buyTxInvoices.invoiceNumber
+            .toLowerCase()
+            .includes(searchTerm.toLowerCase()) ||
+          item.products.productNumber
+            .toLowerCase()
+            .includes(searchTerm.toLowerCase())
+      );
+      return result as BuyTransactionExt[];
+    }
+
+    return [] as BuyTransactionExt[];
   } else {
+    //if not search, find by period
     const transactions = await db.query.buyTransactions.findMany({
       where:
         timeFrame === "month"
           ? sql`to_char(${buyTransactions.date},'MM') like ${month} and to_char(${buyTransactions.date},'YYYY') like ${year} and ${buyTransactions.userId} like ${userId}`
           : sql`to_char(${buyTransactions.date},'YYYY') like ${year} and ${buyTransactions.userId} like ${userId}`,
       with: {
-        products: true,
+        products: {
+          with: {
+            suppliers: true,
+          },
+        },
+        buyTxInvoices: true,
       },
       orderBy: desc(buyTransactions.date),
       limit: pageSize,
       offset: (page - 1) * pageSize,
     });
+
     return transactions as BuyTransactionExt[];
   }
 };
 
-//UPDATE BUY TRANSACTION
+//---delete-buy-transaction---
 export const deleteBuyTransaction = async ({
   userId,
   buyTx,
@@ -507,6 +380,7 @@ export const deleteBuyTransaction = async ({
   buyTx: BuyTransactionExt;
 }) => {
   try {
+    //delete transaction
     const deletedTx = await db
       .delete(buyTransactions)
       .where(
@@ -516,7 +390,37 @@ export const deleteBuyTransaction = async ({
         )
       )
       .returning();
+    if (!deletedTx.length)
+      return {
+        error: "Could not delete Transaction",
+      };
 
+    const deletedTxTotalPrice =
+      deletedTx[0].quantity * (deletedTx[0].unitPrice ?? 0);
+
+    //update invoice
+    const existInvoice = await db
+      .select()
+      .from(buyTxInvoices)
+      .where(
+        and(
+          eq(buyTxInvoices.userId, userId),
+          eq(buyTxInvoices.id, deletedTx[0].invoiceId)
+        )
+      );
+    const existInvoiceTotalAmount = existInvoice[0].totalAmount ?? 0;
+    if (existInvoice.length && existInvoiceTotalAmount > deletedTxTotalPrice) {
+      await db
+        .update(buyTxInvoices)
+        .set({ totalAmount: existInvoiceTotalAmount - deletedTxTotalPrice })
+        .where(eq(buyTxInvoices.id, deletedTx[0].invoiceId));
+    } else {
+      await db
+        .delete(buyTxInvoices)
+        .where(eq(buyTxInvoices.id, deletedTx[0].invoiceId));
+    }
+
+    // update month history
     const existBuyMonthHistory = await db
       .select()
       .from(buyMonthHistory)
@@ -528,26 +432,7 @@ export const deleteBuyTransaction = async ({
           eq(buyMonthHistory.year, new Date(deletedTx[0].date).getFullYear())
         )
       );
-
-    const existBuyYearHistory = await db
-      .select()
-      .from(buyYearHistory)
-      .where(
-        and(
-          eq(buyYearHistory.userId, deletedTx[0].userId),
-          eq(buyYearHistory.month, new Date(deletedTx[0].date).getMonth() + 1),
-          eq(buyYearHistory.year, new Date(deletedTx[0].date).getFullYear())
-        )
-      );
-
-    // let monthHistory = [] as BuyMonthHistory[];
-    // let yearHistory = [] as BuyYearHistory[];
-    const deletedTxTotalPrice =
-      deletedTx[0].quantity * (deletedTx[0].unitPrice ?? 0);
     const existMonthHistoryTotalPrice = existBuyMonthHistory[0].totalPrice ?? 0;
-    const existYearHistoryTotalPrice = existBuyMonthHistory[0].totalPrice ?? 0;
-
-    // update month history
     if (
       existBuyMonthHistory.length &&
       existMonthHistoryTotalPrice > deletedTxTotalPrice
@@ -567,8 +452,7 @@ export const deleteBuyTransaction = async ({
             ),
             eq(buyMonthHistory.year, new Date(deletedTx[0].date).getFullYear())
           )
-        )
-        .returning();
+        );
     } else {
       await db
         .delete(buyMonthHistory)
@@ -582,11 +466,21 @@ export const deleteBuyTransaction = async ({
             ),
             eq(buyMonthHistory.year, new Date(deletedTx[0].date).getFullYear())
           )
-        )
-        .returning();
+        );
     }
 
     // update year history
+    const existBuyYearHistory = await db
+      .select()
+      .from(buyYearHistory)
+      .where(
+        and(
+          eq(buyYearHistory.userId, deletedTx[0].userId),
+          eq(buyYearHistory.month, new Date(deletedTx[0].date).getMonth() + 1),
+          eq(buyYearHistory.year, new Date(deletedTx[0].date).getFullYear())
+        )
+      );
+    const existYearHistoryTotalPrice = existBuyYearHistory[0].totalPrice ?? 0;
     if (
       existBuyYearHistory.length &&
       existYearHistoryTotalPrice > deletedTxTotalPrice
@@ -605,8 +499,7 @@ export const deleteBuyTransaction = async ({
             ),
             eq(buyYearHistory.year, new Date(deletedTx[0].date).getFullYear())
           )
-        )
-        .returning();
+        );
     } else {
       await db
         .delete(buyYearHistory)
@@ -619,8 +512,7 @@ export const deleteBuyTransaction = async ({
             ),
             eq(buyYearHistory.year, new Date(deletedTx[0].date).getFullYear())
           )
-        )
-        .returning();
+        );
     }
 
     //update stock
@@ -644,6 +536,7 @@ export const deleteBuyTransaction = async ({
 
     if (deletedTx.length)
       return { success: "Transaction deleted successfully" };
+
     return { error: "Could not delete Transaction" };
   } catch (error) {
     console.log(error);
@@ -661,7 +554,7 @@ export const getBuyTxYears = async () => {
   return years as BuyYearHistory[];
 };
 
-//GET BUY TX MONTHS
+//---QRY-buyTransactions-count---
 export const getBuyTxCount = async ({
   userId,
   period,
@@ -686,8 +579,8 @@ export const getBuyTxCount = async ({
   return buyTxCount[0];
 };
 
-//GET BUY TX TOTAL PURCHASE
-export const getByTxTotalPurchase = async ({
+//---QRY-buyTransactions-total-purchases---
+export const getBuyTxTotalPurchase = async ({
   userId,
   period,
   timeFrame,
@@ -758,7 +651,7 @@ export const getBuyTxByUserByPeriod = async ({
   return transactions as BuyTransactionExt[];
 };
 
-//GET BUY TX BY USER PRODUCT
+//---QRY-buyTransactions-for-user---
 export const getBuyTxByUserProduct = async ({
   userId,
   productId,
@@ -775,9 +668,9 @@ export const getBuyTxByUserProduct = async ({
       products: {
         with: {
           unitOfMeasurements: true,
+          suppliers: true,
         },
       },
-      suppliers: true,
     },
     orderBy: desc(buyTransactions.date),
   });

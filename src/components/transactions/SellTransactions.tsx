@@ -157,10 +157,12 @@ const SellTransactions = ({ user }: Props) => {
                   <TableRow key={tx.id}>
                     <TableCell>{format(tx.date, "PPP")}</TableCell>
                     <TableCell className="uppercase">
-                      {tx.invoiceNumber}
+                      {tx.sellTxInvoices.invoiceNumber}
                     </TableCell>
                     <TableCell>{tx.customers.name}</TableCell>
-                    <TableCell>{tx.products.productNumber}</TableCell>
+                    <TableCell className="uppercase">
+                      {tx.products.productNumber}
+                    </TableCell>
                     <TableCell>{formatPrice(tx.unitPrice ?? 0)}</TableCell>
                     <TableCell>{tx.quantity}</TableCell>
                     <TableCell>

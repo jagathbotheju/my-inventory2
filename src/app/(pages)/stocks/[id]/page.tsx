@@ -1,6 +1,7 @@
 import StockDetails from "@/components/stocks/StockDetails";
 import { auth } from "@/lib/auth";
 import { User } from "@/server/db/schema/users";
+import { headers } from "next/headers";
 import { redirect } from "next/navigation";
 
 const StockDetailsPage = async ({
@@ -10,7 +11,9 @@ const StockDetailsPage = async ({
   params: Promise<{ id: string }>;
   searchParams: Promise<{ stockBal: string }>;
 }) => {
-  const session = await auth();
+  const session = await auth.api.getSession({
+    headers: await headers(),
+  });
   const user = session?.user as User;
   if (!session) redirect("/auth/login");
   const productId = (await params).id;

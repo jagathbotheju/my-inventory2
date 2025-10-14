@@ -27,10 +27,10 @@ interface Props {
 }
 
 const SupplierPicker = ({ setSupplier, supplierId, userId }: Props) => {
+  const { setCurrentSupplier, currentSupplier } = useProductStore();
   const [open, setOpen] = useState(false);
-  const [value, setValue] = useState(supplierId);
+  const [value, setValue] = useState(currentSupplier.id ?? supplierId);
   const { data: suppliers, isLoading } = useSuppliers(userId);
-  const { setCurrentSupplier } = useProductStore();
 
   // useEffect(() => {
   //   console.log("inside useEffect....");

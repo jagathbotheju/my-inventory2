@@ -40,16 +40,22 @@ import { Separator } from "../ui/separator";
 import { format } from "date-fns";
 import { formatPrice } from "@/lib/utils";
 import { ScrollArea } from "../ui/scroll-area";
-import { signOut } from "@/lib/auth-client";
+import { signOut, useSession } from "@/lib/auth-client";
 
 interface Props {
   user: User;
 }
 
-const AuthButton = ({ user }: Props) => {
+const AuthButton = () => {
+  const { data } = useSession();
+  const user = data?.user;
   const router = useRouter();
   const { setTheme, theme } = useTheme();
-  const { data: buyTxDueCheques } = useBuyTxDueCheques(user?.id);
+
+  const { data: buyTxDueCheques } = useBuyTxDueCheques(user?.id ?? "");
+
+  if (!user) return null;
+  // console.log("user", user);
 
   return (
     <div className="flex items-center gap-2">
@@ -152,13 +158,13 @@ const AuthButton = ({ user }: Props) => {
               </DropdownMenuItem>
 
               {/* profiles */}
-              <DropdownMenuItem
+              {/* <DropdownMenuItem
                 onClick={() => router.push("/user/profile")}
                 className="font-medium transition-all duration-500 cursor-pointer group ease-in-out"
               >
                 <UserRoundPen className="mr-2 w-4 group-hover:translate-x-1 transition-all duration-300 ease-in-out group-hover:text-primary group-hover:font-semibold" />
                 <span className="hover:text-primary">Profile</span>
-              </DropdownMenuItem>
+              </DropdownMenuItem> */}
 
               {/* theme switch */}
               <DropdownMenuItem
@@ -172,7 +178,7 @@ const AuthButton = ({ user }: Props) => {
               </DropdownMenuItem>
 
               {/* admin */}
-              {user && user.role === "admin" && (
+              {/* {user && user.role === "admin" && (
                 <DropdownMenuItem
                   className="font-medium transition-all duration-500 cursor-pointer group ease-in-out"
                   onClick={() => router.push("/admin")}
@@ -180,7 +186,7 @@ const AuthButton = ({ user }: Props) => {
                   <LogOutIcon className="mr-2 w-4 group-hover:rotate-180 transition-all duration-300 ease-in-out" />
                   <span className="hover:text-primary">Admin</span>
                 </DropdownMenuItem>
-              )}
+              )} */}
 
               {/* logout */}
               <DropdownMenuItem

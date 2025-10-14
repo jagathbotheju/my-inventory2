@@ -125,7 +125,6 @@ const BuyProducts = ({ userId }: Props) => {
     const products = formData.products;
     if (!products.length) return;
 
-    console.log(formData);
     addBuyTxInvoice({ userId, formData, supplierId: currentSupplier.id });
   };
 

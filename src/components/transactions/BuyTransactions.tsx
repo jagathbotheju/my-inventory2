@@ -43,6 +43,7 @@ const BuyTransactions = ({ user }: Props) => {
   const [bouncedSearchTerm] = useDebounce(searchTerm, 1000);
   const [page, setPage] = useState(1);
   const { period, timeFrame } = useTimeFrameStore((state) => state);
+
   const { data: buyTransactions, isLoading } = useBuyTransactionsPagination({
     userId: user.id,
     // userId: "7e397cd1-19ad-4c68-aa50-a77c06450bc7",
@@ -53,6 +54,7 @@ const BuyTransactions = ({ user }: Props) => {
       bouncedSearchTerm.length < 3 ? "" : bouncedSearchTerm.toUpperCase(),
   });
 
+  //---buyTransactions-count---
   const { data: buyTxCount } = useBuyTxCount({
     userId: user.id,
     // userId: "7e397cd1-19ad-4c68-aa50-a77c06450bc7",
@@ -98,7 +100,8 @@ const BuyTransactions = ({ user }: Props) => {
           {/* search */}
           <div className="pt-6 flex flex-col relative">
             <Input
-              placeholder="search by invoice number..."
+              className="uppercase"
+              placeholder="search by invoice or product number..."
               value={searchTerm}
               onBlur={() => setIsError(false)}
               onFocus={() => setIsError(true)}
@@ -153,9 +156,9 @@ const BuyTransactions = ({ user }: Props) => {
                   <TableRow key={tx.id}>
                     <TableCell>{format(tx.date, "PPP")}</TableCell>
                     <TableCell className="uppercase">
-                      {tx.invoiceNumber}
+                      {tx.buyTxInvoices.invoiceNumber}
                     </TableCell>
-                    <TableCell>{tx.suppliers.name}</TableCell>
+                    <TableCell>{tx.products.suppliers.name}</TableCell>
                     <TableCell className="uppercase">
                       {tx.products.productNumber}
                     </TableCell>

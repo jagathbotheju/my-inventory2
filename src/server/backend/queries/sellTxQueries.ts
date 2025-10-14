@@ -74,6 +74,7 @@ export const useSellTransactionsPagination = ({
   });
 };
 
+//---sellTx-total-sales---
 export const useSellTxTotalSales = ({
   userId,
   period,
@@ -107,6 +108,7 @@ export const useSellTxCount = ({
   });
 };
 
+//---SellTx-User-Product---
 export const useSellTxByUserProduct = ({
   userId,
   productId,

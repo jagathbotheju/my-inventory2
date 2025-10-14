@@ -2,7 +2,7 @@ import { InferSelectModel, relations } from "drizzle-orm";
 import { doublePrecision, pgTable, text, timestamp } from "drizzle-orm/pg-core";
 import { users } from "./users";
 import { BuyTransactionExt, buyTransactions } from "./buyTransactions";
-import { buyTxPayments } from "./buyTxPayments";
+import { BuyTxPaymentExt, buyTxPayments } from "./buyTxPayments";
 
 export const buyTxInvoices = pgTable("buy_tx_invoices", {
   id: text("id")
@@ -26,4 +26,5 @@ export const buyTxInvoiceRelations = relations(
 export type BuyTxInvoice = InferSelectModel<typeof buyTxInvoices>;
 export type BuyTxInvoiceExt = InferSelectModel<typeof buyTxInvoices> & {
   buyTransactions: BuyTransactionExt[];
+  buyTxPayments: BuyTxPaymentExt;
 };

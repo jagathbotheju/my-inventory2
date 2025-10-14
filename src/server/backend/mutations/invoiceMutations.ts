@@ -3,9 +3,10 @@ import { toast } from "sonner";
 import {
   addBuyTxInvoice,
   addBuyTxPayment,
+  addSellTxInvoice,
   addSellTxPayment,
 } from "../actions/invoiceActions";
-import { BuyProductsSchema } from "@/lib/schema";
+import { BuyProductsSchema, SellProductsSchema } from "@/lib/schema";
 import { z } from "zod";
 import { useRouter } from "next/navigation";
 
@@ -26,7 +27,7 @@ export const useAddByTxInvoice = () => {
     onSuccess: async (res) => {
       if (res?.success) {
         toast.success(res.success);
-        router.push("/products");
+        router.push("/transactions/buy");
       }
       if (res?.error) {
         toast.error(res.error);
@@ -36,6 +37,37 @@ export const useAddByTxInvoice = () => {
       const err = res.message;
       toast.error(err);
       toast.success("Could not Purchase");
+    },
+  });
+};
+
+//==AddSellTxInvoice
+export const useAddSellTxInvoice = () => {
+  const router = useRouter();
+
+  return useMutation({
+    mutationFn: ({
+      formData,
+      userId,
+      customerId,
+    }: {
+      formData: z.infer<typeof SellProductsSchema>;
+      userId: string;
+      customerId: string;
+    }) => addSellTxInvoice({ formData, userId, customerId }),
+    onSuccess: async (res) => {
+      if (res?.success) {
+        toast.success(res.success);
+        router.push("/transactions/sell");
+      }
+      if (res?.error) {
+        toast.error(res.error);
+      }
+    },
+    onError: (res) => {
+      const err = res.message;
+      toast.error(err);
+      toast.success("Could Sales Error");
     },
   });
 };

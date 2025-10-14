@@ -2,10 +2,8 @@ import { useQuery } from "@tanstack/react-query";
 import {
   getAllStocks,
   getAllUserStocks,
-  getAllUserStocksByPeriod,
   getStocks,
   getStocksBySupplier,
-  searchStocks,
 } from "../actions/stockActions";
 
 export const useStocks = ({
@@ -30,14 +28,8 @@ export const useAllStocks = (userId: string) => {
   });
 };
 
-export const useAllUserStocks = (userId: string) => {
-  return useQuery({
-    queryKey: ["user-stocks", userId],
-    queryFn: () => getAllUserStocks(userId),
-  });
-};
-
-export const useSearchStocks = ({
+//--all-user-stocks---
+export const useAllUserStocks = ({
   userId,
   searchTerm,
 }: {
@@ -45,27 +37,8 @@ export const useSearchStocks = ({
   searchTerm: string;
 }) => {
   return useQuery({
-    queryKey: ["search-stocks", userId, searchTerm],
-    queryFn: () => searchStocks({ userId, searchTerm }),
-    enabled: searchTerm.length >= 3,
-  });
-};
-
-export const useAllUserStocksByPeriod = ({
-  userId,
-  period,
-  timeFrame,
-  searchTerm,
-}: {
-  userId: string;
-  period: Period;
-  timeFrame: TimeFrame | "all";
-  searchTerm: string;
-}) => {
-  return useQuery({
-    queryKey: ["user-stocks-by-period", userId, period, timeFrame],
-    queryFn: () => getAllUserStocksByPeriod({ userId, period, timeFrame }),
-    enabled: !!!searchTerm,
+    queryKey: ["user-stocks", userId, searchTerm],
+    queryFn: () => getAllUserStocks({ userId, searchTerm }),
   });
 };
 

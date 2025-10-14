@@ -52,5 +52,5 @@ export const buyTransactionRelations = relations(
 export type BuyTransaction = InferSelectModel<typeof buyTransactions>;
 export type BuyTransactionExt = InferSelectModel<typeof buyTransactions> & {
   products: ProductExt;
-  byTxInvoices: BuyTxInvoice;
+  buyTxInvoices: BuyTxInvoice;
 };

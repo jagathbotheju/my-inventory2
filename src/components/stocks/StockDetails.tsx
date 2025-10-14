@@ -50,7 +50,7 @@ const StockDetails = ({ user, productId, stockBal }: Props) => {
       return {
         totalSellAmount: acc.totalSellAmount + item.unitPrice! * item.quantity,
         totalActSellAmount:
-          acc.totalActSellAmount + item.purchasedPrice! * item.quantity,
+          acc.totalActSellAmount + item.purchasedPrice * item.quantity,
         totalSellStock: acc.totalSellStock + item.quantity,
       };
     },
@@ -69,12 +69,11 @@ const StockDetails = ({ user, productId, stockBal }: Props) => {
             <div className="flex flex-col">
               <div className="flex items-center">
                 <p>Stock History,</p>
-                <p className="uppercase text-primary">
+                <p className="uppercase text-primary ml-2">
                   {buyTxs?.length && buyTxs[0]?.products.productNumber}
                 </p>
               </div>
             </div>
-            <p className="text-sm">{productId}</p>
           </div>
           <div className="flex items-center gap-2">
             <div className="flex items-center gap-2">

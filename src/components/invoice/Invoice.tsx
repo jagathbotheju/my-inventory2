@@ -9,68 +9,54 @@ import { Button } from "../ui/button";
 import { useState } from "react";
 import { useSellTxTotalSales } from "@/server/backend/queries/sellTxQueries";
 import {
-  useBuyTxInvoicesForPeriod,
-  useSearchBuyTxInvoices,
-  useSearchSellTxInvoices,
-  useSellTxInvoicesForPeriod,
+  useBuyTxInvoicesCount,
+  useBuyTxInvoicesForPeriodPagination,
+  useSellTxInvoicesCount,
+  useSellTxInvoicesForPeriodPagination,
 } from "@/server/backend/queries/invoiceQueries";
 import { useDebounce } from "use-debounce";
 import { Input } from "../ui/input";
 import { Loader2 } from "lucide-react";
 import InvoiceCard from "./InvoiceCard";
+import Pagination from "rc-pagination";
 
 interface Props {
   user: User;
 }
 
 const Invoice = ({ user }: Props) => {
+  const [page, setPage] = useState(1);
   const [isError, setIsError] = useState(false);
   const [searchTerm, setSearchTerm] = useState("");
   const [bouncedSearchTerm] = useDebounce(searchTerm, 1000);
-  const [isBuyTx, setIsBuyTx] = useState(false);
+  const [isBuyTx, setIsBuyTx] = useState(true);
   const { period, timeFrame } = useTimeFrameStore((state) => state);
 
-  //BuyTx Invoices Period
-  const { data: buyTxInvoices, isLoading: isLoadingBuyTx } =
-    useBuyTxInvoicesForPeriod({
+  //---BuyTxInvoices-Period-pagination---
+  const { data: buyTxInvoices, isLoading: isLoadingBuyTxInvoices } =
+    useBuyTxInvoicesForPeriodPagination({
       userId: user.id,
       // userId: "7e397cd1-19ad-4c68-aa50-a77c06450bc7",
       period,
       timeFrame,
       isBuyTx,
+      page,
       searchTerm: bouncedSearchTerm,
     });
 
-  //Search BuyTxs Invoices
-  const { data: searchBuyTxInvoices, isLoading: isLoadingSearchBuyTx } =
-    useSearchBuyTxInvoices({
-      userId: user?.id as string,
-      // userId: "7e397cd1-19ad-4c68-aa50-a77c06450bc7", // For testing purposes
-      searchTerm: bouncedSearchTerm,
-      isBuyTx,
-    });
-
-  //SellTx Invoices Period
-  const { data: sellTxInvoices, isLoading: isLoadingSellTx } =
-    useSellTxInvoicesForPeriod({
+  //---SellTxInvoices-Period-pagination---
+  const { data: sellTxInvoices, isLoading: isLoadingSellTxInvoices } =
+    useSellTxInvoicesForPeriodPagination({
       userId: user.id,
       // userId: "7e397cd1-19ad-4c68-aa50-a77c06450bc7",
       period,
       timeFrame,
-      isSellTx: !isBuyTx,
+      isBuyTx,
+      page,
       searchTerm: bouncedSearchTerm,
     });
 
-  //Search SellTx invoices
-  const { data: searchSellTxInvoices, isLoading: isLoadingSearchSellTx } =
-    useSearchSellTxInvoices({
-      userId: user?.id as string,
-      // userId: "7e397cd1-19ad-4c68-aa50-a77c06450bc7", // For testing purposes
-      searchTerm: bouncedSearchTerm,
-      isSellTx: !isBuyTx,
-    });
-
-  //Total Purchase
+  //---buyTx-Total-Purchase---
   const { data: totalPurchase } = useByTxTotalPurchase({
     userId: user.id,
     // userId: "7e397cd1-19ad-4c68-aa50-a77c06450bc7",
@@ -79,8 +65,26 @@ const Invoice = ({ user }: Props) => {
     searchTerm,
   });
 
-  //Total Sales
+  //---sellTx-Total-Sales---
   const { data: totalSales } = useSellTxTotalSales({
+    userId: user.id,
+    // userId: "7e397cd1-19ad-4c68-aa50-a77c06450bc7",
+    period,
+    timeFrame,
+    searchTerm,
+  });
+
+  //---buyTxInvoices-count---
+  const { data: buyTxInvoicesCount } = useBuyTxInvoicesCount({
+    userId: user.id,
+    // userId: "7e397cd1-19ad-4c68-aa50-a77c06450bc7",
+    period,
+    timeFrame,
+    searchTerm,
+  });
+
+  //---sellTxInvoices-count---
+  const { data: sellTxInvoicesCount } = useSellTxInvoicesCount({
     userId: user.id,
     // userId: "7e397cd1-19ad-4c68-aa50-a77c06450bc7",
     period,
@@ -184,62 +188,60 @@ const Invoice = ({ user }: Props) => {
       <CardContent>
         <div className="flex flex-col w-full gap-y-10 mt-8">
           {/* buyTransactions */}
-          {isBuyTx ? (
-            isLoadingBuyTx || isLoadingSearchBuyTx ? (
-              <div className="flex items-center justify-center">
-                <Loader2 className="w-8 h-8 animate-spin text-primary" />
-              </div>
-            ) : searchBuyTxInvoices?.length ? (
-              searchBuyTxInvoices?.map((item, index) => (
-                <InvoiceCard
-                  key={index}
-                  user={user}
-                  buyTxInvoice={item}
-                  isBuyTx
-                />
-              ))
-            ) : searchTerm.length === 0 && buyTxInvoices?.length ? (
-              buyTxInvoices?.map((item, index) => (
-                <InvoiceCard
-                  key={index}
-                  user={user}
-                  buyTxInvoice={item}
-                  isBuyTx
-                />
-              ))
-            ) : (
-              !isLoadingBuyTx ||
-              (!isLoadingSearchBuyTx && (
-                <div className="mt-10 flex justify-center">
-                  <h2 className="text-4xl font-semibold text-muted-foreground">
-                    No Buy Invoices Found!
-                  </h2>
-                </div>
-              ))
-            )
-          ) : // sellTransactions
-          isLoadingSellTx || isLoadingSearchSellTx ? (
+          {isLoadingBuyTxInvoices || isLoadingSellTxInvoices ? (
             <div className="flex items-center justify-center">
               <Loader2 className="w-8 h-8 animate-spin text-primary" />
             </div>
-          ) : searchSellTxInvoices?.length ? (
-            searchSellTxInvoices?.map((item, index) => (
-              <InvoiceCard key={index} user={user} sellTxInvoice={item} />
-            ))
-          ) : searchTerm.length === 0 && sellTxInvoices?.length ? (
-            sellTxInvoices?.map((item, index) => (
-              <InvoiceCard key={index} user={user} sellTxInvoice={item} />
+          ) : isBuyTx ? (
+            buyTxInvoices?.map((item, index) => (
+              <InvoiceCard
+                key={index}
+                user={user}
+                buyTxInvoice={item}
+                isBuyTx={isBuyTx}
+              />
             ))
           ) : (
-            !isLoadingSellTx ||
-            (!isLoadingSearchSellTx && (
-              <div className="mt-10 flex justify-center">
-                <h2 className="text-4xl font-semibold text-muted-foreground">
-                  No Sell Invoices Found!
-                </h2>
-              </div>
+            sellTxInvoices?.map((item, index) => (
+              <InvoiceCard
+                key={index}
+                user={user}
+                sellTxInvoice={item}
+                isBuyTx={isBuyTx}
+              />
             ))
           )}
+
+          {(isBuyTx && !buyTxInvoices?.length) ||
+            (!sellTxInvoices?.length && !isBuyTx && (
+              <div className="self-center">
+                <h2 className="text-3xl font-bold text-muted-foreground">
+                  No Transactions Found!
+                </h2>
+              </div>
+            ))}
+
+          {!searchTerm.length &&
+          ((isBuyTx && buyTxInvoices?.length) ||
+            (!isBuyTx && sellTxInvoices?.length)) ? (
+            <div className="self-end mt-6">
+              <Pagination
+                pageSize={10}
+                onChange={(current) => {
+                  setPage(current);
+                }}
+                style={{ color: "red" }}
+                current={page}
+                total={
+                  isBuyTx
+                    ? buyTxInvoicesCount?.count
+                    : sellTxInvoicesCount?.count
+                }
+                showPrevNextJumpers
+                showTitle={false}
+              />
+            </div>
+          ) : null}
         </div>
       </CardContent>
     </Card>

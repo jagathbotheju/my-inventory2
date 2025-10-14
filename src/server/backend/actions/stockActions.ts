@@ -2,7 +2,7 @@
 import { db } from "@/server/db";
 import { buyTransactions, sellTransactions, stocks } from "@/server/db/schema";
 import { Stock, StockExt } from "@/server/db/schema/stocks";
-import { and, eq, ne, sql } from "drizzle-orm";
+import { and, eq, ne, inArray } from "drizzle-orm";
 
 export const getStocks = async ({
   userId,
@@ -53,351 +53,127 @@ export const getAllStocks = async (userId: string) => {
   return stock as Stock[];
 };
 
-//====ALL USER STOCKS===
-export const getAllUserStocks = async (userId: string) => {
-  //SELL TXS
-  const sellTxs = await db
-    .select()
-    .from(sellTransactions)
-    .where(eq(sellTransactions.userId, userId));
+//-QRY-all-user-stocks---helper
 
-  //SELL TX STOCKS
-  const sellTxStocks = sellTxs.reduce(
-    (acc, sellTx) => {
-      const exist = acc.find((item) => item.productId === sellTx.productId);
-
-      if (!exist) {
-        acc.push({
-          productId: sellTx.productId,
-          quantity: sellTx.quantity,
-          sellTxTotalAmount: (sellTx.unitPrice ?? 0) * sellTx.quantity,
-          sellTxActTotalAmount: (sellTx.purchasedPrice ?? 0) * sellTx.quantity,
-        });
-      } else {
-        exist.quantity += sellTx.quantity;
-        exist.sellTxTotalAmount += (sellTx.unitPrice ?? 0) * sellTx.quantity;
-        exist.sellTxActTotalAmount +=
-          (sellTx.purchasedPrice ?? 0) * sellTx.quantity;
-      }
-      return acc;
-    },
-    [
-      {
-        productId: "",
-        quantity: 0,
-        sellTxTotalAmount: 0,
-        sellTxActTotalAmount: 0,
-      },
-    ]
-  );
-
-  //BUY TXS
-  const buyTxs = await db.query.buyTransactions.findMany({
-    where: eq(buyTransactions.userId, userId),
-    with: {
-      products: {
-        with: {
-          unitOfMeasurements: true,
-        },
-      },
-    },
-  });
-
-  //BUY TX STOCKS
-  const buyTxStocks = buyTxs.reduce(
-    (acc, buyTx) => {
-      const exist = acc.find((item) => item.productId === buyTx.productId);
-
-      if (!exist) {
-        acc.push({
-          productId: buyTx.productId,
-          quantity: buyTx.quantity,
-          buyTxTotalAmount: buyTx.unitPrice * buyTx.quantity,
-          uom: buyTx.products.unitOfMeasurements.unit,
-        });
-      } else {
-        exist.quantity += buyTx.quantity;
-      }
-      return acc;
-    },
-    [
-      {
-        productId: "",
-        quantity: 0,
-        buyTxTotalAmount: 0,
-        uom: "",
-      },
-    ]
-  );
-
-  //STOCK BAL
-  const stockBal = [] as StockBal[];
-  buyTxStocks.map((buyTx) => {
-    const exist = sellTxStocks.find(
-      (item) => item.productId === buyTx.productId
-    );
-    const buyBal = +buyTx.quantity;
-    const sellBal = exist?.quantity ? +exist.quantity : 0;
-    const bal = buyBal - sellBal;
-    if (bal !== 0) {
-      stockBal.push({
-        // productNumber: buyTx.productNumber,
-        productId: buyTx.productId,
-        quantity: buyBal - sellBal,
-        buyTxTotalQuantity: buyTx.quantity,
-        buyTxTotalAmount: buyTx.buyTxTotalAmount,
-        sellTxTotalQuantity: exist?.quantity ?? 0,
-        sellTxTotalAmount: exist?.sellTxTotalAmount ?? 0,
-        sellTxActTotalAmount: exist?.sellTxActTotalAmount ?? 0,
-        uom: buyTx.uom,
-      });
-    }
-  });
-
-  return stockBal as StockBal[];
-};
-
-//====SEARCH STOCKS
-export const searchStocks = async ({
+//-QRY-all-user-stocks---
+export const getAllUserStocks = async ({
   userId,
   searchTerm,
 }: {
   userId: string;
   searchTerm: string;
 }) => {
-  const fSearch = `%${searchTerm}%`;
+  let allUserStocks: StockExt[] = [];
 
-  //SELL TXS
+  const userStocks = (await db.query.stocks.findMany({
+    where: eq(stocks.userId, userId),
+    with: {
+      products: {
+        with: {
+          suppliers: true,
+          unitOfMeasurements: true,
+        },
+      },
+    },
+  })) as StockExt[];
+
+  let searchStocks: StockExt[] = [];
+  if (searchTerm.length) {
+    searchStocks = userStocks.filter((stock) =>
+      stock.products.productNumber
+        .toLowerCase()
+        .includes(searchTerm.toLowerCase())
+    );
+  }
+
+  allUserStocks = searchTerm.length ? searchStocks : userStocks;
+  const allUserStockIds = allUserStocks.map((stock) => stock.productId);
+
+  if (!allUserStocks.length) {
+    return [] as StockBal[];
+  }
+
+  //buyTxData
+  const buyTxs = await db
+    .select()
+    .from(buyTransactions)
+    .where(inArray(buyTransactions.productId, allUserStockIds));
+
+  //sellTxData
   const sellTxs = await db
     .select()
     .from(sellTransactions)
-    .where(
-      sql`${sellTransactions.userId} like ${userId} and ${sellTransactions.productNumber} ilike ${fSearch}`
-    );
+    .where(inArray(sellTransactions.productId, allUserStockIds));
 
-  //SELL TX STOCKS
-  const sellTxStocks = sellTxs.reduce(
-    (acc, sellTx) => {
-      const exist = acc.find((item) => item.productId === sellTx.productId);
-
-      if (!exist) {
-        acc.push({
-          productId: sellTx.productId,
-          quantity: sellTx.quantity,
-          sellTxTotalAmount: (sellTx.unitPrice ?? 0) * sellTx.quantity,
-          sellTxActTotalAmount: (sellTx.purchasedPrice ?? 0) * sellTx.quantity,
-        });
-      } else {
-        exist.quantity += sellTx.quantity;
-        exist.sellTxTotalAmount += (sellTx.unitPrice ?? 0) * sellTx.quantity;
-        exist.sellTxActTotalAmount +=
-          (sellTx.purchasedPrice ?? 0) * sellTx.quantity;
-      }
-      return acc;
-    },
-    [
-      {
-        productId: "",
-        quantity: 0,
-        sellTxTotalAmount: 0,
-        sellTxActTotalAmount: 0,
-      },
-    ]
-  );
-
-  //BUY TXS
-  const buyTxs = await db.query.buyTransactions.findMany({
-    where: sql`${buyTransactions.userId} like ${userId}  ilike ${fSearch}`,
-    with: {
-      products: {
-        with: {
-          unitOfMeasurements: true,
+  //stock data
+  const stockData = allUserStocks.reduce(
+    (acc, stock) => {
+      //buyTxData
+      const existBuyTxs = buyTxs.filter(
+        (item) => item.productId === stock.productId
+      );
+      const buyTxData = existBuyTxs.reduce(
+        (acc, buyTx) => {
+          return {
+            buyTxTotal: acc.buyTxTotal + buyTx.unitPrice * buyTx.quantity,
+            buyTxTotalQuantity: acc.buyTxTotalQuantity + buyTx.quantity,
+            buyTxTotalAmount:
+              acc.buyTxTotalAmount + buyTx.unitPrice * buyTx.quantity,
+          };
         },
-      },
-    },
-  });
+        {
+          buyTxTotal: 0,
+          buyTxTotalQuantity: 0,
+          buyTxTotalAmount: 0,
+        }
+      );
 
-  //BUY TX STOCKS
-  const buyTxStocks = buyTxs.reduce(
-    (acc, buyTx) => {
-      const exist = acc.find((item) => item.productId === buyTx.productId);
-
-      if (!exist) {
-        acc.push({
-          productId: buyTx.productId,
-          quantity: buyTx.quantity,
-          buyTxTotalAmount: buyTx.unitPrice * buyTx.quantity,
-          uom: buyTx.products.unitOfMeasurements.unit,
-        });
-      } else {
-        exist.quantity += buyTx.quantity;
-        exist.buyTxTotalAmount += buyTx.unitPrice * buyTx.quantity;
-      }
-      return acc;
-    },
-    [
-      {
-        productId: "",
-        quantity: 0,
-        buyTxTotalAmount: 0,
-        uom: "",
-      },
-    ]
-  );
-
-  //STOCK BAL
-  const stockBal = [] as StockBal[];
-  buyTxStocks.map((buyTx) => {
-    const exist = sellTxStocks.find(
-      (item) => item.productId === buyTx.productId
-    );
-    const buyBal = +buyTx.quantity;
-    const sellBal = exist?.quantity ? +exist.quantity : 0;
-    const bal = buyBal - sellBal;
-    if (bal !== 0) {
-      stockBal.push({
-        productId: buyTx.productId,
-        quantity: buyBal - sellBal,
-        buyTxTotalQuantity: buyTx.quantity,
-        buyTxTotalAmount: buyTx.buyTxTotalAmount,
-        sellTxTotalQuantity: exist?.quantity ?? 0,
-        sellTxTotalAmount: exist?.sellTxTotalAmount ?? 0,
-        sellTxActTotalAmount: exist?.sellTxActTotalAmount ?? 0,
-        uom: buyTx.uom,
-      });
-    }
-  });
-
-  return stockBal as StockBal[];
-};
-
-//====ALL STOCKS BY PERIOD
-export const getAllUserStocksByPeriod = async ({
-  userId,
-  period,
-  timeFrame,
-}: {
-  userId: string;
-  period: Period;
-  timeFrame: TimeFrame | "all";
-}) => {
-  const year = period.year;
-  const month =
-    period.month.toString().length > 1 ? period.month : `0${period.month}`;
-
-  //BUY TXS
-  const buyTxs = await db.query.buyTransactions.findMany({
-    where:
-      timeFrame === "all"
-        ? eq(buyTransactions.userId, userId)
-        : timeFrame === "month"
-        ? sql`to_char(${buyTransactions.date},'MM') like ${month} 
-              and to_char(${buyTransactions.date},'YYYY') like ${year} 
-              and ${buyTransactions.userId} like ${userId}`
-        : sql`to_char(${buyTransactions.date},'YYYY') like ${year} 
-              and ${buyTransactions.userId} like ${userId}`,
-    with: {
-      products: {
-        with: {
-          unitOfMeasurements: true,
+      //sellTxData
+      const existSellTxs = sellTxs.filter(
+        (item) => item.productId === stock.productId
+      );
+      const sellTxData = existSellTxs.reduce(
+        (acc, sellTx) => {
+          return {
+            sellTxTotal: acc.sellTxTotal + sellTx.unitPrice * sellTx.quantity,
+            sellTxTotalQuantity: acc.sellTxTotalQuantity + sellTx.quantity,
+            sellTxTotalAmount:
+              acc.sellTxTotalAmount + sellTx.unitPrice * sellTx.quantity,
+            sellTxActTotalAmount:
+              acc.sellTxActTotalAmount +
+              sellTx.purchasedPrice * sellTx.quantity,
+          };
         },
-      },
-    },
-  });
+        {
+          sellTxTotal: 0,
+          sellTxTotalQuantity: 0,
+          sellTxTotalAmount: 0,
+          sellTxActTotalAmount: 0,
+        }
+      );
 
-  //BUY TX STOCKS
-  const buyTxStocks = buyTxs.reduce(
-    (acc, buyTx) => {
-      const exist = acc.find((item) => item.productId === buyTx.productId);
+      const data = {
+        productId: stock.productId,
+        productNumber: stock.products.productNumber,
+        quantity: stock.quantity,
+        uom: stock.products.unitOfMeasurements.unit,
+        buyTxTotalQuantity: buyTxData.buyTxTotalQuantity,
+        buyTxTotalAmount: buyTxData.buyTxTotalAmount,
+        sellTxTotalQuantity: sellTxData.sellTxTotalQuantity,
+        sellTxTotalAmount: sellTxData.sellTxTotalAmount,
+        sellTxActTotalAmount: sellTxData.sellTxActTotalAmount,
+      };
 
-      if (!exist) {
-        acc.push({
-          productId: buyTx.productId,
-          quantity: buyTx.quantity,
-          buyTxTotalAmount: buyTx.unitPrice * buyTx.quantity,
-          uom: buyTx.products.unitOfMeasurements.unit,
-        });
-      } else {
-        exist.quantity += buyTx.quantity;
-        exist.buyTxTotalAmount += buyTx.unitPrice * buyTx.quantity;
-      }
+      acc.push(data);
       return acc;
     },
-    [
-      {
-        productId: "",
-        quantity: 0,
-        buyTxTotalAmount: 0,
-        uom: "",
-      },
-    ]
+    Array<{
+      productId: string;
+      productNumber: string;
+      quantity: number;
+      uom: string;
+    }>()
   );
 
-  //SELL TXS
-  const sellTxs = await db.query.sellTransactions.findMany({
-    where:
-      timeFrame === "all"
-        ? eq(sellTransactions.userId, userId)
-        : timeFrame === "month"
-        ? sql`to_char(${sellTransactions.date},'MM') like ${month} 
-              and to_char(${sellTransactions.date},'YYYY') like ${year} 
-              and ${sellTransactions.userId} like ${userId}`
-        : sql`to_char(${sellTransactions.date},'YYYY') like ${year} 
-              and ${sellTransactions.userId} like ${userId}`,
-  });
-
-  //SELL TX STOCKS
-  const sellTxStocks = sellTxs.reduce(
-    (acc, sellTx) => {
-      const exist = acc.find((item) => item.productId === sellTx.productId);
-
-      if (!exist) {
-        acc.push({
-          productId: sellTx.productId,
-          quantity: sellTx.quantity,
-          sellTxTotalAmount: (sellTx.unitPrice ?? 0) * sellTx.quantity,
-          sellTxActTotalAmount: (sellTx.purchasedPrice ?? 0) * sellTx.quantity,
-        });
-      } else {
-        exist.quantity += sellTx.quantity;
-        exist.sellTxTotalAmount += (sellTx.unitPrice ?? 0) * sellTx.quantity;
-        exist.sellTxActTotalAmount +=
-          (sellTx.purchasedPrice ?? 0) * sellTx.quantity;
-      }
-      return acc;
-    },
-    [
-      {
-        productId: "",
-        quantity: 0,
-        sellTxTotalAmount: 0,
-        sellTxActTotalAmount: 0,
-      },
-    ]
-  );
-
-  //STOCK BAL
-  const stockBal = [] as StockBal[];
-  buyTxStocks.map((buyTx) => {
-    const exist = sellTxStocks.find(
-      (item) => item.productId === buyTx.productId
-    );
-    const buyBal = +buyTx.quantity;
-    const sellBal = exist?.quantity ? +exist.quantity : 0;
-    const bal = buyBal - sellBal;
-    if (bal !== 0) {
-      stockBal.push({
-        productId: buyTx.productId,
-        quantity: buyBal - sellBal,
-        buyTxTotalQuantity: buyTx.quantity,
-        buyTxTotalAmount: buyTx.buyTxTotalAmount,
-        sellTxTotalQuantity: exist?.quantity ?? 0,
-        sellTxTotalAmount: exist?.sellTxTotalAmount ?? 0,
-        sellTxActTotalAmount: exist?.sellTxActTotalAmount ?? 0,
-        uom: buyTx.uom,
-      });
-    }
-  });
-
-  return stockBal as StockBal[];
+  return stockData as StockBal[];
 };

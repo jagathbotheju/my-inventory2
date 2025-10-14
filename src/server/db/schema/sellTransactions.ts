@@ -28,6 +28,7 @@ export const sellTransactions = pgTable("sell_transactions", {
     .notNull(),
   quantity: integer("quantity").notNull(),
   unitPrice: doublePrecision("unit_price").default(0).notNull(),
+  purchasedPrice: doublePrecision("purchased_price").default(0).notNull(),
   customerId: text("customer_id")
     .references(() => customers.id)
     .notNull(),

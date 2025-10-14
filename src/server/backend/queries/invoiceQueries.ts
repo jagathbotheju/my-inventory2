@@ -1,73 +1,19 @@
 import { useQuery } from "@tanstack/react-query";
 import {
   buyTxDueChecks,
-  getBuyTxInvoicesForPeriod,
-  getSellTxInvoicesForPeriod,
-  searchBuyTxInvoices,
-  searchSellTxInvoices,
+  getBuyTxInvoicesCount,
+  getBuyTxInvoicesForPeriodPagination,
+  getSellTxInvoicesCount,
+  getSellTxInvoicesForPeriodPagination,
 } from "../actions/invoiceActions";
 
-//search SellTx Invoices
-export const useSearchSellTxInvoices = ({
-  userId,
-  searchTerm,
-  isSellTx,
-}: {
-  userId: string;
-  searchTerm: string;
-  isSellTx: boolean;
-}) => {
-  return useQuery({
-    queryKey: ["search-sell-txs", userId, searchTerm],
-    queryFn: () => searchSellTxInvoices({ userId, searchTerm }),
-    enabled: searchTerm.length >= 3 && isSellTx,
-  });
-};
-
-//Search BuyTx Invoices
-export const useSearchBuyTxInvoices = ({
-  userId,
-  searchTerm,
-  isBuyTx,
-}: {
-  userId: string;
-  searchTerm: string;
-  isBuyTx: boolean;
-}) => {
-  return useQuery({
-    queryKey: ["search-buy-txs", userId, searchTerm],
-    queryFn: () => searchBuyTxInvoices({ userId, searchTerm }),
-    enabled: searchTerm.length >= 3 && isBuyTx,
-  });
-};
-
-//SellTx Invoices Period
-export const useSellTxInvoicesForPeriod = ({
-  userId,
-  period,
-  timeFrame,
-  isSellTx,
-  searchTerm,
-}: {
-  userId: string;
-  period: Period;
-  timeFrame: TimeFrame;
-  isSellTx: boolean;
-  searchTerm: string;
-}) => {
-  return useQuery({
-    queryKey: ["sell-tx-invoices-for-period", userId, period, timeFrame],
-    queryFn: () => getSellTxInvoicesForPeriod({ userId, period, timeFrame }),
-    enabled: searchTerm.length === 0 && isSellTx,
-  });
-};
-
-//BuyTx Invoices Period
-export const useBuyTxInvoicesForPeriod = ({
+//---BuyTxInvoices-Period-pagination---
+export const useBuyTxInvoicesForPeriodPagination = ({
   userId,
   period,
   timeFrame,
   isBuyTx,
+  page,
   searchTerm,
 }: {
   userId: string;
@@ -75,11 +21,101 @@ export const useBuyTxInvoicesForPeriod = ({
   timeFrame: TimeFrame;
   isBuyTx: boolean;
   searchTerm: string;
+  page: number;
 }) => {
   return useQuery({
-    queryKey: ["buy-tx-invoices-for-period", userId, period, timeFrame],
-    queryFn: () => getBuyTxInvoicesForPeriod({ userId, period, timeFrame }),
-    enabled: searchTerm.length === 0 && isBuyTx,
+    queryKey: [
+      "buy-tx-invoices-for-period",
+      userId,
+      period,
+      timeFrame,
+      page,
+      searchTerm,
+    ],
+    queryFn: () =>
+      getBuyTxInvoicesForPeriodPagination({
+        userId,
+        period,
+        timeFrame,
+        page,
+        searchTerm,
+      }),
+    enabled: searchTerm.length >= 3 || isBuyTx,
+  });
+};
+
+//---SellTxInvoices-Period-pagination---
+export const useSellTxInvoicesForPeriodPagination = ({
+  userId,
+  period,
+  timeFrame,
+  isBuyTx,
+  page,
+  searchTerm,
+}: {
+  userId: string;
+  period: Period;
+  timeFrame: TimeFrame;
+  isBuyTx: boolean;
+  searchTerm: string;
+  page: number;
+}) => {
+  return useQuery({
+    queryKey: [
+      "sell-tx-invoices-for-period",
+      userId,
+      period,
+      timeFrame,
+      page,
+      searchTerm,
+    ],
+    queryFn: () =>
+      getSellTxInvoicesForPeriodPagination({
+        userId,
+        period,
+        timeFrame,
+        page,
+        searchTerm,
+      }),
+    enabled: searchTerm.length >= 3 || !isBuyTx,
+  });
+};
+
+//--buyTxInvoices-count---
+export const useBuyTxInvoicesCount = ({
+  userId,
+  period,
+  timeFrame,
+  searchTerm,
+}: {
+  userId: string;
+  period: Period;
+  timeFrame: TimeFrame;
+  searchTerm: string;
+}) => {
+  return useQuery({
+    queryKey: ["buy-tx-invoices-count", userId, period, timeFrame],
+    queryFn: () => getBuyTxInvoicesCount({ userId, period, timeFrame }),
+    enabled: !!!searchTerm,
+  });
+};
+
+//--sellTxInvoices-count---
+export const useSellTxInvoicesCount = ({
+  userId,
+  period,
+  timeFrame,
+  searchTerm,
+}: {
+  userId: string;
+  period: Period;
+  timeFrame: TimeFrame;
+  searchTerm: string;
+}) => {
+  return useQuery({
+    queryKey: ["sell-tx-invoices-count", userId, period, timeFrame],
+    queryFn: () => getSellTxInvoicesCount({ userId, period, timeFrame }),
+    enabled: !!!searchTerm,
   });
 };
 

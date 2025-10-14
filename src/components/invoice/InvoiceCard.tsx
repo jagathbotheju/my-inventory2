@@ -6,7 +6,7 @@ import PaymentHistoryDialog from "../PaymentHistoryDialog";
 import { User } from "@/server/db/schema/users";
 import { Separator } from "../ui/separator";
 import { format } from "date-fns";
-import { BuyTxInvoiceExt } from "@/server/db/schema/buyTxInvoice";
+import { BuyTxInvoiceExt } from "@/server/db/schema/buyTxInvoices";
 
 interface Props {
   // item: SellTxInvoiceExt | BuyTxInvoiceExt;
@@ -17,6 +17,7 @@ interface Props {
 }
 
 const InvoiceCard = ({ user, isBuyTx, buyTxInvoice, sellTxInvoice }: Props) => {
+  console.log("isBuyTx Card", isBuyTx);
   let totalAmount;
   if (!isBuyTx && sellTxInvoice) {
     totalAmount = sellTxInvoice.sellTransactions.reduce(
@@ -31,6 +32,8 @@ const InvoiceCard = ({ user, isBuyTx, buyTxInvoice, sellTxInvoice }: Props) => {
     );
   }
 
+  // console.log("sellTxInvoice", sellTxInvoice?.invoiceNumber);
+
   return (
     <div className="flex flex-col">
       {/* card heading */}
@@ -43,7 +46,7 @@ const InvoiceCard = ({ user, isBuyTx, buyTxInvoice, sellTxInvoice }: Props) => {
           </h2>
           <p className="">
             {isBuyTx
-              ? buyTxInvoice?.buyTransactions[0]?.suppliers?.name
+              ? buyTxInvoice?.buyTransactions[0]?.products?.suppliers?.name
               : sellTxInvoice?.sellTransactions[0]?.customers?.name}
           </p>
         </div>
@@ -57,8 +60,8 @@ const InvoiceCard = ({ user, isBuyTx, buyTxInvoice, sellTxInvoice }: Props) => {
               </p>
               <p className="col-span-2 text-xl font-semibold">
                 {isBuyTx
-                  ? formatPrice(buyTxInvoice?.totalCash ?? 0)
-                  : formatPrice(sellTxInvoice?.totalCash ?? 0)}
+                  ? formatPrice(buyTxInvoice?.totalAmount ?? 0)
+                  : formatPrice(sellTxInvoice?.totalAmount ?? 0)}
               </p>
             </div>
 

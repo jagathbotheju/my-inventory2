@@ -31,7 +31,8 @@ export type TableDataProductsPicker = {
   sellMode?: boolean;
   selectedRowId?: string;
   quantity?: number;
-  purchasedPrice?: number;
+  // purchasedPrice?: number;
+  purchasedPrice?: Set<number>;
 };
 
 const ProductsPickerDialog = ({ children, userId, sellMode }: Props) => {
@@ -46,6 +47,8 @@ const ProductsPickerDialog = ({ children, userId, sellMode }: Props) => {
     supplierId: supplier && supplier.id ? supplier.id : currentSupplier?.id,
     sellMode,
   });
+
+  // console.log("products", products);
 
   return (
     <Dialog open={open} onOpenChange={setOpen}>

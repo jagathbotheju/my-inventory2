@@ -38,6 +38,13 @@ import ProductsPickerDialog, {
   TableDataProductsPicker,
 } from "../ProductsPickerDialog";
 import { Customer } from "@/server/db/schema/customers";
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipProvider,
+  TooltipTrigger,
+} from "../ui/tooltip";
+import { useAddSellTxInvoice } from "@/server/backend/mutations/invoiceMutations";
 
 interface Props {
   userId: string;
@@ -63,6 +70,7 @@ const SellProducts = ({ userId }: Props) => {
     setSelectedProducts,
     setSelectedProductIds,
   } = useProductStore();
+  const { mutate } = useAddSellTxInvoice();
 
   const form = useForm<z.infer<typeof SellProductsSchema>>({
     resolver: zodResolver(SellProductsSchema),
@@ -123,6 +131,7 @@ const SellProducts = ({ userId }: Props) => {
     if (!products.length) return;
 
     console.log("formData", formData);
+    mutate({ formData, userId, customerId: customer.id });
   };
 
   const removeSelected = (product: TableDataProductsPicker) => {
@@ -236,7 +245,9 @@ const SellProducts = ({ userId }: Props) => {
                         );
                         form.setValue(
                           `products.${index}.purchasedPrice`,
-                          product.purchasedPrice
+                          product && product.purchasedPrice
+                            ? Array.from(product?.purchasedPrice)[0]
+                            : 0
                         );
                         form.setValue(
                           `products.${index}.productId`,
@@ -260,10 +271,53 @@ const SellProducts = ({ userId }: Props) => {
 
                         return (
                           <TableRow key={fieldDynamic?.id ?? index}>
-                            <TableCell>{product.productNumber}</TableCell>
+                            <TableCell className="uppercase">
+                              {product.productNumber}
+                            </TableCell>
                             <TableCell>{product.quantity}</TableCell>
                             <TableCell>
-                              {formatPrice(product.purchasedPrice ?? 0)}
+                              {product?.purchasedPrice &&
+                              product?.purchasedPrice?.size > 1 ? (
+                                <TooltipProvider>
+                                  <Tooltip>
+                                    <TooltipTrigger>
+                                      <div className="flex items-center cursor-pointer">
+                                        <span className="text-primary">
+                                          {formatPrice(
+                                            product.purchasedPrice
+                                              ?.values()
+                                              .next().value ?? 0
+                                          )}
+                                        </span>
+                                        <span className="text-primary font-bold">
+                                          ...
+                                        </span>
+                                      </div>
+                                    </TooltipTrigger>
+                                    <TooltipContent>
+                                      <div className="flex flex-col gap-1 p-1 shadow-md">
+                                        {[...product?.purchasedPrice]?.map(
+                                          (item, index) => {
+                                            return (
+                                              <div key={index}>
+                                                {formatPrice(item)}
+                                              </div>
+                                            );
+                                          }
+                                        )}
+                                      </div>
+                                    </TooltipContent>
+                                  </Tooltip>
+                                </TooltipProvider>
+                              ) : (
+                                <span>
+                                  {formatPrice(
+                                    product && product.purchasedPrice
+                                      ? Array.from(product?.purchasedPrice)[0]
+                                      : 0
+                                  )}
+                                </span>
+                              )}
                             </TableCell>
                             <TableCell>
                               <FormField

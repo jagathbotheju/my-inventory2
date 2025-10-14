@@ -4,36 +4,11 @@ import {
 } from "@/server/db/schema/buyTransactions";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import {
-  addBuyTransaction,
   addBuyTransactions,
   deleteBuyTransaction,
 } from "../actions/buyTxActions";
 import { toast } from "sonner";
 import { useRouter } from "next/navigation";
-
-export const useAddBuyTransaction = () => {
-  const queryClient = useQueryClient();
-  const router = useRouter();
-
-  return useMutation({
-    mutationFn: (data: BuyTransaction) => addBuyTransaction(data),
-    onSuccess: async (res) => {
-      if (res?.success) {
-        toast.success(res.success);
-        queryClient.invalidateQueries({ queryKey: ["buy-transactions"] });
-        router.push("/transactions/buy");
-      }
-      if (res?.error) {
-        toast.error(res.error);
-      }
-    },
-    onError: (res) => {
-      const err = res.message;
-      toast.error(err);
-      toast.success("Could not add Buy Transaction");
-    },
-  });
-};
 
 export const useAddBuyTransactions = () => {
   const queryClient = useQueryClient();

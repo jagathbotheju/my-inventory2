@@ -2,6 +2,12 @@ import { formatPrice } from "@/lib/utils";
 import { ColumnDef } from "@tanstack/react-table";
 import { Checkbox } from "../ui/checkbox";
 import { TableDataProductsPicker } from "../ProductsPickerDialog";
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipProvider,
+  TooltipTrigger,
+} from "../ui/tooltip";
 
 export const productTableColumns: ColumnDef<TableDataProductsPicker>[] = [
   {
@@ -52,11 +58,37 @@ export const productTableColumns: ColumnDef<TableDataProductsPicker>[] = [
     accessorKey: "purchasedPrice",
     header: "Purchased Price",
     cell: ({ row }) => {
-      const amount = parseFloat(row.getValue("purchasedPrice"));
+      const prices = row.getValue("purchasedPrice") as Set<number>;
+      const pricesArr = prices?.size >= 1 ? Array?.from(prices) : [];
       const sellMode = row.original.sellMode;
-      console.log("purchased column", sellMode);
       if (sellMode) {
-        return <div>{formatPrice(amount)}</div>;
+        if (pricesArr.length > 1) {
+          return (
+            <div className="flex items-center gap-2">
+              {pricesArr.slice(0, 2).map((item, index) => {
+                return <div key={index}>{formatPrice(item)}</div>;
+              })}
+
+              <TooltipProvider>
+                <Tooltip>
+                  <TooltipTrigger>
+                    <p className="text-primary font-semibold cursor-pointer text-xs">
+                      more...
+                    </p>
+                  </TooltipTrigger>
+                  <TooltipContent>
+                    <div className="flex flex-col gap-1 p-1 shadow-md">
+                      {pricesArr.map((item, index) => {
+                        return <div key={index}>{formatPrice(item)}</div>;
+                      })}
+                    </div>
+                  </TooltipContent>
+                </Tooltip>
+              </TooltipProvider>
+            </div>
+          );
+        }
+        return <div>{pricesArr.length && formatPrice(pricesArr[0])}</div>;
       } else {
         return <div></div>;
       }
