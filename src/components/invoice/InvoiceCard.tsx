@@ -17,22 +17,77 @@ interface Props {
 }
 
 const InvoiceCard = ({ user, isBuyTx, buyTxInvoice, sellTxInvoice }: Props) => {
-  console.log("isBuyTx Card", isBuyTx);
-  let totalAmount;
+  // let totalAmount;
+  let sellPayments;
+  let buyPayments;
+
+  //sell payments
   if (!isBuyTx && sellTxInvoice) {
-    totalAmount = sellTxInvoice.sellTransactions.reduce(
-      (acc, tx) => (acc += (tx.unitPrice ?? 0) * tx.quantity),
-      0
-    );
-  }
-  if (isBuyTx && buyTxInvoice) {
-    totalAmount = buyTxInvoice.buyTransactions.reduce(
-      (acc, tx) => (acc += (tx.unitPrice ?? 0) * tx.quantity),
-      0
+    sellPayments = sellTxInvoice.sellTxPayments.reduce(
+      (acc, tx) => {
+        // const sellTxPayments = sellTxInvoice.sellTxPayments;
+        const sellTxPaymentCheques = tx.sellTxPaymentCheques;
+        const paymentMode = tx.paymentMode;
+        let receivedAmount = 0;
+
+        if (
+          paymentMode === "cash" ||
+          paymentMode === "cheque" ||
+          paymentMode === "cash-cheque"
+        ) {
+          const chequeAmount = sellTxPaymentCheques.reduce(
+            (acc, item) => (acc += item.amount ?? 0),
+            0
+          );
+          receivedAmount = (tx.cacheAmount ?? 0) + chequeAmount;
+        }
+        const data = {
+          totalAmount: tx.unitPrice * tx.quantity,
+          receivedAmount,
+        };
+        return data;
+      },
+      {} as {
+        totalAmount: number;
+        receivedAmount: number;
+      }
     );
   }
 
-  // console.log("sellTxInvoice", sellTxInvoice?.invoiceNumber);
+  //buy payments
+  if (isBuyTx && buyTxInvoice) {
+    buyPayments = buyTxInvoice.buyTransactions.reduce(
+      (acc, tx) => {
+        const buyTxPayments = buyTxInvoice.buyTxPayments;
+        const buyTxPaymentCheques =
+          buyTxInvoice.buyTxPayments.buyTxPaymentCheques;
+        const paymentMode = buyTxPayments.paymentMode;
+        let paidAmount = 0;
+        if (
+          paymentMode === "cash" ||
+          paymentMode === "cheque" ||
+          paymentMode === "cash-cheque"
+        ) {
+          const chequeAmount = buyTxPaymentCheques.reduce(
+            (acc, item) => (acc += item.amount ?? 0),
+            0
+          );
+          paidAmount = (buyTxPayments.cacheAmount ?? 0) + chequeAmount;
+        }
+        const data = {
+          totalAmount: tx.unitPrice * tx.quantity,
+          paidAmount,
+        };
+        return data;
+      },
+      {} as {
+        totalAmount: number;
+        paidAmount: number;
+      }
+    );
+  }
+
+  console.log("sellTxInvoice", sellTxInvoice);
 
   return (
     <div className="flex flex-col">
@@ -53,22 +108,28 @@ const InvoiceCard = ({ user, isBuyTx, buyTxInvoice, sellTxInvoice }: Props) => {
 
         <div className="flex items-center gap-4 justify-between">
           <div className="flex flex-col items-end">
-            {/* received Amount */}
+            {/* received/paid Amount */}
             <div className="flex items-center gap-1">
               <p className="text-xl font-semibold">
                 {isBuyTx ? "Paid Amount" : "Received Amount"}
               </p>
               <p className="col-span-2 text-xl font-semibold">
                 {isBuyTx
-                  ? formatPrice(buyTxInvoice?.totalAmount ?? 0)
-                  : formatPrice(sellTxInvoice?.totalAmount ?? 0)}
+                  ? formatPrice(buyPayments?.paidAmount ?? 0)
+                  : formatPrice(sellPayments?.receivedAmount ?? 0)}
               </p>
             </div>
 
             {/* totalAmount */}
             <div className="flex items-center gap-1">
               <p className="">Total Amount</p>
-              <p className="col-span-2">{formatPrice(totalAmount ?? 0)}</p>
+              <p className="col-span-2">
+                {formatPrice(
+                  isBuyTx
+                    ? buyPayments?.totalAmount ?? 0
+                    : sellPayments?.totalAmount ?? 0
+                )}
+              </p>
             </div>
           </div>
 
@@ -104,12 +165,12 @@ const InvoiceCard = ({ user, isBuyTx, buyTxInvoice, sellTxInvoice }: Props) => {
               </PaymentAddDialog>
             )}
 
-            {/* SellTx Payment History */}
+            {/* BuyTx Payment History */}
             {isBuyTx && buyTxInvoice && (
               <PaymentHistoryDialog
                 userId={user.id}
                 buyTxInvoice={buyTxInvoice}
-                totalAmount={totalAmount ?? 0}
+                totalAmount={buyPayments?.totalAmount ?? 0}
                 isBuyTx
               >
                 <Button
@@ -121,12 +182,12 @@ const InvoiceCard = ({ user, isBuyTx, buyTxInvoice, sellTxInvoice }: Props) => {
               </PaymentHistoryDialog>
             )}
 
-            {/* BuyTx Payment History */}
+            {/* SellTx Payment History */}
             {!isBuyTx && sellTxInvoice && (
               <PaymentHistoryDialog
                 userId={user.id}
                 sellTxInvoice={sellTxInvoice}
-                totalAmount={totalAmount ?? 0}
+                totalAmount={sellPayments?.totalAmount ?? 0}
               >
                 <Button
                   variant="secondary"

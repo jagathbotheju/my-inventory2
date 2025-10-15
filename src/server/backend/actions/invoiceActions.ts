@@ -806,7 +806,7 @@ export const addSellTxPayment = async ({
   return { success: "Payment Added" };
 };
 
-//Add BuyTx Payment-ok
+//---Add-BuyTx-Payment----
 export const addBuyTxPayment = async ({
   invoiceId,
   paymentMode,
