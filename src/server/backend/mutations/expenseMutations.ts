@@ -4,6 +4,7 @@ import { z } from "zod";
 import { addExpense, deleteExpense } from "../actions/expenseActions";
 import { toast } from "sonner";
 
+//---delete-expense---
 export const useDeleteExpense = () => {
   const queryClient = useQueryClient();
 
@@ -33,6 +34,7 @@ export const useDeleteExpense = () => {
   });
 };
 
+//---add-expense---
 export const useAddExpense = () => {
   const queryClient = useQueryClient();
 

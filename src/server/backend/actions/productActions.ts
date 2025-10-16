@@ -17,7 +17,7 @@ import { ProductExt, products } from "@/server/db/schema/products";
 import { buyTransactions, stocks } from "@/server/db/schema";
 import { TableDataProductsPicker } from "@/components/ProductsPickerDialog";
 
-//===Products for Buy/Sell ProductPicker
+//---Products-for-Buy/Sell-ProductPicker---
 export const getProductsForPicker = async ({
   userId,
   supplierId,
@@ -141,6 +141,7 @@ export const getProductsBySupplier = async ({
   return allProducts as ProductExt[];
 };
 
+//---products-by-supplier-pagination---
 export const getProductsBySupplierPagination = async ({
   supplierId,
   page,
@@ -187,6 +188,7 @@ export const getProductsBySupplierPagination = async ({
   }
 };
 
+//---products-count---
 export const getProductsCount = async ({
   supplierId,
   userId,
@@ -222,6 +224,7 @@ export const getProductById = async ({
   return {} as ProductExt;
 };
 
+//---add-edit-product---
 export const addProduct = async ({
   data,
   productId,
@@ -278,6 +281,7 @@ export const addProduct = async ({
   }
 };
 
+//--delete-product---
 export const deleteProduct = async ({
   productId,
   userId,

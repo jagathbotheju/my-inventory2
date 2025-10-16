@@ -26,6 +26,7 @@ import { useRouter } from "next/navigation";
 import { useSuppliers } from "@/server/backend/queries/supplierQueries";
 import { Loader2Icon } from "lucide-react";
 import { User } from "@/server/db/schema/users";
+import { useProductStore } from "@/store/productStore";
 
 interface Props {
   user: User;
@@ -33,7 +34,10 @@ interface Props {
 
 const AddProduct = ({ user }: Props) => {
   const router = useRouter();
-  const [supplier, setSupplier] = useState<Supplier>({} as Supplier);
+  const currentSupplier = useProductStore((store) => store.currentSupplier);
+  const [supplier, setSupplier] = useState<Supplier>(
+    currentSupplier ?? ({} as Supplier)
+  );
   const [uom, setUom] = useState<UnitOfMeasurement>({} as UnitOfMeasurement);
   const form = useForm<z.infer<typeof NewProductSchema>>({
     resolver: zodResolver(NewProductSchema),
@@ -44,7 +48,7 @@ const AddProduct = ({ user }: Props) => {
     mode: "all",
   });
 
-  const { mutate: addProduct } = useAddProduct();
+  const { mutate: addProduct, isPending } = useAddProduct();
   const { data: suppliers, isLoading } = useSuppliers(user?.id);
 
   const onSubmit = (formData: z.infer<typeof NewProductSchema>) => {
@@ -136,7 +140,8 @@ const AddProduct = ({ user }: Props) => {
                   form.formState.isSubmitting || !form.formState.isValid
                 }
               >
-                ADD
+                {isPending && <Loader2Icon className="animate-spin mr-2" />}
+                {isPending ? "ADDING PRODUCT..." : "ADD PRODUCT"}
               </Button>
 
               <Button

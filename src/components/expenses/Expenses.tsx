@@ -34,8 +34,8 @@ const Expenses = ({ user }: Props) => {
   const { period, timeFrame } = useTimeFrameStore((state) => state);
 
   const { data: expenses, isPending } = useExpenses({
-    // userId: user.id,
-    userId: "7e397cd1-19ad-4c68-aa50-a77c06450bc7",
+    userId: user.id,
+    // userId: "7e397cd1-19ad-4c68-aa50-a77c06450bc7",
     period,
     timeFrame,
   });

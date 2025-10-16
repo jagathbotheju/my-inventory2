@@ -12,7 +12,6 @@ import {
 import UomPicker from "../UomPicker";
 import { z } from "zod";
 import { useEffect, useState } from "react";
-import { Supplier } from "@/server/db/schema/supplier";
 import { UnitOfMeasurement } from "@/server/db/schema/unitOfMeasurements";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
@@ -23,6 +22,9 @@ import { Textarea } from "../ui/textarea";
 import { Button } from "../ui/button";
 import { useRouter } from "next/navigation";
 import { useProductById } from "@/server/backend/queries/productQueries";
+import { Supplier } from "@/server/db/schema/suppliers";
+import { useProductStore } from "@/store/productStore";
+import { Loader2Icon } from "lucide-react";
 
 interface Props {
   productId: string;
@@ -31,10 +33,13 @@ interface Props {
 
 const EditProduct = ({ productId, userId }: Props) => {
   const router = useRouter();
-  const [supplier, setSupplier] = useState<Supplier>({} as Supplier);
+  const currentSupplier = useProductStore((store) => store.currentSupplier);
+  const [supplier, setSupplier] = useState<Supplier>(
+    currentSupplier ?? ({} as Supplier)
+  );
   const [uom, setUom] = useState<UnitOfMeasurement>({} as UnitOfMeasurement);
 
-  const { mutate: addProduct } = useAddProduct();
+  const { mutate: addProduct, isPending } = useAddProduct();
   const { data: product } = useProductById({ productId, userId });
 
   const form = useForm<z.infer<typeof NewProductSchema>>({
@@ -53,15 +58,7 @@ const EditProduct = ({ productId, userId }: Props) => {
       unitId: uom.id,
       userId,
     };
-    addProduct(
-      { data, productId, userId },
-      {
-        onSuccess(data) {
-          const { success } = data;
-          if (success) router.push(`/products/?productId=${productId}`);
-        },
-      }
-    );
+    addProduct({ data, productId, userId });
   };
 
   useEffect(() => {
@@ -144,13 +141,14 @@ const EditProduct = ({ productId, userId }: Props) => {
                   form.formState.isSubmitting || !form.formState.isValid
                 }
               >
-                ADD
+                {isPending && <Loader2Icon className="animate-spin mr-2" />}
+                {isPending ? "UPDATING PRODUCT..." : "UPDATE PRODUCT"}
               </Button>
 
               <Button
                 type="button"
                 variant="secondary"
-                onClick={() => router.push(`/products/?productId=${productId}`)}
+                onClick={() => router.push(`/products`)}
               >
                 Cancel
               </Button>

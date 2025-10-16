@@ -35,7 +35,7 @@ export const totalExpenses = async ({
   return totalExpenses[0].total;
 };
 
-//--delete expense
+//---delete-expense---
 export const deleteExpense = async ({
   userId,
   expenseId,
@@ -60,7 +60,7 @@ export const deleteExpense = async ({
   }
 };
 
-//--add expense
+//---add-expense---
 export const addExpense = async ({
   formData,
   userId,
@@ -88,7 +88,7 @@ export const addExpense = async ({
   }
 };
 
-//--get user expenses
+//---get-user-expenses---
 export const getExpenses = async ({
   userId,
   period,
@@ -108,6 +108,9 @@ export const getExpenses = async ({
         ? sql`to_char(${expenses.date},'MM') like ${month} and to_char(${expenses.date},'YYYY') like ${year} and ${expenses.userId} like ${userId}`
         : sql`to_char(${expenses.date},'YYYY') like ${year} and ${expenses.userId} like ${userId}`,
   });
+
+  console.log("expenses", allExpenses);
+  console.log("userId", userId);
 
   return allExpenses as Expense[];
 };

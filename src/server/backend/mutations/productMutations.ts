@@ -5,6 +5,7 @@ import { toast } from "sonner";
 import { addProduct, deleteProduct } from "../actions/productActions";
 import { useRouter } from "next/navigation";
 
+//--add-product---
 export const useAddProduct = () => {
   const queryClient = useQueryClient();
   const router = useRouter();
@@ -26,8 +27,9 @@ export const useAddProduct = () => {
       if (res?.success) {
         toast.success(res.success);
         queryClient.invalidateQueries({ queryKey: ["products"] });
-        // router.push("/products");
-        router.push(`/products?productId=${res.data}`);
+        console.log("to products page");
+        router.push("/products");
+        // router.push(`/products?productId=${res.data}`);
       }
       if (res?.error) {
         toast.error(res.error);
@@ -41,6 +43,7 @@ export const useAddProduct = () => {
   });
 };
 
+//--delete-product---
 export const useDeleteProduct = () => {
   const queryClient = useQueryClient();
 

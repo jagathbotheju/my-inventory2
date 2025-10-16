@@ -7,6 +7,7 @@ import {
 import { Card, CardContent, CardHeader, CardTitle } from "../ui/card";
 import {
   EyeIcon,
+  FilePenLineIcon,
   // FilePenLineIcon,
   Loader2Icon,
   Trash2Icon,
@@ -105,6 +106,8 @@ const AllProducts = ({ user }: Props) => {
                 supplierId={dbSupplier?.length ? dbSupplier[0]?.id : ""}
                 userId={user?.id}
               />
+
+              {/* buy products */}
               <Button
                 variant="secondary"
                 className="font-semibold border border-primary"
@@ -112,6 +115,8 @@ const AllProducts = ({ user }: Props) => {
               >
                 BUY Products
               </Button>
+
+              {/* sell products */}
               <Button
                 variant="secondary"
                 className="font-semibold border border-primary"
@@ -119,6 +124,8 @@ const AllProducts = ({ user }: Props) => {
               >
                 SELL Products
               </Button>
+
+              {/* new products */}
               <Button
                 className="font-semibold"
                 onClick={() => router.push("/products/add-product")}
@@ -210,8 +217,8 @@ const AllProducts = ({ user }: Props) => {
                         {product.suppliers.name}
                       </TableCell>
 
-                      {/* delete */}
-                      <TableCell>
+                      <TableCell className="flex items-center gap-4">
+                        {/* delete */}
                         <TooltipProvider>
                           <Tooltip>
                             <DeleteProductDialog
@@ -227,10 +234,8 @@ const AllProducts = ({ user }: Props) => {
                             </TooltipContent>
                           </Tooltip>
                         </TooltipProvider>
-                      </TableCell>
 
-                      {/* edit */}
-                      {/* <TableCell>
+                        {/* edit */}
                         <TooltipProvider>
                           <Tooltip>
                             <TooltipTrigger asChild>
@@ -248,10 +253,8 @@ const AllProducts = ({ user }: Props) => {
                             </TooltipContent>
                           </Tooltip>
                         </TooltipProvider>
-                      </TableCell> */}
 
-                      {/* view */}
-                      <TableCell>
+                        {/* view */}
                         <ViewProductDialog product={product}>
                           <TooltipProvider>
                             <Tooltip>
@@ -270,52 +273,6 @@ const AllProducts = ({ user }: Props) => {
                           </TooltipProvider>
                         </ViewProductDialog>
                       </TableCell>
-
-                      {/* buy */}
-                      {/* <TableCell>
-                        <ViewProductDialog product={product}>
-                          <TooltipProvider>
-                            <Tooltip>
-                              <TooltipTrigger asChild>
-                                <TbShoppingCartDown
-                                  onClick={() =>
-                                    router.push(
-                                      `/products/buy-product/${product.id}`
-                                    )
-                                  }
-                                  className="w-5 h-5 cursor-pointer text-blue-700"
-                                />
-                              </TooltipTrigger>
-                              <TooltipContent>
-                                <p className="text-sm">buy product</p>
-                              </TooltipContent>
-                            </Tooltip>
-                          </TooltipProvider>
-                        </ViewProductDialog>
-                      </TableCell> */}
-
-                      {/* sell */}
-                      {/* <TableCell>
-                        <ViewProductDialog product={product}>
-                          <TooltipProvider>
-                            <Tooltip>
-                              <TooltipTrigger asChild>
-                                <TbShoppingCartUp
-                                  onClick={() =>
-                                    router.push(
-                                      `/products/sell-product/${product.id}`
-                                    )
-                                  }
-                                  className="w-5 h-5 cursor-pointer text-green-700"
-                                />
-                              </TooltipTrigger>
-                              <TooltipContent>
-                                <p className="text-sm">sell product</p>
-                              </TooltipContent>
-                            </Tooltip>
-                          </TooltipProvider>
-                        </ViewProductDialog>
-                      </TableCell> */}
                     </TableRow>
                   ))}
                 </TableBody>

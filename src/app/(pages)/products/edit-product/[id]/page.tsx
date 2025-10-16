@@ -1,6 +1,7 @@
 import EditProduct from "@/components/products/EditProduct";
 import { auth } from "@/lib/auth";
 import { User } from "@/server/db/schema/users";
+import { headers } from "next/headers";
 import { redirect } from "next/navigation";
 
 // interface Props {
@@ -15,7 +16,9 @@ const EditProductPage = async ({
   params: Promise<{ id: string }>;
 }) => {
   const { id } = await params;
-  const session = await auth();
+  const session = await auth.api.getSession({
+    headers: await headers(),
+  });
   const user = session?.user as User;
   if (!session) redirect("/auth/login");
 
