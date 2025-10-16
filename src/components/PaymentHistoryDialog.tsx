@@ -25,6 +25,7 @@ interface Props {
   buyTxInvoice?: BuyTxInvoiceExt;
   totalAmount: number;
   isBuyTx?: boolean;
+  payedReceivedAmount: number;
 }
 
 const PaymentHistoryDialog = ({
@@ -33,6 +34,7 @@ const PaymentHistoryDialog = ({
   buyTxInvoice,
   totalAmount,
   isBuyTx,
+  payedReceivedAmount,
 }: Props) => {
   const [open, setOpen] = useState(false);
 
@@ -47,16 +49,17 @@ const PaymentHistoryDialog = ({
                 <h3 className="text-xl font-semibold ">Payment History</h3>
                 <div className="flex gap-2 items-center">
                   <p className="text-xl font-semibold text-muted-foreground">
-                    Total Amount
+                    {isBuyTx ? "Payed Amt." : "Received Amt."}
+                  </p>
+                  <p className="text-xl font-semibold">
+                    {formatPrice(payedReceivedAmount ?? 0)}
+                  </p>
+                  /{/* total amount */}
+                  <p className="text-xl font-semibold text-muted-foreground">
+                    Total Amt.
                   </p>
                   <p className="text-xl font-semibold text-muted-foreground">
                     {formatPrice(totalAmount)}
-                  </p>
-                  /
-                  <p className="text-xl font-semibold">
-                    {isBuyTx
-                      ? formatPrice(buyTxInvoice?.totalAmount ?? 0)
-                      : formatPrice(sellTxInvoice?.totalAmount ?? 0)}
                   </p>
                 </div>
               </div>
@@ -72,16 +75,20 @@ const PaymentHistoryDialog = ({
             {/* SellTx Payment History */}
             {!isBuyTx && sellTxInvoice && sellTxInvoice.sellTxPayments ? (
               <div className="flex flex-col -mt-4 gap-2">
-                <PaymentHistoryDialogCard
-                  sellTxPayment={sellTxInvoice.sellTxPayments}
-                />
+                {sellTxInvoice.sellTxPayments.map((item) => (
+                  <PaymentHistoryDialogCard
+                    key={item.id}
+                    sellTxPayment={item}
+                  />
+                ))}
               </div>
             ) : // BuyTx Payment History
             isBuyTx && buyTxInvoice && buyTxInvoice.buyTxPayments ? (
-              <PaymentHistoryDialogCard
-                buyTxPayment={buyTxInvoice.buyTxPayments}
-                isBuyTx
-              />
+              <div className="flex flex-col -mt-4 gap-2">
+                {buyTxInvoice.buyTxPayments.map((item) => (
+                  <PaymentHistoryDialogCard key={item.id} buyTxPayment={item} />
+                ))}
+              </div>
             ) : (
               <p className="text-xl font-bold text-muted-foreground">
                 No payment history available.

@@ -80,6 +80,7 @@ export const deleteCustomer = async (id: string) => {
   }
 };
 
+//---search-customers---
 export const searchCustomers = async ({
   searchTerm,
   userId,
@@ -94,5 +95,7 @@ export const searchCustomers = async ({
     ),
     orderBy: asc(sql`lower(${customers.name})`),
   });
-  return searchResult as Customer[];
+
+  console.log("searchCustomers", searchResult);
+  return (searchResult as Customer[]) ?? [];
 };

@@ -78,6 +78,7 @@ export const useAddPayment = () => {
 
   return useMutation({
     mutationFn: async ({
+      date,
       invoiceId,
       paymentMode,
       cashAmount,
@@ -85,6 +86,7 @@ export const useAddPayment = () => {
       chequeData,
       isBuyTx,
     }: {
+      date: string;
       isBuyTx: boolean;
       invoiceId: string;
       paymentMode: string;
@@ -93,7 +95,7 @@ export const useAddPayment = () => {
       chequeData?:
         | {
             chequeNumber?: string | undefined;
-            chequeDate?: Date | undefined;
+            chequeDate?: string | undefined;
             bankName?: string | undefined;
             amount?: number | undefined;
           }[]
@@ -101,6 +103,7 @@ export const useAddPayment = () => {
     }) => {
       if (isBuyTx) {
         return addBuyTxPayment({
+          date,
           invoiceId,
           paymentMode,
           cashAmount,
@@ -109,6 +112,7 @@ export const useAddPayment = () => {
         });
       } else {
         return addSellTxPayment({
+          date,
           invoiceId,
           paymentMode,
           cashAmount,

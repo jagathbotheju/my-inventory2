@@ -21,9 +21,9 @@ import _ from "lodash";
 import { useReactToPrint } from "react-to-print";
 import { toast } from "sonner";
 import { Separator } from "../ui/separator";
-import { Customer } from "@/server/db/schema/customer";
 import CustomersAutoComplete from "../CustomersAutoComplete";
 import { useQueryClient } from "@tanstack/react-query";
+import { Customer } from "@/server/db/schema/customers";
 
 interface Props {
   user: User;
@@ -61,6 +61,8 @@ const Reports = ({ user }: Props) => {
 
   const customers = _.keys(sellTxs);
   const cusTxs = _.values(sellTxs);
+
+  // console.log("sellTxs", sellTxs);
 
   return (
     <Card className="flex flex-col w-full h-fit bg-transparent dark:border-primary/40">
@@ -162,6 +164,8 @@ const Reports = ({ user }: Props) => {
 
             {customers.map((customer, index) => {
               const customerTxs = cusTxs[index] as SellTransactionExt[];
+              console.log("customerTxs", customerTxs);
+
               const totalAmount = customerTxs.reduce((acc, item) => {
                 return (acc += (item.unitPrice ?? 0) * item.quantity);
               }, 0);
@@ -172,7 +176,7 @@ const Reports = ({ user }: Props) => {
                   if (sellTx.customers.name.toLowerCase() === "cash bill")
                     return acc;
                   const exist = acc.find(
-                    (item) => item.invoiceNumber === sellTx.invoiceNumber
+                    (item) => item.invoiceId === sellTx.invoiceId
                   );
 
                   if (exist) {
@@ -205,7 +209,8 @@ const Reports = ({ user }: Props) => {
 
                     totalPaymentReceived += paymentReceived;
                     acc.push({
-                      invoiceNumber: sellTx.invoiceNumber,
+                      invoiceId: sellTx.invoiceId,
+                      invoiceNumber: sellTx.sellTxInvoices.invoiceNumber,
                       invoiceTotal: (sellTx.unitPrice ?? 0) * sellTx.quantity,
                       date: sellTx.date,
                       paymentReceived,
@@ -215,6 +220,7 @@ const Reports = ({ user }: Props) => {
                   return acc;
                 },
                 [] as {
+                  invoiceId: string;
                   invoiceNumber: string;
                   invoiceTotal: number;
                   date: string;

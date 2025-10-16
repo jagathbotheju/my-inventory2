@@ -5,6 +5,7 @@ import {
   searchCustomers,
 } from "../actions/customerActions";
 
+//---search-customers---
 export const useSearchCustomers = ({
   searchTerm,
   userId,
@@ -14,11 +15,8 @@ export const useSearchCustomers = ({
 }) => {
   return useQuery({
     queryKey: ["search-customers", searchTerm, userId],
-    queryFn: () => {
-      if (searchTerm.length > 3) return searchCustomers({ searchTerm, userId });
-      return [];
-    },
-    refetchOnMount: false,
+    queryFn: () => searchCustomers({ searchTerm, userId }),
+    enabled: searchTerm.length >= 3,
   });
 };
 
@@ -29,20 +27,6 @@ export const useCustomers = (userId: string) => {
     enabled: userId.length > 0,
   });
 };
-
-// export const useCustomersBySupplier = ({
-//   userId,
-//   supplierId,
-// }: {
-//   userId: string;
-//   supplierId: string;
-// }) => {
-//   return useQuery({
-//     queryKey: ["customers-by-supplier", userId, supplierId],
-//     queryFn: () => getCustomersBySupplier({ userId, supplierId }),
-//     enabled: !!supplierId,
-//   });
-// };
 
 export const useCustomerById = (id: string) => {
   return useQuery({

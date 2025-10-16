@@ -15,16 +15,13 @@ export const buyTxInvoices = pgTable("buy_tx_invoices", {
   createdAt: timestamp("created_at", { mode: "string" }).notNull().defaultNow(),
 });
 
-export const buyTxInvoiceRelations = relations(
-  buyTxInvoices,
-  ({ many, one }) => ({
-    buyTransactions: many(buyTransactions),
-    buyTxPayments: one(buyTxPayments),
-  })
-);
+export const buyTxInvoiceRelations = relations(buyTxInvoices, ({ many }) => ({
+  buyTransactions: many(buyTransactions),
+  buyTxPayments: many(buyTxPayments),
+}));
 
 export type BuyTxInvoice = InferSelectModel<typeof buyTxInvoices>;
 export type BuyTxInvoiceExt = InferSelectModel<typeof buyTxInvoices> & {
   buyTransactions: BuyTransactionExt[];
-  buyTxPayments: BuyTxPaymentExt;
+  buyTxPayments: BuyTxPaymentExt[];
 };

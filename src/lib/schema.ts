@@ -105,6 +105,7 @@ export const SellProductSchema = z.object({
 });
 
 export const AddTxPaymentSchema = z.object({
+  date: z.date({ required_error: "date is required" }),
   paymentMode: z.string(),
   cashAmount: z.coerce.number().optional(),
   creditAmount: z.coerce.number().optional(),

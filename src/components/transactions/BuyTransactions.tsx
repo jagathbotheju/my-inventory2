@@ -44,6 +44,7 @@ const BuyTransactions = ({ user }: Props) => {
   const [page, setPage] = useState(1);
   const { period, timeFrame } = useTimeFrameStore((state) => state);
 
+  ///--buyTransactions---
   const { data: buyTransactions, isLoading } = useBuyTransactionsPagination({
     userId: user.id,
     // userId: "7e397cd1-19ad-4c68-aa50-a77c06450bc7",
@@ -53,6 +54,7 @@ const BuyTransactions = ({ user }: Props) => {
     searchTerm:
       bouncedSearchTerm.length < 3 ? "" : bouncedSearchTerm.toUpperCase(),
   });
+  // console.log("buyTransactions", buyTransactions);
 
   //---buyTransactions-count---
   const { data: buyTxCount } = useBuyTxCount({

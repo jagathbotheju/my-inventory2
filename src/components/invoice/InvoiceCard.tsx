@@ -4,9 +4,9 @@ import PaymentAddDialog from "../PaymentAddDialog";
 import { Button } from "../ui/button";
 import PaymentHistoryDialog from "../PaymentHistoryDialog";
 import { User } from "@/server/db/schema/users";
-import { Separator } from "../ui/separator";
 import { format } from "date-fns";
 import { BuyTxInvoiceExt } from "@/server/db/schema/buyTxInvoices";
+import { Progress } from "../ui/progress";
 
 interface Props {
   // item: SellTxInvoiceExt | BuyTxInvoiceExt;
@@ -18,76 +18,61 @@ interface Props {
 
 const InvoiceCard = ({ user, isBuyTx, buyTxInvoice, sellTxInvoice }: Props) => {
   // let totalAmount;
-  let sellPayments;
-  let buyPayments;
+  let sellTxTotalAmount = 0;
+  let sellTxReceivedAmount = 0;
+
+  let buyTxTotalAmount = 0;
+  let buyTxPayedAmount = 0;
 
   //sell payments
   if (!isBuyTx && sellTxInvoice) {
-    sellPayments = sellTxInvoice.sellTxPayments.reduce(
-      (acc, tx) => {
-        // const sellTxPayments = sellTxInvoice.sellTxPayments;
-        const sellTxPaymentCheques = tx.sellTxPaymentCheques;
-        const paymentMode = tx.paymentMode;
-        let receivedAmount = 0;
+    sellTxReceivedAmount = sellTxInvoice.sellTxPayments.reduce((acc, tx) => {
+      const sellTxPaymentCheques = tx.sellTxPaymentCheques;
+      const paymentMode = tx.paymentMode;
 
-        if (
-          paymentMode === "cash" ||
-          paymentMode === "cheque" ||
-          paymentMode === "cash-cheque"
-        ) {
-          const chequeAmount = sellTxPaymentCheques.reduce(
-            (acc, item) => (acc += item.amount ?? 0),
-            0
-          );
-          receivedAmount = (tx.cacheAmount ?? 0) + chequeAmount;
-        }
-        const data = {
-          totalAmount: tx.unitPrice * tx.quantity,
-          receivedAmount,
-        };
-        return data;
-      },
-      {} as {
-        totalAmount: number;
-        receivedAmount: number;
+      if (
+        paymentMode === "cash" ||
+        paymentMode === "cheque" ||
+        paymentMode === "cash-cheque"
+      ) {
+        const chequeAmount = sellTxPaymentCheques.reduce(
+          (acc, item) => (acc += item.amount ?? 0),
+          0
+        );
+        acc += (tx.cacheAmount ?? 0) + chequeAmount;
       }
+      return acc;
+    }, 0);
+    sellTxTotalAmount = sellTxInvoice.sellTransactions.reduce(
+      (acc, invoice) => (acc += invoice.quantity * invoice.unitPrice),
+      0
     );
   }
 
   //buy payments
   if (isBuyTx && buyTxInvoice) {
-    buyPayments = buyTxInvoice.buyTransactions.reduce(
-      (acc, tx) => {
-        const buyTxPayments = buyTxInvoice.buyTxPayments;
-        const buyTxPaymentCheques =
-          buyTxInvoice.buyTxPayments.buyTxPaymentCheques;
-        const paymentMode = buyTxPayments.paymentMode;
-        let paidAmount = 0;
-        if (
-          paymentMode === "cash" ||
-          paymentMode === "cheque" ||
-          paymentMode === "cash-cheque"
-        ) {
-          const chequeAmount = buyTxPaymentCheques.reduce(
-            (acc, item) => (acc += item.amount ?? 0),
-            0
-          );
-          paidAmount = (buyTxPayments.cacheAmount ?? 0) + chequeAmount;
-        }
-        const data = {
-          totalAmount: tx.unitPrice * tx.quantity,
-          paidAmount,
-        };
-        return data;
-      },
-      {} as {
-        totalAmount: number;
-        paidAmount: number;
+    buyTxPayedAmount = buyTxInvoice.buyTxPayments.reduce((acc, tx) => {
+      const buyTxPaymentCheques = tx.buyTxPaymentCheques;
+      const paymentMode = tx.paymentMode;
+
+      if (
+        paymentMode === "cash" ||
+        paymentMode === "cheque" ||
+        paymentMode === "cash-cheque"
+      ) {
+        const chequeAmount = buyTxPaymentCheques.reduce(
+          (acc, item) => (acc += item.amount ?? 0),
+          0
+        );
+        acc += (tx.cacheAmount ?? 0) + chequeAmount;
       }
+      return acc;
+    }, 0);
+    buyTxTotalAmount = buyTxInvoice.buyTransactions.reduce(
+      (acc, invoice) => (acc += invoice.quantity * invoice.unitPrice),
+      0
     );
   }
-
-  console.log("sellTxInvoice", sellTxInvoice);
 
   return (
     <div className="flex flex-col">
@@ -115,8 +100,8 @@ const InvoiceCard = ({ user, isBuyTx, buyTxInvoice, sellTxInvoice }: Props) => {
               </p>
               <p className="col-span-2 text-xl font-semibold">
                 {isBuyTx
-                  ? formatPrice(buyPayments?.paidAmount ?? 0)
-                  : formatPrice(sellPayments?.receivedAmount ?? 0)}
+                  ? formatPrice(buyTxPayedAmount ?? 0)
+                  : formatPrice(sellTxReceivedAmount ?? 0)}
               </p>
             </div>
 
@@ -125,9 +110,7 @@ const InvoiceCard = ({ user, isBuyTx, buyTxInvoice, sellTxInvoice }: Props) => {
               <p className="">Total Amount</p>
               <p className="col-span-2">
                 {formatPrice(
-                  isBuyTx
-                    ? buyPayments?.totalAmount ?? 0
-                    : sellPayments?.totalAmount ?? 0
+                  isBuyTx ? buyTxTotalAmount ?? 0 : sellTxTotalAmount ?? 0
                 )}
               </p>
             </div>
@@ -142,9 +125,12 @@ const InvoiceCard = ({ user, isBuyTx, buyTxInvoice, sellTxInvoice }: Props) => {
               >
                 <Button
                   variant="secondary"
-                  className="hover:bg-primary/50 font-bold border-primary/50 border p-2"
+                  disabled={sellTxReceivedAmount >= sellTxTotalAmount}
+                  className="hover:bg-primary/50 font-bold border-primary/50 border p-2 disabled:bg-green-300"
                 >
-                  ADD.PAY
+                  {sellTxReceivedAmount >= sellTxTotalAmount
+                    ? "PAID"
+                    : "ADD.PAY"}
                 </Button>
               </PaymentAddDialog>
             )}
@@ -170,7 +156,8 @@ const InvoiceCard = ({ user, isBuyTx, buyTxInvoice, sellTxInvoice }: Props) => {
               <PaymentHistoryDialog
                 userId={user.id}
                 buyTxInvoice={buyTxInvoice}
-                totalAmount={buyPayments?.totalAmount ?? 0}
+                totalAmount={buyTxTotalAmount ?? 0}
+                payedReceivedAmount={buyTxPayedAmount}
                 isBuyTx
               >
                 <Button
@@ -187,7 +174,8 @@ const InvoiceCard = ({ user, isBuyTx, buyTxInvoice, sellTxInvoice }: Props) => {
               <PaymentHistoryDialog
                 userId={user.id}
                 sellTxInvoice={sellTxInvoice}
-                totalAmount={sellPayments?.totalAmount ?? 0}
+                totalAmount={sellTxTotalAmount ?? 0}
+                payedReceivedAmount={sellTxReceivedAmount}
               >
                 <Button
                   variant="secondary"
@@ -200,7 +188,16 @@ const InvoiceCard = ({ user, isBuyTx, buyTxInvoice, sellTxInvoice }: Props) => {
           </div>
         </div>
       </div>
-      <Separator className="bg-primary/20 mb-2" />
+      {/* <Separator className="bg-primary/60 mb-2" /> */}
+      <Progress
+        indicatorClass="bg-green-600"
+        value={
+          isBuyTx
+            ? Math.round((buyTxPayedAmount / buyTxTotalAmount) * 100)
+            : Math.round((sellTxReceivedAmount / sellTxTotalAmount) * 100)
+        }
+        className="h-[2px]"
+      />
 
       {isBuyTx && buyTxInvoice
         ? buyTxInvoice.buyTransactions.map((tx, index) => (

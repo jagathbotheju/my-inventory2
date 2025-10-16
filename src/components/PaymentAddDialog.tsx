@@ -55,6 +55,7 @@ const PaymentAddDialog = ({
   const form = useForm<z.infer<typeof AddTxPaymentSchema>>({
     resolver: zodResolver(AddTxPaymentSchema),
     defaultValues: {
+      date: new Date(),
       paymentMode: "",
       cashAmount: 0,
       creditAmount: 0,
@@ -82,6 +83,7 @@ const PaymentAddDialog = ({
   const { mutate: addPayment } = useAddPayment();
 
   const clearFields = () => {
+    form.setValue("date", new Date());
     form.setValue("cashAmount", 0);
     form.setValue("creditAmount", 0);
     form.setValue("cheques", [
@@ -138,14 +140,21 @@ const PaymentAddDialog = ({
   const onSubmit = async (formData: z.infer<typeof AddTxPaymentSchema>) => {
     if (!checkPaymentErrors(formData)) {
       const data = {
+        date: formData.date.toDateString(),
         invoiceId,
         paymentMode,
         cashAmount: formData.cashAmount ?? 0,
         creditAmount: formData.creditAmount ?? 0,
-        chequeData: formData.cheques,
+        chequeData: formData.cheques?.map((item) => ({
+          chequeNumber: item.chequeNumber,
+          chequeDate: item.chequeDate?.toDateString(),
+          bankName: item.bankName,
+          amount: item.amount,
+        })),
         isBuyTx: isBuyTx as boolean,
       };
       addPayment(data);
+      console.log("paymentData", data);
       setOpen(false);
     }
   };
@@ -331,10 +340,7 @@ const PaymentAddDialog = ({
                               <FormLabel className="absolute -top-3">
                                 date
                               </FormLabel>
-                              <Popover
-                                open={openCalendar}
-                                onOpenChange={setOpenCalendar}
-                              >
+                              <Popover>
                                 <PopoverTrigger asChild>
                                   <FormControl>
                                     <Button
@@ -494,10 +500,7 @@ const PaymentAddDialog = ({
                               <FormLabel className="absolute -top-3">
                                 date
                               </FormLabel>
-                              <Popover
-                                open={openCalendar}
-                                onOpenChange={setOpenCalendar}
-                              >
+                              <Popover>
                                 <PopoverTrigger asChild>
                                   <FormControl>
                                     <Button
@@ -565,6 +568,58 @@ const PaymentAddDialog = ({
                   </div>
                 </div>
               )}
+
+              {/* date */}
+              <div className="grid grid-cols-6 items-center">
+                <p className="font-semibold text-muted-foreground col-span-2">
+                  Date
+                </p>
+                <div className="col-span-4">
+                  <FormField
+                    control={form.control}
+                    name="date"
+                    render={({ field }) => (
+                      <FormItem className="whitespace-nowrap text-2xl col-span-2 relative my-1">
+                        <Popover
+                          open={openCalendar}
+                          onOpenChange={setOpenCalendar}
+                        >
+                          <PopoverTrigger asChild>
+                            <FormControl>
+                              <Button
+                                variant={"outline"}
+                                className={cn(
+                                  "w-[240px] pl-3 text-left font-normal dark:bg-slate-800",
+                                  !field.value && "text-muted-foreground"
+                                )}
+                              >
+                                {field.value ? (
+                                  format(field.value, "PPP")
+                                ) : (
+                                  <span>Pick a date</span>
+                                )}
+                                <CalendarIcon className="ml-auto h-4 w-4 opacity-50" />
+                              </Button>
+                            </FormControl>
+                          </PopoverTrigger>
+                          <PopoverContent className="w-auto p-0" align="start">
+                            <Calendar
+                              className="pointer-events-auto"
+                              mode="single"
+                              selected={field.value}
+                              onSelect={(val) => {
+                                field.onChange(val);
+                                setOpenCalendar(false);
+                              }}
+                            />
+                          </PopoverContent>
+                        </Popover>
+                        <FormMessage className="dark:text-white absolute -bottom-7" />
+                      </FormItem>
+                    )}
+                  />
+                </div>
+              </div>
             </div>
             <DialogFooter className="mt-6">
               <Button type="submit">Add</Button>

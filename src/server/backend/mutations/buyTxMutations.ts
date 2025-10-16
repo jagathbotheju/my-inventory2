@@ -1,53 +1,7 @@
-import {
-  BuyTransaction,
-  BuyTransactionExt,
-} from "@/server/db/schema/buyTransactions";
+import { BuyTransactionExt } from "@/server/db/schema/buyTransactions";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
-import {
-  addBuyTransactions,
-  deleteBuyTransaction,
-} from "../actions/buyTxActions";
+import { deleteBuyTransaction } from "../actions/buyTxActions";
 import { toast } from "sonner";
-import { useRouter } from "next/navigation";
-
-export const useAddBuyTransactions = () => {
-  const queryClient = useQueryClient();
-  const router = useRouter();
-
-  return useMutation({
-    mutationFn: ({
-      buyTxData,
-      chequeData,
-    }: {
-      buyTxData: BuyTransaction[];
-      chequeData:
-        | {
-            chequeNumber?: string | undefined;
-            chequeDate?: Date | undefined;
-            bankName?: string | undefined;
-            amount?: number | undefined;
-          }[]
-        | undefined;
-    }) => {
-      return addBuyTransactions({ buyTxData, chequeData });
-    },
-    onSuccess: async (res) => {
-      if (res?.success) {
-        toast.success(res.success);
-        queryClient.invalidateQueries({ queryKey: ["buy-transactions"] });
-        queryClient.invalidateQueries({ queryKey: ["buy-tx-due-cheques"] });
-        router.push("/transactions/buy");
-      }
-      if (res?.error) {
-        toast.error(res.error);
-      }
-    },
-    onError: (error) => {
-      console.log("error", error);
-      toast.error("Could not Add Transaction");
-    },
-  });
-};
 
 export const useDeleteBuyTransaction = () => {
   const queryClient = useQueryClient();
