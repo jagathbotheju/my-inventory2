@@ -1,8 +1,6 @@
 import { useQuery } from "@tanstack/react-query";
 import {
   getBuyTransactionsPagination,
-  getBuyTxByUser,
-  getBuyTxByUserByPeriod,
   getBuyTxByUserProduct,
   getBuyTxCount,
   getBuyTxTotalPurchase,
@@ -10,6 +8,7 @@ import {
   getDailyBuyTransactions,
 } from "../actions/buyTxActions";
 
+//---daily-buyTxs---
 export const useDailyBuyTransactions = ({
   buyDate,
   userId,
@@ -70,6 +69,7 @@ export const useByTxTotalPurchase = ({
   });
 };
 
+//---buyTxYears---
 export const useBuyTxYears = () => {
   return useQuery({
     queryKey: ["buy-tx-years"],
@@ -93,34 +93,6 @@ export const useBuyTxCount = ({
     queryKey: ["buy-tx-count", userId, period, timeFrame],
     queryFn: () => getBuyTxCount({ userId, period, timeFrame }),
     enabled: !!!searchTerm,
-  });
-};
-
-export const useBuyTxByUser = (userId: string) => {
-  return useQuery({
-    queryKey: ["buy-tx-by-user", userId],
-    queryFn: () => getBuyTxByUser(userId),
-  });
-};
-
-export const useBuyTxByUserByPeriod = ({
-  userId,
-  period,
-  timeFrame,
-  searchTerm,
-  isBuyTx,
-}: {
-  userId: string;
-  period: Period;
-  timeFrame: TimeFrame;
-  searchTerm: string;
-  isBuyTx: boolean;
-}) => {
-  return useQuery({
-    queryKey: ["buy-tx-user-period", userId, period, timeFrame, searchTerm],
-    queryFn: () =>
-      getBuyTxByUserByPeriod({ userId, period, timeFrame, searchTerm }),
-    enabled: isBuyTx,
   });
 };
 

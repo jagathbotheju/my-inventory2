@@ -28,11 +28,14 @@ const DailyTransactions = ({ userId }: Props) => {
   const buyDate = new Date(`${year}-${month}-${date}`).toISOString();
   const dateStr = format(buyDate, "yyyy-MM-dd HH:mm:ss");
 
+  //---daily-buyTxs---
   const { data: dailyBuyTransactions, isLoading: dailyBuyTransactionsLoading } =
     useDailyBuyTransactions({
       buyDate: dateStr,
       userId,
     });
+
+  //---daily-sellTxs---
   const {
     data: dailySellTransactions,
     isLoading: dailySellTransactionsLoading,
@@ -45,6 +48,7 @@ const DailyTransactions = ({ userId }: Props) => {
     dailyBuyTransactions?.reduce((acc, tx) => {
       return acc + tx.quantity * (tx.unitPrice ?? 0);
     }, 0) ?? 0;
+
   const totalSales =
     dailySellTransactions?.reduce((acc, tx) => {
       return acc + tx.quantity * (tx.unitPrice ?? 0);

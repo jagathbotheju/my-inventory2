@@ -13,7 +13,7 @@ import {
 } from "@/server/db/schema/buyYearHistory";
 import { and, asc, count, desc, eq, sql, sum } from "drizzle-orm";
 
-//GET DAILY BUY TRANSACTIONS
+//---QRY-DAILY-BUY-TRANSACTIONS---
 export const getDailyBuyTransactions = async ({
   buyDate,
   userId,
@@ -21,17 +21,21 @@ export const getDailyBuyTransactions = async ({
   buyDate: string;
   userId: string;
 }) => {
-  const transactions = await db.query.buyTransactions.findMany({
-    where: and(
-      eq(buyTransactions.userId, userId),
-      eq(buyTransactions.date, buyDate)
-    ),
+  const date = new Date(buyDate).getDate();
+  const month = new Date(buyDate).getMonth() + 1;
+  const year = new Date(buyDate).getFullYear();
+  const fMonth = month < 10 ? `0${month}` : month;
+  const fDate = date < 10 ? `0${date}` : date;
+
+  const buyTx = await db.query.buyTransactions.findMany({
+    where: sql`to_char(${buyTransactions.date},'dd') like ${fDate} and to_char(${buyTransactions.date},'MM') like ${fMonth} and to_char(${buyTransactions.date},'YYYY') like ${year} and ${buyTransactions.userId} like ${userId}`,
     with: {
       products: true,
     },
     orderBy: desc(buyTransactions.date),
   });
-  return transactions as BuyTransactionExt[];
+
+  return buyTx as BuyTransactionExt[];
 };
 
 //---QRY-get-buy-transactions-pagination
@@ -109,7 +113,7 @@ export const getBuyTransactionsPagination = async ({
   }
 };
 
-//---delete-buy-transaction---
+//---MUT-delete-buy-transaction---
 export const deleteBuyTransaction = async ({
   userId,
   buyTx,
@@ -282,7 +286,7 @@ export const deleteBuyTransaction = async ({
   }
 };
 
-//GET BUY TX YEARS
+//---QRY-BUY-TX-YEARS---
 export const getBuyTxYears = async () => {
   const years = await db
     .selectDistinctOn([buyYearHistory.year])
@@ -345,48 +349,6 @@ export const getBuyTxTotalPurchase = async ({
     );
 
   return totalPurchase[0];
-};
-
-//GET BUY TX USER
-export const getBuyTxByUser = async (userId: string) => {
-  const transactions = await db.query.buyTransactions.findMany({
-    where: eq(buyTransactions.userId, userId),
-    with: {
-      products: {
-        with: {
-          unitOfMeasurements: true,
-        },
-      },
-    },
-  });
-  return transactions as BuyTransactionExt[];
-};
-
-//GET BUY TX BY USER PERIOD
-export const getBuyTxByUserByPeriod = async ({
-  userId,
-  period,
-  timeFrame,
-  searchTerm,
-}: {
-  userId: string;
-  period: Period;
-  timeFrame: TimeFrame;
-  searchTerm: string;
-}) => {
-  const year = period.year;
-  const month =
-    period.month.toString().length > 1 ? period.month : `0${period.month}`;
-  const fSearch = `%${searchTerm}%`;
-
-  const transactions = await db.query.buyTransactions.findMany({
-    where:
-      timeFrame === "month"
-        ? sql`to_char(${buyTransactions.date},'MM') like ${month} and to_char(${buyTransactions.date},'YYYY') like ${year} and ${buyTransactions.userId} like ${userId} and ${buyTransactions.invoiceNumber} ilike ${fSearch}`
-        : sql`to_char(${buyTransactions.date},'YYYY') like ${year} and ${buyTransactions.userId} like ${userId} and ${buyTransactions.invoiceNumber} ilike ${fSearch}`,
-  });
-
-  return transactions as BuyTransactionExt[];
 };
 
 //---QRY-buyTransactions-for-user---

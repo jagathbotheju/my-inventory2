@@ -5,10 +5,10 @@ import { auth } from "@/lib/auth";
 import { headers } from "next/headers";
 
 const Navbar = async () => {
-  // const session = await auth.api.getSession({
-  //   headers: await headers(),
-  // });
-  // const user = session?.user as User;
+  const session = await auth.api.getSession({
+    headers: await headers(),
+  });
+  const user = session?.user as User;
 
   return (
     <div className="border-b-[1.5px] border-b-primary sticky top-0 z-50 dark:bg-slate-900 bg-slate-50">
@@ -23,7 +23,7 @@ const Navbar = async () => {
             </Link>
           </li>
           <li>
-            <AuthButton />
+            <AuthButton user={user} />
           </li>
         </ul>
       </nav>

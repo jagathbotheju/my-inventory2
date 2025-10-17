@@ -314,7 +314,7 @@ export const getSellTxTotalSales = async ({
   return totalSales[0];
 };
 
-//Daily SellTx
+//---Daily-SellTx---
 export const getDailySellTransactions = async ({
   sellDate,
   userId,
@@ -322,18 +322,24 @@ export const getDailySellTransactions = async ({
   sellDate: string;
   userId: string;
 }) => {
-  const transactions = await db.query.sellTransactions.findMany({
-    where: and(
-      eq(sellTransactions.userId, userId),
-      eq(sellTransactions.date, sellDate)
-    ),
+  const date = new Date(sellDate).getDate();
+  const month = new Date(sellDate).getMonth() + 1;
+  const year = new Date(sellDate).getFullYear();
+  const fMonth = month < 10 ? `0${month}` : month;
+  const fDate = date < 10 ? `0${date}` : date;
+
+  const sellTxs = await db.query.sellTransactions.findMany({
+    where: sql`to_char(${sellTransactions.date},'dd') like ${fDate} and to_char(${sellTransactions.date},'MM') like ${fMonth} and to_char(${sellTransactions.date},'YYYY') like ${year} and ${sellTransactions.userId} like ${userId}`,
     with: {
       products: true,
-      customers: true,
     },
     orderBy: desc(sellTransactions.date),
   });
-  return transactions as SellTransactionExt[];
+
+  console.log(fDate, fMonth, year);
+  console.log("sellTxs", sellTxs);
+
+  return sellTxs as SellTransactionExt[];
 };
 
 //---SellTx-User-Product---

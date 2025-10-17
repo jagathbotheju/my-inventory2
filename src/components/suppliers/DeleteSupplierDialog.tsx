@@ -11,8 +11,8 @@ import {
 } from "../ui/dialog";
 import { Button } from "../ui/button";
 import { useDeleteSupplier } from "@/server/backend/mutations/supplierMutations";
-import { Supplier } from "@/server/db/schema/supplier";
 import { User } from "@/server/db/schema/users";
+import { Supplier } from "@/server/db/schema/suppliers";
 
 interface Props {
   children: React.ReactNode;

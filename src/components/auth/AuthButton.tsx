@@ -11,8 +11,6 @@ import {
   PrinterIcon,
   ReceiptTextIcon,
   RulerIcon,
-  // UserPen,
-  UserRoundPen,
   Users2Icon,
 } from "lucide-react";
 import {
@@ -40,22 +38,19 @@ import { Separator } from "../ui/separator";
 import { format } from "date-fns";
 import { formatPrice } from "@/lib/utils";
 import { ScrollArea } from "../ui/scroll-area";
-import { signOut, useSession } from "@/lib/auth-client";
+import { signOut } from "@/lib/auth-client";
 
 interface Props {
   user: User;
 }
 
-const AuthButton = () => {
-  const { data } = useSession();
-  const user = data?.user;
+const AuthButton = ({ user }: Props) => {
   const router = useRouter();
   const { setTheme, theme } = useTheme();
 
   const { data: buyTxDueCheques } = useBuyTxDueCheques(user?.id ?? "");
 
   if (!user) return null;
-  // console.log("user", user);
 
   return (
     <div className="flex items-center gap-2">
@@ -229,8 +224,11 @@ const AuthButton = () => {
         </SheetTrigger>
         <SheetContent className="dark:bg-slate-900">
           <SheetHeader>
-            <SheetTitle className="uppercase text-center">
-              Buy Products due Cheques
+            <SheetTitle className="text-center flex flex-col">
+              <span>Buy Products Due Cheques</span>
+              <span className="text-sm text-muted-foreground">
+                within last 10 days
+              </span>
             </SheetTitle>
             <Separator className="bg-primary" />
             <SheetDescription className="hidden">due cheques</SheetDescription>

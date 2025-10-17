@@ -8,6 +8,7 @@ import { sellMonthHistory } from "@/server/db/schema/sellMonthHistory";
 import { buyYearHistory } from "@/server/db/schema/buyYearHistory";
 import { sellYearHistory } from "@/server/db/schema/sellYearHistory";
 
+//--buyMonthHistory---
 export const getBuyMonthHistoryData = async ({
   userId,
   year,
@@ -49,6 +50,7 @@ export const getBuyMonthHistoryData = async ({
   return [];
 };
 
+//---sellMonthHistory---
 export const getSellMonthHistoryData = async ({
   userId,
   year,
@@ -95,6 +97,7 @@ export const getSellMonthHistoryData = async ({
   return [];
 };
 
+//---buyYearHistory
 export const getBuyYearHistoryData = async ({
   userId,
   year,
@@ -133,6 +136,7 @@ export const getBuyYearHistoryData = async ({
   return [];
 };
 
+//---sellYearHistory---
 export const getSellYearHistoryData = async ({
   userId,
   year,

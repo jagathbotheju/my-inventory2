@@ -10,8 +10,8 @@ import {
   DialogTrigger,
 } from "../ui/dialog";
 import { Button } from "../ui/button";
-import { Customer } from "@/server/db/schema/customer";
 import { useDeleteCustomer } from "@/server/backend/mutations/customerMutations";
+import { Customer } from "@/server/db/schema/customers";
 
 interface Props {
   children: React.ReactNode;

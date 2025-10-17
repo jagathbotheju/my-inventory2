@@ -55,7 +55,7 @@ const TransactionsSummary = ({ user }: Props) => {
       <Card className="flex flex-col w-full h-fit bg-transparent dark:border-primary/40">
         <CardHeader className="flex flex-col gap-4">
           <div className="flex items-center justify-between">
-            <CardTitle className="text-4xl font-bold">Sales Summary</CardTitle>
+            <CardTitle className="text-3xl font-bold">Sales Summary</CardTitle>
             <TimeFramePicker />
 
             <div className="flex gap-2 items-center">
@@ -84,31 +84,29 @@ const TransactionsSummary = ({ user }: Props) => {
           ) : (
             <>
               {/* purchase summary */}
-              <p className="text-2xl font-semibold col-span-3">
-                Total Purchase
-              </p>
-              <p className="text-2xl font-semibold col-span-3">
+              <p className="text-xl font-semibold col-span-3">Total Purchase</p>
+              <p className="text-xl font-semibold col-span-3">
                 {formatPrice(totalPurchase)}
               </p>
 
               {/* sales summary */}
-              <p className="text-2xl font-semibold col-span-3">Total Sales</p>
-              <p className="text-2xl font-semibold col-span-3">
+              <p className="text-xl font-semibold col-span-3">Total Sales</p>
+              <p className="text-xl font-semibold col-span-3">
                 {formatPrice(totalSales)}
               </p>
 
-              <p className="col-span-3 text-2xl font-semibold">
-                Total Expenses
-              </p>
-              <p className="col-span-3 text-2xl font-semibold">
+              <div className="col-span-6"></div>
+
+              <p className="col-span-3 text-xl font-semibold">Total Expenses</p>
+              <p className="col-span-3 text-xl font-semibold">
                 {totalExpenses ? formatPrice(+totalExpenses) : 0}
               </p>
 
               {/* profit */}
-              <p className="text-2xl font-semibold col-span-3">Profit</p>
+              {/* <p className="text-2xl font-semibold col-span-3">Profit</p>
               <p className="text-2xl font-semibold col-span-3">
                 {formatPrice(totalSales - totalPurchase)}
-              </p>
+              </p> */}
             </>
           )}
         </CardContent>

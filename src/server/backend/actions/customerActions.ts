@@ -5,6 +5,7 @@ import { z } from "zod";
 import { and, asc, desc, eq, ilike, sql } from "drizzle-orm";
 import { Customer, customers } from "@/server/db/schema/customers";
 
+//--all-customers---
 export const getCustomers = async (userId: string) => {
   const allCustomers = await db.query.customers.findMany({
     where: eq(customers.userId, userId),
@@ -14,6 +15,7 @@ export const getCustomers = async (userId: string) => {
   return allCustomers as Customer[];
 };
 
+//--customer-by-id---
 export const getCustomerById = async (id: string) => {
   const customer = await db.query.customers.findFirst({
     where: eq(customers.id, id),
@@ -22,6 +24,7 @@ export const getCustomerById = async (id: string) => {
   return {} as Customer;
 };
 
+//---add-customer---
 export const addCustomer = async ({
   formData,
   customerId,
@@ -64,6 +67,7 @@ export const addCustomer = async ({
   }
 };
 
+//---delete-customer---
 export const deleteCustomer = async (id: string) => {
   try {
     const deletedCustomer = await db

@@ -25,6 +25,7 @@ import _ from "lodash";
 import { sellMonthHistory } from "@/server/db/schema/sellMonthHistory";
 import { sellYearHistory } from "@/server/db/schema/sellYearHistory";
 import { SellTxInvoiceExt } from "@/server/db/schema/sellTxInvoices";
+import { subDays, toDate } from "date-fns";
 
 //---MUT-addBuyTxInvoice---
 export const addBuyTxInvoice = async ({
@@ -886,7 +887,7 @@ export const getSellTxInvoicesCount = async ({
   return sellTxInvoicesCount[0];
 };
 
-//BuyTx due cheques-ok
+//---BuyTx-due-cheques---
 export const buyTxDueChecks = async (userId: string) => {
   const buyTxInvoices = await db.query.buyTxInvoices.findMany({
     where: eq(buyTransactions.userId, userId),
@@ -900,22 +901,34 @@ export const buyTxDueChecks = async (userId: string) => {
   });
   if (buyTxInvoices.length === 0) return [];
 
-  const cheques = [] as BuyTxCurrentCheques[];
+  const buyDueCheques = [] as BuyTxCurrentCheques[];
 
-  const payment = buyTxInvoices[0].buyTxPayments;
-  if (
-    payment?.paymentMode === "cheque" ||
-    payment?.paymentMode === "cash-cheque"
-  ) {
-    payment.buyTxPaymentCheques.map((cheque) => {
-      if (cheque.chequeDate && new Date(cheque.chequeDate) >= new Date()) {
-        cheques.push({
-          ...cheque,
-          invoiceNumber: buyTxInvoices[0].invoiceNumber,
-        });
-      }
+  buyTxInvoices.map((invoice) => {
+    const buyTxPayments = invoice.buyTxPayments;
+
+    buyTxPayments.map((payment) => {
+      const cheques = payment.buyTxPaymentCheques;
+      cheques.map((cheque) => {
+        const today = new Date();
+        const dueDate = subDays(
+          toDate(cheque.chequeDate ?? new Date().toDateString()),
+          9
+        );
+
+        if (
+          cheque.chequeDate &&
+          today >= new Date(dueDate) &&
+          today <= new Date(cheque.chequeDate)
+        ) {
+          const dueCheque = {
+            ...cheque,
+            invoiceNumber: invoice.invoiceNumber,
+          };
+          buyDueCheques.push(dueCheque);
+        }
+      });
     });
-  }
+  });
 
-  return _.sortBy(cheques, "chequeDate") as BuyTxCurrentCheques[];
+  return _.sortBy(buyDueCheques, "chequeDate") as BuyTxCurrentCheques[];
 };

@@ -16,11 +16,11 @@ import {
 import { Check, ChevronsUpDown, Loader2Icon } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useEffect, useState } from "react";
-import { Customer } from "@/server/db/schema/customer";
 import {
   useCustomers,
   // useCustomersBySupplier,
 } from "@/server/backend/queries/customerQueries";
+import { Customer } from "@/server/db/schema/customers";
 
 interface Props {
   setCustomer: (customer: Customer) => void;
