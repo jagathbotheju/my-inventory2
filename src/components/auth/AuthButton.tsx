@@ -39,6 +39,7 @@ import { format } from "date-fns";
 import { formatPrice } from "@/lib/utils";
 import { ScrollArea } from "../ui/scroll-area";
 import { signOut } from "@/lib/auth-client";
+import { toast } from "sonner";
 
 interface Props {
   user: User;
@@ -186,7 +187,16 @@ const AuthButton = ({ user }: Props) => {
               {/* logout */}
               <DropdownMenuItem
                 className="font-medium transition-all duration-500 cursor-pointer group ease-in-out"
-                onClick={() => signOut()}
+                onClick={() =>
+                  signOut({
+                    fetchOptions: {
+                      onSuccess: () => {
+                        router.push("/auth/login");
+                        toast.success("Logout successful");
+                      },
+                    },
+                  })
+                }
               >
                 <LogOutIcon className="mr-2 w-4 group-hover:rotate-180 transition-all duration-300 ease-in-out group-hover:text-primary group-hover:font-semibold" />
                 <span className="hover:text-primary">Logout</span>
