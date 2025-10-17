@@ -6,6 +6,7 @@ import {
   BellIcon,
   BlocksIcon,
   CircleDollarSignIcon,
+  Loader2Icon,
   LogIn,
   LogOutIcon,
   PrinterIcon,
@@ -22,7 +23,6 @@ import {
 import { Avatar, AvatarFallback, AvatarImage } from "../ui/avatar";
 import { useTheme } from "next-themes";
 import { useRouter } from "next/navigation";
-import { User } from "@/server/db/schema/users";
 import { ThemeSwitcher } from "../ThemeSwitcher";
 import { LucideFactory } from "lucide-react";
 import { useBuyTxDueCheques } from "@/server/backend/queries/invoiceQueries";
@@ -38,19 +38,18 @@ import { Separator } from "../ui/separator";
 import { format } from "date-fns";
 import { formatPrice } from "@/lib/utils";
 import { ScrollArea } from "../ui/scroll-area";
-import { signOut } from "@/lib/auth-client";
+import { signOut, useSession } from "@/lib/auth-client";
 import { toast } from "sonner";
 
-interface Props {
-  user: User;
-}
-
-const AuthButton = ({ user }: Props) => {
+const AuthButton = () => {
   const router = useRouter();
   const { setTheme, theme } = useTheme();
+  const { data: session, isPending } = useSession();
+  const user = session?.user;
 
   const { data: buyTxDueCheques } = useBuyTxDueCheques(user?.id ?? "");
 
+  if (isPending) return <Loader2Icon className="animate-spin text-primary" />;
   if (!user) return null;
 
   return (

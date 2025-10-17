@@ -1,15 +1,7 @@
 import Link from "next/link";
-import { User } from "@/server/db/schema/users";
 import AuthButton from "./auth/AuthButton";
-import { auth } from "@/lib/auth";
-import { headers } from "next/headers";
 
 const Navbar = async () => {
-  const session = await auth.api.getSession({
-    headers: await headers(),
-  });
-  const user = session?.user as User;
-
   return (
     <div className="border-b-[1.5px] border-b-primary sticky top-0 z-50 dark:bg-slate-900 bg-slate-50">
       <nav className="max-w-7xl mx-auto px-10 pt-6 pb-4">
@@ -23,7 +15,7 @@ const Navbar = async () => {
             </Link>
           </li>
           <li>
-            <AuthButton user={user} />
+            <AuthButton />
           </li>
         </ul>
       </nav>
