@@ -4,7 +4,10 @@ import { z } from "zod";
 import { BuyProductsSchema, SellProductsSchema } from "@/lib/schema";
 import { buyMonthHistory } from "@/server/db/schema/buyMonthHistory";
 import { buyYearHistory } from "@/server/db/schema/buyYearHistory";
-import { BuyTxInvoiceExt } from "@/server/db/schema/buyTxInvoices";
+import {
+  BuyTxInvoice,
+  BuyTxInvoiceExt,
+} from "@/server/db/schema/buyTxInvoices";
 import { desc, eq, sql, and, count } from "drizzle-orm";
 import {
   buyTransactions,
@@ -24,7 +27,10 @@ import {
 import _ from "lodash";
 import { sellMonthHistory } from "@/server/db/schema/sellMonthHistory";
 import { sellYearHistory } from "@/server/db/schema/sellYearHistory";
-import { SellTxInvoiceExt } from "@/server/db/schema/sellTxInvoices";
+import {
+  SellTxInvoice,
+  SellTxInvoiceExt,
+} from "@/server/db/schema/sellTxInvoices";
 import { subDays, toDate } from "date-fns";
 
 //---MUT-addBuyTxInvoice---
@@ -38,99 +44,77 @@ export const addBuyTxInvoice = async ({
   supplierId: string;
 }) => {
   try {
-    // console.log("formData", fromData);
-    //new invoice
+    //handle invoice
     const existInvoice = await db
       .select()
       .from(buyTxInvoices)
       .where(
         and(
           eq(buyTxInvoices.userId, userId),
-          eq(buyTxInvoices.invoiceNumber, formData.invoiceNumber)
+          eq(buyTxInvoices.invoiceNumber, formData.invoiceNumber.trim())
         )
       );
+
+    const totalAmount = +formData.products
+      .reduce((acc, item) => (acc += item.quantity * item.unitPrice), 0)
+      .toFixed(2);
+
+    let newInvoice = [] as BuyTxInvoice[];
     if (existInvoice.length) {
-      return {
-        error: "Invoice number already exist, please use different Number",
-      };
-    }
-    const totalAmount = formData.products.reduce(
-      (acc, item) => (acc += item.quantity * item.unitPrice),
-      0
-    );
-    const newInvoice = await db
-      .insert(buyTxInvoices)
-      .values({
-        userId,
-        invoiceNumber: formData.invoiceNumber.trim(),
-        totalAmount,
-        date: formData.date.toDateString(),
-      })
-      .returning();
-    if (!newInvoice.length) {
-      console.log("***newInvoice Error");
-      return {
-        error: "Could not Buy Products",
-      };
+      await db
+        .update(buyTxInvoices)
+        .set({
+          totalAmount: (existInvoice[0].totalAmount ?? 0) + totalAmount,
+        })
+        .where(
+          and(
+            eq(buyTxInvoices.userId, userId),
+            eq(buyTxInvoices.id, existInvoice[0].id)
+          )
+        );
+    } else {
+      newInvoice = await db
+        .insert(buyTxInvoices)
+        .values({
+          userId,
+          invoiceNumber: formData.invoiceNumber.trim(),
+          totalAmount,
+          date: formData.date.toDateString(),
+        })
+        .returning();
     }
 
-    //new buyTransactions
-    // const products=formData.products
+    //handle buyTransactions
     const transactions = formData.products.map((item) => {
       return {
         userId,
         productId: item.productId as string,
-        invoiceId: newInvoice[0].id,
+        invoiceId: existInvoice.length ? existInvoice[0].id : newInvoice[0].id,
         quantity: item.quantity,
         unitPrice: item.unitPrice,
         date: formData.date.toDateString(),
       };
     });
-    const newTransactions = await db
-      .insert(buyTransactions)
-      .values(transactions)
-      .returning();
-    if (!newTransactions.length) {
-      //undo changes
-      console.log("***newTransactions Error");
-      await db
-        .delete(buyTxInvoices)
-        .where(eq(buyTxInvoices.id, newInvoice[0].id));
-      return {
-        error: "Could not Buy Products",
-      };
-    }
+    await db.insert(buyTransactions).values(transactions);
 
-    //new buyTxPayments
-    const newBuyTxPayments = await db
+    //handle buyTxPayments
+    const payment = {
+      invoiceId: existInvoice.length ? existInvoice[0]?.id : newInvoice[0].id,
+      paymentMode: formData.paymentMode,
+      cacheAmount: formData.cacheAmount,
+      creditAmount: formData.creditAmount,
+      date: formData.date.toDateString(),
+    };
+    const buyTxPayment = await db
       .insert(buyTxPayments)
-      .values({
-        invoiceId: newInvoice[0].id,
-        paymentMode: formData.paymentMode,
-        cacheAmount: formData.cacheAmount,
-        creditAmount: formData.creditAmount,
-        date: formData.date.toDateString(),
-      })
+      .values(payment)
       .returning();
-    if (!newBuyTxPayments.length) {
-      console.log("***newBuyTxPayments Error");
-      //undo changes
-      await db
-        .delete(buyTxInvoices)
-        .where(eq(buyTxInvoices.id, newInvoice[0].id));
-      await db
-        .delete(buyTxPayments)
-        .where(eq(buyTxPayments.id, newBuyTxPayments[0].id));
-      return {
-        error: "Could not Buy Products",
-      };
-    }
 
-    //new buyTxPaymentCheques
+    //handle buyTxPaymentCheques
     if (formData.cheques && formData.cheques[0].bankName) {
       const cheques = formData.cheques?.map((item) => {
         return {
-          buyTxPaymentId: newBuyTxPayments[0].id,
+          buyTxPaymentId: buyTxPayment[0].id,
           chequeNumber: item.chequeNumber as string,
           bankName: item.bankName as string,
           amount: item.amount ?? 0,
@@ -139,26 +123,7 @@ export const addBuyTxInvoice = async ({
             : new Date().toISOString(),
         };
       });
-      const newBuyTxPaymentCheques = await db
-        .insert(buyTxPaymentCheques)
-        .values(cheques)
-        .returning();
-      if (!newBuyTxPaymentCheques.length) {
-        //undo changes
-        console.log("***newBuyTxPaymentCheques Error");
-        await db
-          .delete(buyTxInvoices)
-          .where(eq(buyTxInvoices.id, newInvoice[0].id));
-        await db
-          .delete(buyTxPayments)
-          .where(eq(buyTxPayments.id, newBuyTxPayments[0].id));
-        await db
-          .delete(buyTxPaymentCheques)
-          .where(eq(buyTxPaymentCheques.id, newBuyTxPaymentCheques[0].id));
-        return {
-          error: "Could not Buy Products",
-        };
-      }
+      await db.insert(buyTxPaymentCheques).values(cheques);
     }
 
     //update buyMonthHistory
@@ -245,7 +210,6 @@ export const addBuyTxInvoice = async ({
     //update Stock
     console.log("formData product", formData.products);
     formData.products.map(async (item) => {
-      console.log("updating stocks....", item.quantity);
       db.select()
         .from(stocks)
         .where(
@@ -305,7 +269,7 @@ export const addSellTxInvoice = async ({
   customerId: string;
 }) => {
   try {
-    //new invoice
+    //handle invoice
     const existInvoice = await db
       .select()
       .from(sellTxInvoices)
@@ -315,37 +279,42 @@ export const addSellTxInvoice = async ({
           eq(sellTxInvoices.invoiceNumber, formData.invoiceNumber)
         )
       );
-    if (existInvoice.length) {
-      return {
-        error: "Invoice number already exist, please use different Number",
-      };
-    }
+
     const totalAmount = formData.products.reduce(
       (acc, item) => (acc += item.quantity * item.unitPrice),
       0
     );
-    const newInvoice = await db
-      .insert(sellTxInvoices)
-      .values({
-        userId,
-        invoiceNumber: formData.invoiceNumber.trim(),
-        totalAmount,
-        date: formData.date.toDateString(),
-      })
-      .returning();
-    if (!newInvoice.length) {
-      console.log("***newInvoice Error");
-      return {
-        error: "Could not Sell Products",
-      };
+    let newInvoice = [] as SellTxInvoice[];
+    if (existInvoice.length) {
+      await db
+        .update(sellTxInvoices)
+        .set({
+          totalAmount: (existInvoice[0].totalAmount ?? 0) + totalAmount,
+        })
+        .where(
+          and(
+            eq(sellTxInvoices.userId, userId),
+            eq(sellTxInvoices.id, existInvoice[0].id)
+          )
+        );
+    } else {
+      newInvoice = await db
+        .insert(sellTxInvoices)
+        .values({
+          userId,
+          invoiceNumber: formData.invoiceNumber.trim(),
+          totalAmount,
+          date: formData.date.toDateString(),
+        })
+        .returning();
     }
 
-    //new sellTransactions
+    //handle sellTransactions
     const transactions = formData.products.map((item) => {
       return {
         userId,
         productId: item.productId as string,
-        invoiceId: newInvoice[0].id,
+        invoiceId: existInvoice.length ? existInvoice[0].id : newInvoice[0].id,
         quantity: item.quantity,
         unitPrice: item.unitPrice,
         purchasedPrice: item.purchasedPrice,
@@ -353,51 +322,28 @@ export const addSellTxInvoice = async ({
         date: formData.date.toDateString(),
       };
     });
-    const newTransactions = await db
-      .insert(sellTransactions)
-      .values(transactions)
-      .returning();
-    if (!newTransactions.length) {
-      //undo changes
-      console.log("***new SellTransactions Error");
-      await db
-        .delete(sellTxInvoices)
-        .where(eq(sellTxInvoices.id, newInvoice[0].id));
-      return {
-        error: "Could not Sell Products",
-      };
-    }
 
-    //new sellTxPayments
-    const newSellTxPayments = await db
+    await db.insert(sellTransactions).values(transactions);
+
+    //handle sellTxPayments
+    const payment = {
+      invoiceId: existInvoice.length ? existInvoice[0]?.id : newInvoice[0].id,
+      paymentMode: formData.paymentMode,
+      cacheAmount: formData.cacheAmount,
+      creditAmount: formData.creditAmount,
+      date: formData.date.toDateString(),
+    };
+
+    const sellTxPayment = await db
       .insert(sellTxPayments)
-      .values({
-        invoiceId: newInvoice[0].id,
-        paymentMode: formData.paymentMode,
-        cacheAmount: formData.cacheAmount,
-        creditAmount: formData.creditAmount,
-        date: formData.date.toDateString(),
-      })
+      .values(payment)
       .returning();
-    if (!newSellTxPayments.length) {
-      console.log("***newSellTxPayments Error");
-      //undo changes
-      await db
-        .delete(sellTxInvoices)
-        .where(eq(sellTxInvoices.id, newInvoice[0].id));
-      await db
-        .delete(sellTxPayments)
-        .where(eq(sellTxPayments.id, newSellTxPayments[0].id));
-      return {
-        error: "Could not Sell Products",
-      };
-    }
 
-    //new sellTxPaymentCheques
+    //handle sellTxPaymentCheques
     if (formData.cheques && formData.cheques[0].bankName) {
       const cheques = formData.cheques?.map((item) => {
         return {
-          sellTxPaymentId: newSellTxPayments[0].id,
+          sellTxPaymentId: sellTxPayment[0].id,
           chequeNumber: item.chequeNumber as string,
           bankName: item.bankName as string,
           amount: item.amount ?? 0,
@@ -406,26 +352,7 @@ export const addSellTxInvoice = async ({
             : new Date().toISOString(),
         };
       });
-      const newSellTxPaymentCheques = await db
-        .insert(sellTxPaymentCheques)
-        .values(cheques)
-        .returning();
-      if (!newSellTxPaymentCheques.length) {
-        //undo changes
-        console.log("***new SellTxPaymentCheques Error");
-        await db
-          .delete(sellTxInvoices)
-          .where(eq(sellTxInvoices.id, newInvoice[0].id));
-        await db
-          .delete(sellTxPayments)
-          .where(eq(sellTxPayments.id, newSellTxPayments[0].id));
-        await db
-          .delete(sellTxPaymentCheques)
-          .where(eq(sellTxPaymentCheques.id, newSellTxPaymentCheques[0].id));
-        return {
-          error: "Could not Sell Products",
-        };
-      }
+      await db.insert(sellTxPaymentCheques).values(cheques);
     }
 
     //update buyMonthHistory

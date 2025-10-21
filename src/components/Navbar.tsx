@@ -9,7 +9,7 @@ const Navbar = async () => {
           <li>
             <Link href="/" className="relative flex gap-2 items-center">
               <h1 className="text-center text-rose-500 text-5xl font-bold tracking-wide">
-                My
+                New
                 <span className="dark:text-white text-black">Inventory</span>
               </h1>
             </Link>

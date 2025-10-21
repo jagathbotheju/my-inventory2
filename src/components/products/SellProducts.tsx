@@ -1,7 +1,7 @@
 "use client";
 
 import { Card, CardContent, CardHeader, CardTitle } from "../ui/card";
-import { CalendarIcon, Trash2Icon } from "lucide-react";
+import { CalendarIcon, Loader2Icon, Trash2Icon } from "lucide-react";
 import { useForm, useFieldArray } from "react-hook-form";
 import { z } from "zod";
 import { SellProductsSchema } from "@/lib/schema";
@@ -70,7 +70,7 @@ const SellProducts = ({ userId }: Props) => {
     setSelectedProducts,
     setSelectedProductIds,
   } = useProductStore();
-  const { mutate } = useAddSellTxInvoice();
+  const { mutate, isPending } = useAddSellTxInvoice();
 
   const form = useForm<z.infer<typeof SellProductsSchema>>({
     resolver: zodResolver(SellProductsSchema),
@@ -816,7 +816,8 @@ const SellProducts = ({ userId }: Props) => {
                 className="font-semibold"
                 // disabled={!form.formState.isValid || isPending}
               >
-                Sell
+                {isPending && <Loader2Icon className="mr-2 animate-spin" />}
+                {isPending ? "Selling Products..." : "Sell Products"}
               </Button>
               <Button
                 onClick={() =>
