@@ -361,6 +361,7 @@ export const getSellTxByUserProduct = async ({
           unitOfMeasurements: true,
         },
       },
+      sellTxInvoices: true,
     },
     orderBy: desc(sellTransactions.date),
   });

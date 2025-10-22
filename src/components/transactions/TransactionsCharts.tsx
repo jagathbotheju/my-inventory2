@@ -50,6 +50,7 @@ const TransactionsCharts = ({ user }: Props) => {
     userId: user.id,
     year: period.year,
   });
+
   const { data: sellYearHistoryData } = useSellYearHistoryData({
     userId: user.id,
     year: period.year,

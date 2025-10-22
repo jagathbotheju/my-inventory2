@@ -26,6 +26,7 @@ const StockDetails = ({ user, productId, stockBal }: Props) => {
     // userId: "7e397cd1-19ad-4c68-aa50-a77c06450bc7",
     productId,
   });
+
   const totalBuy = buyTxs?.reduce(
     (acc, item) => {
       return {
@@ -119,11 +120,12 @@ const StockDetails = ({ user, productId, stockBal }: Props) => {
                 {_.sortBy(buyTxs, ["date", "unitPrice"])?.map((item, index) => {
                   return (
                     <div key={index} className="grid grid-cols-12 gap-2">
-                      <p className="col-span-3">
-                        {format(item.date, "yyyy-MM-dd")}
-                      </p>
+                      <div className="col-span-5 flex gap-4 uppercase">
+                        <p>{format(item.date, "yyyy-MM-dd")}</p>
+                        <p>{item.buyTxInvoices.invoiceNumber}</p>
+                      </div>
 
-                      <div className="col-span-9">
+                      <div className="col-span-7">
                         <div className="grid grid-cols-12 gap-1">
                           <p className="col-span-4 px-2">
                             {formatPrice(item.unitPrice)}
@@ -189,11 +191,12 @@ const StockDetails = ({ user, productId, stockBal }: Props) => {
                     (item, index) => {
                       return (
                         <div key={index} className="grid grid-cols-12 gap-2">
-                          <p className="col-span-3">
-                            {format(item.date, "yyyy-MM-dd")}
-                          </p>
+                          <div className="col-span-5 flex gap-4 uppercase">
+                            <p>{format(item.date, "yyyy-MM-dd")}</p>
+                            <p>{item.sellTxInvoices.invoiceNumber}</p>
+                          </div>
 
-                          <div className="col-span-9">
+                          <div className="col-span-7">
                             <div className="grid grid-cols-12 gap-1">
                               <p className="col-span-4">
                                 {formatPrice(item.unitPrice ?? 0)}

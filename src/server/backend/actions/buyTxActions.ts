@@ -371,6 +371,7 @@ export const getBuyTxByUserProduct = async ({
           suppliers: true,
         },
       },
+      buyTxInvoices: true,
     },
     orderBy: desc(buyTransactions.date),
   });

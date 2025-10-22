@@ -652,7 +652,11 @@ export const getBuyTxInvoicesForPeriodPagination = async ({
       with: {
         buyTransactions: {
           with: {
-            products: true,
+            products: {
+              with: {
+                suppliers: true,
+              },
+            },
           },
         },
         buyTxPayments: {
@@ -676,7 +680,11 @@ export const getBuyTxInvoicesForPeriodPagination = async ({
       with: {
         buyTransactions: {
           with: {
-            products: true,
+            products: {
+              with: {
+                suppliers: true,
+              },
+            },
           },
         },
         buyTxPayments: {
@@ -723,6 +731,7 @@ export const getSellTxInvoicesForPeriodPagination = async ({
         sellTransactions: {
           with: {
             products: true,
+            customers: true,
           },
         },
         sellTxPayments: {
@@ -747,6 +756,7 @@ export const getSellTxInvoicesForPeriodPagination = async ({
         sellTransactions: {
           with: {
             products: true,
+            customers: true,
           },
         },
         sellTxPayments: {
