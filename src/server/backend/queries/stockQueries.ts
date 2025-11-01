@@ -4,6 +4,7 @@ import {
   getAllUserStocks,
   getStocks,
   getStocksBySupplier,
+  getStocksForProducts,
 } from "../actions/stockActions";
 
 export const useStocks = ({
@@ -53,5 +54,19 @@ export const useStocksBySupplier = ({
     queryKey: ["stocks-supplier", userId, supplierId],
     queryFn: () => getStocksBySupplier({ userId, supplierId }),
     enabled: !!supplierId,
+  });
+};
+
+export const useStocksForProducts = ({
+  userId,
+  productIds,
+}: {
+  userId: string;
+  productIds: string[];
+}) => {
+  return useQuery({
+    queryKey: ["stocks-products", userId, productIds],
+    queryFn: () => getStocksForProducts({ userId, productIds }),
+    enabled: productIds.length > 0,
   });
 };

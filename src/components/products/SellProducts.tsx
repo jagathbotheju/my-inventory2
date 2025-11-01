@@ -38,13 +38,16 @@ import ProductsPickerDialog, {
   TableDataProductsPicker,
 } from "../ProductsPickerDialog";
 import { Customer } from "@/server/db/schema/customers";
-import {
-  Tooltip,
-  TooltipContent,
-  TooltipProvider,
-  TooltipTrigger,
-} from "../ui/tooltip";
 import { useAddSellTxInvoice } from "@/server/backend/mutations/invoiceMutations";
+
+import {
+  Select,
+  SelectContent,
+  SelectGroup,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "../ui/select";
 
 interface Props {
   userId: string;
@@ -243,12 +246,17 @@ const SellProducts = ({ userId }: Props) => {
                           `products.${index}.productNumber`,
                           product.productNumber
                         );
-                        form.setValue(
-                          `products.${index}.purchasedPrice`,
-                          product && product.purchasedPrice
-                            ? Array.from(product?.purchasedPrice)[0]
-                            : 0
-                        );
+
+                        if (product.purchasedPrice?.length === 1) {
+                          form.setValue(
+                            `products.${index}.purchasedPrice`,
+
+                            product && product.purchasedPrice
+                              ? Array.from(product?.purchasedPrice)[0]
+                              : 0
+                          );
+                        }
+
                         form.setValue(
                           `products.${index}.productId`,
                           product.productId
@@ -274,46 +282,65 @@ const SellProducts = ({ userId }: Props) => {
                             <TableCell className="uppercase">
                               {product.productNumber}
                             </TableCell>
-                            <TableCell>{product.quantity}</TableCell>
+
+                            {/* stock balance */}
+                            <TableCell
+                              className={`${
+                                product &&
+                                product.quantity &&
+                                product?.quantity < 3 &&
+                                "text-red-500 font-bold"
+                              } `}
+                            >
+                              {product.quantity}
+                            </TableCell>
+
+                            {/* purchasedPrice - form*/}
                             <TableCell>
                               {product?.purchasedPrice &&
-                              product?.purchasedPrice?.size > 1 ? (
-                                <TooltipProvider>
-                                  <Tooltip>
-                                    <TooltipTrigger>
-                                      <div className="flex items-center cursor-pointer">
-                                        <span className="text-primary">
-                                          {formatPrice(
-                                            product.purchasedPrice
-                                              ?.values()
-                                              .next().value ?? 0
-                                          )}
-                                        </span>
-                                        <span className="text-primary font-bold">
-                                          ...
-                                        </span>
-                                      </div>
-                                    </TooltipTrigger>
-                                    <TooltipContent>
-                                      <div className="flex flex-col gap-1 p-1 shadow-md">
-                                        {[...product?.purchasedPrice]?.map(
-                                          (item, index) => {
-                                            return (
-                                              <div key={index}>
-                                                {formatPrice(item)}
-                                              </div>
-                                            );
-                                          }
+                              product?.purchasedPrice?.length > 1 ? (
+                                <>
+                                  <Select
+                                    value={form
+
+                                      .getValues(
+                                        `products.${index}.purchasedPrice`
+                                      )
+
+                                      ?.toString()}
+                                    onValueChange={(value) => {
+                                      form.setValue(
+                                        `products.${index}.purchasedPrice`,
+
+                                        parseFloat(value)
+                                      );
+                                    }}
+                                  >
+                                    <SelectTrigger>
+                                      <SelectValue placeholder="select price" />
+                                    </SelectTrigger>
+
+                                    <SelectContent>
+                                      <SelectGroup>
+                                        {product.purchasedPrice.map(
+                                          (item, idx) => (
+                                            <SelectItem
+                                              key={idx}
+                                              value={item.toString()}
+                                            >
+                                              {formatPrice(item)}
+                                            </SelectItem>
+                                          )
                                         )}
-                                      </div>
-                                    </TooltipContent>
-                                  </Tooltip>
-                                </TooltipProvider>
+                                      </SelectGroup>
+                                    </SelectContent>
+                                  </Select>
+                                </>
                               ) : (
                                 <span>
                                   {formatPrice(
-                                    product && product.purchasedPrice
-                                      ? Array.from(product?.purchasedPrice)[0]
+                                    product && product.purchasedPrice?.length
+                                      ? product?.purchasedPrice[0]
                                       : 0
                                   )}
                                 </span>

@@ -239,7 +239,17 @@ const BuyProducts = ({ userId }: Props) => {
                         </p>
 
                         {/* 2-cols - stockBal */}
-                        <p className="col-span-2 self-center">
+                        <p
+                          className={cn(
+                            "col-span-2 self-center",
+                            `${
+                              product &&
+                              product.quantity &&
+                              product?.quantity < 3 &&
+                              "text-red-500 font-bold"
+                            } `
+                          )}
+                        >
                           {product.quantity ?? 0}
                         </p>
 

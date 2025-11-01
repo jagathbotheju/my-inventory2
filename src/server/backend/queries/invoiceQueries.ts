@@ -5,6 +5,7 @@ import {
   getBuyTxInvoicesForPeriodPagination,
   getSellTxInvoicesCount,
   getSellTxInvoicesForPeriodPagination,
+  getBuyTxInvoice,
 } from "../actions/invoiceActions";
 
 //---BuyTxInvoices-Period-pagination---
@@ -123,5 +124,14 @@ export const useBuyTxDueCheques = (userId: string) => {
   return useQuery({
     queryKey: ["buy-tx-due-cheques", userId],
     queryFn: () => buyTxDueChecks(userId),
+  });
+};
+
+//---get-BuyTxInvoice
+
+export const useBuyTxInvoice = (invoiceId: string) => {
+  return useQuery({
+    queryKey: ["buy-tx-invoice", invoiceId],
+    queryFn: () => getBuyTxInvoice(invoiceId),
   });
 };

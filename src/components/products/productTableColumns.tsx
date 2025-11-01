@@ -58,14 +58,13 @@ export const productTableColumns: ColumnDef<TableDataProductsPicker>[] = [
     accessorKey: "purchasedPrice",
     header: "Purchased Price",
     cell: ({ row }) => {
-      const prices = row.getValue("purchasedPrice") as Set<number>;
-      const pricesArr = prices?.size >= 1 ? Array?.from(prices) : [];
+      const prices = row.getValue("purchasedPrice") as Array<number>;
       const sellMode = row.original.sellMode;
       if (sellMode) {
-        if (pricesArr.length > 1) {
+        if (prices?.length > 1) {
           return (
             <div className="flex items-center gap-2">
-              {pricesArr.slice(0, 2).map((item, index) => {
+              {prices.slice(0, 1).map((item, index) => {
                 return <div key={index}>{formatPrice(item)}</div>;
               })}
 
@@ -78,7 +77,7 @@ export const productTableColumns: ColumnDef<TableDataProductsPicker>[] = [
                   </TooltipTrigger>
                   <TooltipContent>
                     <div className="flex flex-col gap-1 p-1 shadow-md">
-                      {pricesArr.map((item, index) => {
+                      {prices.map((item, index) => {
                         return <div key={index}>{formatPrice(item)}</div>;
                       })}
                     </div>
@@ -88,7 +87,7 @@ export const productTableColumns: ColumnDef<TableDataProductsPicker>[] = [
             </div>
           );
         }
-        return <div>{pricesArr.length && formatPrice(pricesArr[0])}</div>;
+        return <div>{prices?.length && formatPrice(prices[0])}</div>;
       } else {
         return <div></div>;
       }

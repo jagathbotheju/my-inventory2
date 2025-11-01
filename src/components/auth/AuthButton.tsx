@@ -6,7 +6,6 @@ import {
   BellIcon,
   BlocksIcon,
   CircleDollarSignIcon,
-  Loader2Icon,
   LogIn,
   LogOutIcon,
   PrinterIcon,
@@ -44,12 +43,12 @@ import { toast } from "sonner";
 const AuthButton = () => {
   const router = useRouter();
   const { setTheme, theme } = useTheme();
-  const { data: session, isPending } = useSession();
+  const { data: session } = useSession();
   const user = session?.user;
 
   const { data: buyTxDueCheques } = useBuyTxDueCheques(user?.id ?? "");
 
-  if (isPending) return <Loader2Icon className="animate-spin text-primary" />;
+  // if (isPending) return <Loader2Icon className="animate-spin text-primary" />;
   if (!user) return null;
 
   return (

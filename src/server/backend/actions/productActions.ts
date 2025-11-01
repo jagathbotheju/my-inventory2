@@ -82,26 +82,36 @@ export const getProductsForPicker = async ({
   }
 
   if (purchasedProducts) {
-    let prices = new Set<number>();
+    // let prices = new Set<number>();
     tableData = tableData.map((tableDataItem) => {
       const exist = purchasedProducts.find(
         (purchasedItem) => purchasedItem.productId === tableDataItem.productId
       );
 
-      prices = purchasedProducts.reduce((acc, product) => {
+      // prices = purchasedProducts.reduce((acc, product) => {
+      //   if (product.productId === tableDataItem.productId) {
+      //     acc.add(product.purchasedPrice);
+      //   }
+      //   return acc;
+      // }, new Set<number>());
+
+      const purchasedPrices = purchasedProducts.reduce((acc, product) => {
         if (product.productId === tableDataItem.productId) {
-          acc.add(product.purchasedPrice);
+          const exist = acc.find((price) => price === product.purchasedPrice);
+
+          if (!exist) acc.push(product.purchasedPrice);
         }
+
         return acc;
-      }, new Set<number>());
+      }, [] as Array<number>);
 
       if (exist) {
         return {
           ...tableDataItem,
-          // purchasedPrice: exist.purchasedPrice,
-          purchasedPrice: prices,
+          purchasedPrice: purchasedPrices,
         };
       }
+
       return tableDataItem;
     });
   }

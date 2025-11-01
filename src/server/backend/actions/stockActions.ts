@@ -23,6 +23,23 @@ export const getStocks = async ({
   return stock as Stock[];
 };
 
+export const getStocksForProducts = async ({
+  userId,
+  productIds,
+}: {
+  userId: string;
+  productIds: string[];
+}) => {
+  const stock = await db
+    .select()
+    .from(stocks)
+    .where(
+      and(eq(stocks.userId, userId), inArray(stocks.productId, productIds))
+    );
+
+  return stock as Stock[];
+};
+
 //===STOCKS BY SUPPLIER
 export const getStocksBySupplier = async ({
   userId,
@@ -52,8 +69,6 @@ export const getAllStocks = async (userId: string) => {
   });
   return stock as Stock[];
 };
-
-//-QRY-all-user-stocks---helper
 
 //-QRY-all-user-stocks---
 export const getAllUserStocks = async ({

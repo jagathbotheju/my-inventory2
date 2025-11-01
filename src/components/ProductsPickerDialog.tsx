@@ -31,8 +31,8 @@ export type TableDataProductsPicker = {
   sellMode?: boolean;
   selectedRowId?: string;
   quantity?: number;
-  // purchasedPrice?: number;
-  purchasedPrice?: Set<number>;
+  purchasedPrice?: Array<number>;
+  // purchasedPrice?: Set<number>;
 };
 
 const ProductsPickerDialog = ({ children, userId, sellMode }: Props) => {

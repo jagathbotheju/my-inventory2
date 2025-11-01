@@ -18,6 +18,13 @@ export const useDeleteBuyTransaction = () => {
       if (res?.success) {
         toast.success(res.success);
         queryClient.invalidateQueries({ queryKey: ["buy-transactions"] });
+        queryClient.invalidateQueries({
+          queryKey: ["sell-tx-invoices-for-period"],
+        });
+
+        queryClient.invalidateQueries({
+          queryKey: ["buy-tx-invoices-for-period"],
+        });
       }
       if (res?.error) {
         toast.error(res.error);

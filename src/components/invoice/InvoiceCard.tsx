@@ -7,6 +7,15 @@ import { User } from "@/server/db/schema/users";
 import { format } from "date-fns";
 import { BuyTxInvoiceExt } from "@/server/db/schema/buyTxInvoices";
 import { Progress } from "../ui/progress";
+import { Trash2Icon } from "lucide-react";
+import DeleteBuyTxDialog from "../transactions/DeleteBuyTxDialog";
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipProvider,
+  TooltipTrigger,
+} from "../ui/tooltip";
+import DeleteSellTxDialog from "../transactions/DeleteSellTxDialog";
 
 interface Props {
   // item: SellTxInvoiceExt | BuyTxInvoiceExt;
@@ -203,7 +212,7 @@ const InvoiceCard = ({ user, isBuyTx, buyTxInvoice, sellTxInvoice }: Props) => {
         ? buyTxInvoice.buyTransactions.map((tx, index) => (
             <div
               key={index}
-              className="grid grid-cols-10 gap-5 hover:bg-primary/10 p-1 text-muted-foreground"
+              className="grid grid-cols-11 gap-5 hover:bg-primary/10 p-1 text-muted-foreground"
             >
               <p className="col-span-2 justify-self-end">
                 {format(tx.date, "yyyy-MM-dd")}
@@ -217,13 +226,30 @@ const InvoiceCard = ({ user, isBuyTx, buyTxInvoice, sellTxInvoice }: Props) => {
               <p className="col-span-2">
                 {formatPrice(tx.quantity * (tx.unitPrice ?? 0))}
               </p>
+
+              <div className="flex items-center gap-2">
+                {/* delete buyTx */}
+                <TooltipProvider>
+                  <Tooltip>
+                    <DeleteBuyTxDialog userId={user.id} tx={tx}>
+                      <TooltipTrigger asChild>
+                        <Trash2Icon className="w-5 h-5 text-red-500 cursor-pointer" />
+                      </TooltipTrigger>
+                    </DeleteBuyTxDialog>
+
+                    <TooltipContent>
+                      <p className="text-sm">delete</p>
+                    </TooltipContent>
+                  </Tooltip>
+                </TooltipProvider>
+              </div>
             </div>
           ))
         : sellTxInvoice &&
           sellTxInvoice.sellTransactions.map((tx, index) => (
             <div
               key={index}
-              className="grid grid-cols-10 gap-5 hover:bg-primary/10 p-1 text-muted-foreground"
+              className="grid grid-cols-11 gap-5 hover:bg-primary/10 p-1 text-muted-foreground"
             >
               <p className="col-span-2 justify-self-end">
                 {format(tx.date, "yyyy-MM-dd")}
@@ -237,6 +263,23 @@ const InvoiceCard = ({ user, isBuyTx, buyTxInvoice, sellTxInvoice }: Props) => {
               <p className="col-span-2">
                 {formatPrice(tx.quantity * (tx.unitPrice ?? 0))}
               </p>
+
+              <div className="flex items-center gap-2">
+                {/* delete sellTx */}
+                <TooltipProvider>
+                  <Tooltip>
+                    <DeleteSellTxDialog userId={user.id} tx={tx}>
+                      <TooltipTrigger asChild>
+                        <Trash2Icon className="w-5 h-5 text-red-500 cursor-pointer" />
+                      </TooltipTrigger>
+                    </DeleteSellTxDialog>
+
+                    <TooltipContent>
+                      <p className="text-sm">delete</p>
+                    </TooltipContent>
+                  </Tooltip>
+                </TooltipProvider>
+              </div>
             </div>
           ))}
     </div>

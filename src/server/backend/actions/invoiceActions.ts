@@ -869,3 +869,29 @@ export const buyTxDueChecks = async (userId: string) => {
 
   return _.sortBy(buyDueCheques, "chequeDate") as BuyTxCurrentCheques[];
 };
+
+//---QRY-get-buyTxInvoice---
+export const getBuyTxInvoice = async (invoiceId: string) => {
+  const invoice = await db.query.buyTxInvoices.findFirst({
+    where: eq(buyTxInvoices.id, invoiceId),
+    with: {
+      buyTransactions: {
+        with: {
+          products: {
+            with: {
+              suppliers: true,
+              unitOfMeasurements: true,
+            },
+          },
+        },
+      },
+      buyTxPayments: {
+        with: {
+          buyTxPaymentCheques: true,
+        },
+      },
+    },
+  });
+
+  return invoice as BuyTxInvoiceExt | null;
+};
