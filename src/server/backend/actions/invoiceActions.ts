@@ -43,7 +43,8 @@ export const addBuyTxInvoice = async ({
   userId: string;
   supplierId: string;
 }) => {
-  console.log("date", formData.date.toDateString());
+  console.log("formData server", formData);
+  console.log("date server", formData.date.toDateString());
   try {
     //handle invoice
     const existInvoice = await db
