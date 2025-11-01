@@ -124,10 +124,15 @@ const BuyProducts = ({ userId }: Props) => {
   const onSubmit = async (formData: z.infer<typeof BuyProductsSchema>) => {
     const products = formData.products;
     if (!products.length) return;
-    console.log("formData front", formData);
-    console.log("date front", formData.date.toDateString());
+    console.log("date", formData.date);
+    console.log("date string", formData.date.toDateString());
 
-    addBuyTxInvoice({ userId, formData, supplierId: currentSupplier.id });
+    addBuyTxInvoice({
+      userId,
+      formData,
+      supplierId: currentSupplier.id,
+      date: formData.date.toDateString(),
+    });
   };
 
   useEffect(() => {

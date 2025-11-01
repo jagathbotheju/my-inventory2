@@ -38,10 +38,12 @@ export const addBuyTxInvoice = async ({
   formData,
   userId,
   supplierId,
+  date,
 }: {
   formData: z.infer<typeof BuyProductsSchema>;
   userId: string;
   supplierId: string;
+  date: string;
 }) => {
   console.log("formData server", formData);
   console.log("date server", formData.date.toDateString());
@@ -81,7 +83,7 @@ export const addBuyTxInvoice = async ({
           userId,
           invoiceNumber: formData.invoiceNumber.trim(),
           totalAmount,
-          date: formData.date.toDateString(),
+          date,
         })
         .returning();
     }
@@ -94,7 +96,7 @@ export const addBuyTxInvoice = async ({
         invoiceId: existInvoice.length ? existInvoice[0].id : newInvoice[0].id,
         quantity: item.quantity,
         unitPrice: item.unitPrice,
-        date: formData.date.toDateString(),
+        date,
       };
     });
     await db.insert(buyTransactions).values(transactions);
@@ -105,7 +107,7 @@ export const addBuyTxInvoice = async ({
       paymentMode: formData.paymentMode,
       cacheAmount: formData.cacheAmount,
       creditAmount: formData.creditAmount,
-      date: formData.date.toDateString(),
+      date,
     };
     const buyTxPayment = await db
       .insert(buyTxPayments)
@@ -135,9 +137,9 @@ export const addBuyTxInvoice = async ({
       .where(
         and(
           eq(buyMonthHistory.userId, userId),
-          eq(buyMonthHistory.day, new Date(formData.date).getDate()),
-          eq(buyMonthHistory.month, new Date(formData.date).getMonth() + 1),
-          eq(buyMonthHistory.year, new Date(formData.date).getFullYear())
+          eq(buyMonthHistory.day, new Date(date).getDate()),
+          eq(buyMonthHistory.month, new Date(date).getMonth() + 1),
+          eq(buyMonthHistory.year, new Date(date).getFullYear())
         )
       );
     if (existBuyMonthHistory.length) {
@@ -149,9 +151,9 @@ export const addBuyTxInvoice = async ({
         .where(
           and(
             eq(buyMonthHistory.userId, userId),
-            eq(buyMonthHistory.day, new Date(formData.date).getDate()),
-            eq(buyMonthHistory.month, new Date(formData.date).getMonth() + 1),
-            eq(buyMonthHistory.year, new Date(formData.date).getFullYear())
+            eq(buyMonthHistory.day, new Date(date).getDate()),
+            eq(buyMonthHistory.month, new Date(date).getMonth() + 1),
+            eq(buyMonthHistory.year, new Date(date).getFullYear())
           )
         )
         .returning();
@@ -160,9 +162,9 @@ export const addBuyTxInvoice = async ({
       const monthHistory = await db
         .insert(buyMonthHistory)
         .values({
-          day: new Date(formData.date).getDate(),
-          month: new Date(formData.date).getMonth() + 1,
-          year: new Date(formData.date).getFullYear(),
+          day: new Date(date).getDate(),
+          month: new Date(date).getMonth() + 1,
+          year: new Date(date).getFullYear(),
           userId: userId,
           totalPrice: totalAmount,
         })
@@ -177,8 +179,8 @@ export const addBuyTxInvoice = async ({
       .where(
         and(
           eq(buyYearHistory.userId, userId),
-          eq(buyYearHistory.month, new Date(formData.date).getMonth() + 1),
-          eq(buyYearHistory.year, new Date(formData.date).getFullYear())
+          eq(buyYearHistory.month, new Date(date).getMonth() + 1),
+          eq(buyYearHistory.year, new Date(date).getFullYear())
         )
       );
     if (existBuyYearHistory.length) {
@@ -190,8 +192,8 @@ export const addBuyTxInvoice = async ({
         .where(
           and(
             eq(buyYearHistory.userId, userId),
-            eq(buyYearHistory.month, new Date(formData.date).getMonth() + 1),
-            eq(buyYearHistory.year, new Date(formData.date).getFullYear())
+            eq(buyYearHistory.month, new Date(date).getMonth() + 1),
+            eq(buyYearHistory.year, new Date(date).getFullYear())
           )
         )
         .returning();
@@ -201,8 +203,8 @@ export const addBuyTxInvoice = async ({
         .insert(buyYearHistory)
         .values({
           userId: userId,
-          month: new Date(formData.date).getMonth() + 1,
-          year: new Date(formData.date).getFullYear(),
+          month: new Date(date).getMonth() + 1,
+          year: new Date(date).getFullYear(),
           totalPrice: totalAmount,
         })
         .returning();
@@ -264,10 +266,12 @@ export const addSellTxInvoice = async ({
   formData,
   userId,
   customerId,
+  date,
 }: {
   formData: z.infer<typeof SellProductsSchema>;
   userId: string;
   customerId: string;
+  date: string;
 }) => {
   try {
     //handle invoice
@@ -305,7 +309,7 @@ export const addSellTxInvoice = async ({
           userId,
           invoiceNumber: formData.invoiceNumber.trim(),
           totalAmount,
-          date: formData.date.toDateString(),
+          date,
         })
         .returning();
     }
@@ -320,7 +324,7 @@ export const addSellTxInvoice = async ({
         unitPrice: item.unitPrice,
         purchasedPrice: item.purchasedPrice,
         customerId,
-        date: formData.date.toDateString(),
+        date,
       };
     });
 
@@ -332,7 +336,7 @@ export const addSellTxInvoice = async ({
       paymentMode: formData.paymentMode,
       cacheAmount: formData.cacheAmount,
       creditAmount: formData.creditAmount,
-      date: formData.date.toDateString(),
+      date,
     };
 
     const sellTxPayment = await db
@@ -363,9 +367,9 @@ export const addSellTxInvoice = async ({
       .where(
         and(
           eq(sellMonthHistory.userId, userId),
-          eq(sellMonthHistory.day, new Date(formData.date).getDate()),
-          eq(sellMonthHistory.month, new Date(formData.date).getMonth() + 1),
-          eq(sellMonthHistory.year, new Date(formData.date).getFullYear())
+          eq(sellMonthHistory.day, new Date(date).getDate()),
+          eq(sellMonthHistory.month, new Date(date).getMonth() + 1),
+          eq(sellMonthHistory.year, new Date(date).getFullYear())
         )
       );
     if (existSellMonthHistory.length) {
@@ -377,9 +381,9 @@ export const addSellTxInvoice = async ({
         .where(
           and(
             eq(sellMonthHistory.userId, userId),
-            eq(sellMonthHistory.day, new Date(formData.date).getDate()),
-            eq(sellMonthHistory.month, new Date(formData.date).getMonth() + 1),
-            eq(sellMonthHistory.year, new Date(formData.date).getFullYear())
+            eq(sellMonthHistory.day, new Date(date).getDate()),
+            eq(sellMonthHistory.month, new Date(date).getMonth() + 1),
+            eq(sellMonthHistory.year, new Date(date).getFullYear())
           )
         )
         .returning();
@@ -388,9 +392,9 @@ export const addSellTxInvoice = async ({
       const monthHistory = await db
         .insert(sellMonthHistory)
         .values({
-          day: new Date(formData.date).getDate(),
-          month: new Date(formData.date).getMonth() + 1,
-          year: new Date(formData.date).getFullYear(),
+          day: new Date(date).getDate(),
+          month: new Date(date).getMonth() + 1,
+          year: new Date(date).getFullYear(),
           userId: userId,
           totalPrice: totalAmount,
         })
@@ -405,8 +409,8 @@ export const addSellTxInvoice = async ({
       .where(
         and(
           eq(sellYearHistory.userId, userId),
-          eq(sellYearHistory.month, new Date(formData.date).getMonth() + 1),
-          eq(sellYearHistory.year, new Date(formData.date).getFullYear())
+          eq(sellYearHistory.month, new Date(date).getMonth() + 1),
+          eq(sellYearHistory.year, new Date(date).getFullYear())
         )
       );
     if (existSellYearHistory.length) {
@@ -418,8 +422,8 @@ export const addSellTxInvoice = async ({
         .where(
           and(
             eq(sellYearHistory.userId, userId),
-            eq(sellYearHistory.month, new Date(formData.date).getMonth() + 1),
-            eq(sellYearHistory.year, new Date(formData.date).getFullYear())
+            eq(sellYearHistory.month, new Date(date).getMonth() + 1),
+            eq(sellYearHistory.year, new Date(date).getFullYear())
           )
         )
         .returning();
@@ -429,8 +433,8 @@ export const addSellTxInvoice = async ({
         .insert(sellYearHistory)
         .values({
           userId: userId,
-          month: new Date(formData.date).getMonth() + 1,
-          year: new Date(formData.date).getFullYear(),
+          month: new Date(date).getMonth() + 1,
+          year: new Date(date).getFullYear(),
           totalPrice: totalAmount,
         })
         .returning();

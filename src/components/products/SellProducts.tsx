@@ -134,7 +134,12 @@ const SellProducts = ({ userId }: Props) => {
     if (!products.length) return;
 
     console.log("formData", formData);
-    mutate({ formData, userId, customerId: customer.id });
+    mutate({
+      formData,
+      userId,
+      customerId: customer.id,
+      date: formData.date.toString(),
+    });
   };
 
   const removeSelected = (product: TableDataProductsPicker) => {

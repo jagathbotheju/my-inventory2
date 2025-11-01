@@ -19,11 +19,13 @@ export const useAddByTxInvoice = () => {
       formData,
       userId,
       supplierId,
+      date,
     }: {
       formData: z.infer<typeof BuyProductsSchema>;
       userId: string;
       supplierId: string;
-    }) => addBuyTxInvoice({ formData, userId, supplierId }),
+      date: string;
+    }) => addBuyTxInvoice({ formData, userId, supplierId, date }),
     onSuccess: async (res) => {
       if (res?.success) {
         toast.success(res.success);
@@ -50,11 +52,13 @@ export const useAddSellTxInvoice = () => {
       formData,
       userId,
       customerId,
+      date,
     }: {
       formData: z.infer<typeof SellProductsSchema>;
       userId: string;
       customerId: string;
-    }) => addSellTxInvoice({ formData, userId, customerId }),
+      date: string;
+    }) => addSellTxInvoice({ formData, userId, customerId, date }),
     onSuccess: async (res) => {
       if (res?.success) {
         toast.success(res.success);
