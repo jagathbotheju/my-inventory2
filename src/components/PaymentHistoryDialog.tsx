@@ -20,7 +20,6 @@ import { BuyTxInvoiceExt } from "@/server/db/schema/buyTxInvoices";
 
 interface Props {
   children: React.ReactNode;
-  userId: string;
   sellTxInvoice?: SellTxInvoiceExt;
   buyTxInvoice?: BuyTxInvoiceExt;
   totalAmount: number;

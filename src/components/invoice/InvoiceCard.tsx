@@ -163,7 +163,6 @@ const InvoiceCard = ({ user, isBuyTx, buyTxInvoice, sellTxInvoice }: Props) => {
             {/* BuyTx Payment History */}
             {isBuyTx && buyTxInvoice && (
               <PaymentHistoryDialog
-                userId={user.id}
                 buyTxInvoice={buyTxInvoice}
                 totalAmount={buyTxTotalAmount ?? 0}
                 payedReceivedAmount={buyTxPayedAmount}
@@ -181,7 +180,6 @@ const InvoiceCard = ({ user, isBuyTx, buyTxInvoice, sellTxInvoice }: Props) => {
             {/* SellTx Payment History */}
             {!isBuyTx && sellTxInvoice && (
               <PaymentHistoryDialog
-                userId={user.id}
                 sellTxInvoice={sellTxInvoice}
                 totalAmount={sellTxTotalAmount ?? 0}
                 payedReceivedAmount={sellTxReceivedAmount}
