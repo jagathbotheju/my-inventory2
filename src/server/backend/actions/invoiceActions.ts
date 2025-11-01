@@ -43,6 +43,7 @@ export const addBuyTxInvoice = async ({
   userId: string;
   supplierId: string;
 }) => {
+  console.log("date", formData.date.toDateString());
   try {
     //handle invoice
     const existInvoice = await db
@@ -208,7 +209,6 @@ export const addBuyTxInvoice = async ({
     }
 
     //update Stock
-    console.log("formData product", formData.products);
     formData.products.map(async (item) => {
       db.select()
         .from(stocks)
