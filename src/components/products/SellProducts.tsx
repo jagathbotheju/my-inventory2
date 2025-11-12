@@ -138,7 +138,7 @@ const SellProducts = ({ userId }: Props) => {
       formData,
       userId,
       customerId: customer.id,
-      date: formData.date.toString(),
+      date: formData.date.toDateString(),
     });
   };
 

@@ -45,8 +45,6 @@ export const addBuyTxInvoice = async ({
   supplierId: string;
   date: string;
 }) => {
-  console.log("formData server", formData);
-  console.log("date server", formData.date.toDateString());
   try {
     //handle invoice
     const existInvoice = await db
@@ -442,7 +440,6 @@ export const addSellTxInvoice = async ({
     }
 
     //update Stock
-    console.log("formData product", formData.products);
     formData.products.map(async (item) => {
       console.log("updating stocks....", item.quantity);
       db.select()

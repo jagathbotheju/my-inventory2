@@ -71,7 +71,7 @@ export const useAddSellTxInvoice = () => {
     onError: (res) => {
       const err = res.message;
       toast.error(err);
-      toast.success("Could Sales Error");
+      toast.success("Product Sales Error");
     },
   });
 };
